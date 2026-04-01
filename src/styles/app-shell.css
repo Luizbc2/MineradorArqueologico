@@ -1,38 +1,3 @@
-:root {
-  color-scheme: dark;
-  font-family:
-    "Segoe UI", Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  background:
-    radial-gradient(circle at top, rgba(71, 109, 181, 0.24), transparent 32%),
-    linear-gradient(180deg, #0b1020 0%, #11182d 52%, #090d18 100%);
-  color: #f5f7ff;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-html,
-body {
-  min-height: 100%;
-  margin: 0;
-}
-
-body {
-  min-height: 100vh;
-}
-
-button,
-input,
-textarea,
-select {
-  font: inherit;
-}
-
-#app {
-  min-height: 100vh;
-}
-
 .app-shell {
   display: grid;
   place-items: center;
@@ -41,7 +6,7 @@ select {
 }
 
 .hero-card {
-  width: min(720px, 100%);
+  width: min(860px, 100%);
   padding: 32px;
   border: 1px solid rgba(153, 180, 255, 0.2);
   border-radius: 28px;
@@ -91,6 +56,35 @@ select {
   font-size: 0.95rem;
 }
 
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.info-card {
+  padding: 18px;
+  border: 1px solid rgba(153, 180, 255, 0.14);
+  border-radius: 20px;
+  background: rgba(16, 24, 46, 0.78);
+}
+
+.info-card strong {
+  display: block;
+  margin-bottom: 10px;
+  color: #cfe0ff;
+  font-size: 0.86rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.info-card p {
+  margin: 0;
+  color: rgba(235, 240, 255, 0.78);
+  line-height: 1.6;
+}
+
 @media (max-width: 640px) {
   .hero-card {
     padding: 24px;
@@ -98,7 +92,12 @@ select {
   }
 
   .description,
-  .status-list span {
+  .status-list span,
+  .info-card p {
     font-size: 0.95rem;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
   }
 }
