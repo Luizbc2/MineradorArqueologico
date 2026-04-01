@@ -1,0 +1,64 @@
+:root {
+  color-scheme: dark;
+
+  --font-display:
+    "Segoe UI", Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body:
+    "Segoe UI", Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --color-bg-base: #070b14;
+  --color-bg-deep: #0d1424;
+  --color-bg-elevated: #121d33;
+  --color-bg-panel: rgba(11, 18, 34, 0.8);
+  --color-bg-card: rgba(17, 28, 52, 0.78);
+  --color-bg-pill: rgba(102, 134, 214, 0.14);
+  --color-bg-grid: rgba(140, 176, 255, 0.08);
+
+  --color-border-soft: rgba(150, 179, 255, 0.16);
+  --color-border-strong: rgba(150, 179, 255, 0.26);
+
+  --color-text-main: #f5f7ff;
+  --color-text-soft: rgba(236, 241, 255, 0.82);
+  --color-text-muted: rgba(205, 219, 255, 0.66);
+  --color-text-accent: #a5c3ff;
+
+  --color-brand-1: #7fb6ff;
+  --color-brand-2: #58d7c4;
+  --color-brand-3: #ffd166;
+  --color-brand-4: #ff8a5b;
+
+  --gradient-page:
+    radial-gradient(circle at 16% 18%, rgba(82, 138, 255, 0.22), transparent 24%),
+    radial-gradient(circle at 84% 12%, rgba(88, 215, 196, 0.14), transparent 20%),
+    radial-gradient(circle at 50% 100%, rgba(255, 138, 91, 0.12), transparent 36%),
+    linear-gradient(180deg, #09111f 0%, #0d1628 48%, #060a14 100%);
+  --gradient-panel:
+    linear-gradient(180deg, rgba(18, 29, 52, 0.9) 0%, rgba(10, 16, 31, 0.88) 100%);
+  --gradient-shine:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+
+  --shadow-panel:
+    0 28px 90px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --shadow-card:
+    0 18px 38px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --shadow-glow:
+    0 0 0 1px rgba(127, 182, 255, 0.08),
+    0 0 40px rgba(79, 131, 255, 0.14);
+
+  --radius-sm: 14px;
+  --radius-md: 22px;
+  --radius-lg: 30px;
+  --radius-pill: 999px;
+
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  --content-max: 980px;
+}
