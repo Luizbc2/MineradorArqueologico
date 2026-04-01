@@ -12,6 +12,9 @@ type HomeScreenOptions = {
 export function createHomeScreen(options: HomeScreenOptions) {
   const main = document.createElement("main");
   main.className = "app-shell";
+  const screenLabel = options.state.screen === "home" ? "início" : options.state.screen;
+  const rendererLabel =
+    options.renderer.mode === "canvas-2d" ? "canvas 2D" : options.renderer.mode;
 
   const shell = document.createElement("section");
   shell.className = "game-shell";
@@ -21,35 +24,35 @@ export function createHomeScreen(options: HomeScreenOptions) {
       <div class="topbar-brand">
         <span class="brand-mark" aria-hidden="true"></span>
         <div>
-          <p class="topbar-label">Portfolio build</p>
+          <p class="topbar-label">Build de portfólio</p>
           <strong>${options.title}</strong>
         </div>
       </div>
 
       <div class="topbar-status" aria-label="Status da arquitetura">
-        <span>estado: ${options.state.screen}</span>
-        <span>render: ${options.renderer.mode}</span>
+        <span>estado: ${screenLabel}</span>
+        <span>renderização: ${rendererLabel}</span>
         <span>mundo: ${options.world.width} x ${options.world.depth}</span>
       </div>
     </header>
 
     <div class="shell-layout">
       <section class="hero-card">
-        <p class="eyebrow">Reconstrucao premium</p>
+        <p class="eyebrow">Reconstrução premium</p>
         <h1>${options.title}</h1>
         <p class="description">${options.subtitle}</p>
 
         <div class="hero-actions" aria-label="Direções do projeto">
-          <button class="hero-button hero-button--primary" type="button">Iniciar reconstrução</button>
-          <button class="hero-button hero-button--ghost" type="button">Ver arquitetura base</button>
+          <button class="hero-button hero-button--primary" type="button">Começar reconstrução</button>
+          <button class="hero-button hero-button--ghost" type="button">Explorar arquitetura</button>
         </div>
 
         <div class="status-list" aria-label="Pilares da reconstrução">
-          <span>canvas 2d</span>
-          <span>typescript</span>
-          <span>save local</span>
-          <span>feedback visual</span>
-          <span>portfolio ready</span>
+          <span>canvas 2D</span>
+          <span>TypeScript</span>
+          <span>salvamento local</span>
+          <span>resposta visual</span>
+          <span>pronto para portfólio</span>
         </div>
 
         <section class="playframe" aria-label="Prévia da área principal do jogo">
@@ -90,7 +93,7 @@ export function createHomeScreen(options: HomeScreenOptions) {
           <strong>Visão do jogo</strong>
           <p>
             Explorar, cavar, evoluir equipamentos e desbloquear descobertas arqueológicas
-            em uma experiência web mais polida e vendável.
+            em uma experiência web mais polida, funcional e apresentável em portfólio.
           </p>
         </article>
 
@@ -107,10 +110,10 @@ export function createHomeScreen(options: HomeScreenOptions) {
         <article class="info-card">
           <strong>Próximos ganhos</strong>
           <ul class="detail-list">
-            <li>shell visual com HUD real</li>
-            <li>copy em pt-BR revisada</li>
-            <li>fluxo de jogo mais legível</li>
-            <li>base pronta para canvas real</li>
+            <li>shell visual com HUD mais próxima do produto final</li>
+            <li>texto revisado em português do Brasil</li>
+            <li>fluxo de jogo mais legível desde a primeira tela</li>
+            <li>base pronta para ligar o canvas real nas próximas etapas</li>
           </ul>
         </article>
       </aside>
