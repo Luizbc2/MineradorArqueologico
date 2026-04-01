@@ -1,94 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <title>Minerador Arqueológico</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Jogo de mineração e arqueologia em pixel art" />
-  <!-- Fonte pixel (licença livre) -->
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css" />
-</head>
-<body>
-  <div id="game-root">
-    <header class="hud pixel-font">
-      <div class="hud-left">
-        <span>Profundidade: <span id="depth">0</span> m</span>
-        <span>| Energia: <span id="energy">100</span>%</span>
-        <div class="energy-bar" aria-label="Energia">
-          <div class="energy-fill" id="energy-fill"></div>
-          <div class="energy-gloss"></div>
-        </div>
-      </div>
-      <div class="hud-center">Minerador Arqueológico</div>
-      <div class="hud-right">
-        <span>Picareta: <span id="pickaxe-level">Lv 1</span></span>
-        <span class="inv-item" data-type="carvao"> carvão: <span id="inv-carvao">0</span></span>
-        <span class="inv-item" data-type="ferro"> ferro: <span id="inv-ferro">0</span></span>
-        <span class="inv-item" data-type="ouro"> ouro: <span id="inv-ouro">0</span></span>
-        <span class="inv-item" data-type="diamante"> diamante: <span id="inv-diamante">0</span></span>
-  <span class="inv-item" data-type="bau"><span class="chest-icon" aria-hidden="true"></span> baús: <span id="inv-bau">0</span></span>
-        <span class="inv-item" data-type="cards"> cards: <span id="cards-count">0/0</span></span>
-        <button id="btn-upgrade-open" class="btn-upgrades" title="Abrir upgrades">UPGRADES</button>
-        <button id="btn-surface" class="btn-surface" title="Voltar para a superfície">SUPERFÍCIE</button>
-      </div>
-    </header>
-
-    <main id="viewport-wrapper">
-      <canvas id="game" width="640" height="576" aria-label="Área do jogo"></canvas>
-      <div id="instructions" class="panel pixel-font">
-        <h1>Como Jogar</h1>
-        <ul>
-          <li><b>A / ←</b> mover para Esquerda</li>
-          <li><b>D / →</b> mover para Direita</li>
-          <li><b>S / ↓ / ESPAÇO</b> cavar bloco abaixo</li>
-          <li><b>ESPAÇO + A/D</b> cavar lateral (para o lado pressionado)</li>
-          <li><b>E</b> interagir / abrir Baú</li>
-          <li><b>U</b> abrir menu de upgrades (na superfície &lt;= 5 m)</li>
-          <li><b>Botão SUPERFÍCIE</b> teleporta você de volta (use se ficar preso)</li>
-          <li><b>ESC</b> fechar cartões / pausar</li>
-        </ul>
-        <p>Aprofunde-se para encontrar minérios. Quanto mais fundo, mais raros. Ao achar um <span class="ore-bau">Baú do Tesouro</span>, abra-o para receber um <b>Card de Arqueologia</b> com curiosidades reais sobre o estudo do passado humano.</p>
-        <button id="btn-start" class="btn">Iniciar</button>
-      </div>
-
-      <div id="arch-card" class="overlay hidden">
-        <div class="card pixel-font">
-          <button class="close" title="Fechar" aria-label="Fechar">×</button>
-          <h2>Card de Arqueologia</h2>
-          <p id="arch-text"></p>
-          <div class="tip">Pressione ESC ou clique em × para fechar</div>
-        </div>
-      </div>
-
-      <div id="pause" class="overlay hidden">
-        <div class="panel pixel-font small">
-          <h2>PAUSADO</h2>
-          <p>Pressione ESC para voltar.</p>
-        </div>
-      </div>
-
-      <div id="upgrade" class="overlay hidden">
-        <div class="panel pixel-font upgrade-panel">
-          <h2>UPGRADES DA PICARETA</h2>
-          <p>Nível atual: <span id="upg-current">1</span></p>
-          <p>Próximo nível melhora: velocidade de mineração (+25%) e eficiência de energia (+20%).</p>
-          <div id="upg-cost"></div>
-          <button id="btn-upgrade" class="btn">Evoluir</button>
-          <button id="btn-upgrade-close" class="btn" style="margin-top:8px;background:#444;">Fechar</button>
-          <p style="font-size:8px;opacity:.7;margin-top:10px;">Só pode evoluir na superfície (profundidade &lt;= 5). Custos escalam com o nível.</p>
-        </div>
-      </div>
-
-      <!-- Confete limitado ao canvas -->
-      <div id="confetti-global" aria-hidden="true"></div>
-    </main>
-
-    <footer class="footer pixel-font">
-      <span>Projeto demonstrativo em pixel art. Font: Press Start 2P (Google Fonts). Nenhum ativo oficial de jogos comerciais foi utilizado.</span>
-    </footer>
-  </div>
-
-  <script src="js/game.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Protótipo de reconstrução do jogo Minerador Arqueológico com stack moderna para portfólio."
+    />
+    <title>Minerador Arqueológico</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
 </html>
