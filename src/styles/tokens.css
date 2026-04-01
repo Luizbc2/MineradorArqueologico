@@ -26,6 +26,7 @@
   --color-brand-2: #58d7c4;
   --color-brand-3: #ffd166;
   --color-brand-4: #ff8a5b;
+  --color-brand-5: #d89cff;
 
   --gradient-page:
     radial-gradient(circle at 16% 18%, rgba(82, 138, 255, 0.22), transparent 24%),
@@ -59,6 +60,7 @@
   --space-6: 24px;
   --space-8: 32px;
   --space-10: 40px;
+  --space-12: 48px;
 
   --content-max: 980px;
 }

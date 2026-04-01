@@ -1,6 +1,6 @@
 export const gameConfig = {
   title: "Minerador Arqueologico",
-  subtitle: "Estrutura base modular para a reconstrução de portfolio.",
+  subtitle: "Um jogo de navegador com atmosfera de exploração, progressão e descoberta arqueológica.",
   viewport: {
     width: 1280,
     height: 720,
