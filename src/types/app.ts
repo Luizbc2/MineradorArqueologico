@@ -6,6 +6,19 @@ export type GameState = {
   buildLabel: string;
 };
 
+export type GameStateListener = (state: GameState) => void;
+
+export type GameStore = {
+  getState: () => GameState;
+  subscribe: (listener: GameStateListener) => () => void;
+  goHome: () => void;
+  startGame: () => void;
+  openCodex: () => void;
+  pauseGame: () => void;
+  resumeGame: () => void;
+  togglePause: () => void;
+};
+
 export type Player = {
   name: string;
   depth: number;

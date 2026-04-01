@@ -7,6 +7,10 @@ type HomeScreenOptions = {
   world: World;
   player: Player;
   renderer: Renderer;
+  actions: {
+    onStart: () => void;
+    onOpenCodex: () => void;
+  };
 };
 
 export function createHomeScreen(options: HomeScreenOptions) {
@@ -119,6 +123,11 @@ export function createHomeScreen(options: HomeScreenOptions) {
       </aside>
     </div>
   `;
+
+  const [startButton, codexButton] = shell.querySelectorAll<HTMLButtonElement>(".hero-button");
+
+  startButton?.addEventListener("click", options.actions.onStart);
+  codexButton?.addEventListener("click", options.actions.onOpenCodex);
 
   main.append(shell);
   return main;

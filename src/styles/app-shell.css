@@ -91,6 +91,10 @@
   margin-top: var(--space-6);
 }
 
+.shell-layout--single {
+  grid-template-columns: 1fr;
+}
+
 .hero-card {
   position: relative;
   padding: var(--space-8);
@@ -221,6 +225,11 @@
     linear-gradient(180deg, rgba(27, 40, 70, 0.88) 0%, rgba(12, 17, 31, 0.96) 42%, rgba(8, 10, 18, 1) 100%);
 }
 
+.playframe-canvas--active {
+  display: grid;
+  place-items: center;
+}
+
 .canvas-glow,
 .canvas-grid {
   position: absolute;
@@ -303,6 +312,29 @@
   top: 30%;
   color: var(--color-brand-4);
   background: linear-gradient(135deg, #ffd2be, var(--color-brand-4));
+}
+
+.session-banner {
+  position: relative;
+  z-index: 1;
+  width: min(420px, 100%);
+  padding: 22px;
+  border: 1px solid rgba(165, 195, 255, 0.2);
+  border-radius: 22px;
+  background: rgba(8, 14, 27, 0.84);
+  box-shadow: var(--shadow-card);
+  text-align: center;
+}
+
+.session-banner strong {
+  display: block;
+  font-size: 1.2rem;
+}
+
+.session-banner p {
+  margin: 10px 0 0;
+  color: var(--color-text-soft);
+  line-height: 1.6;
 }
 
 .side-panel {
