@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { PlayerMiner } from "../game/player/PlayerMiner";
 import { generateWorld } from "../game/world/generateWorld";
 import {
   PLAYER_SPAWN_TILE,
@@ -11,10 +12,16 @@ import {
   WORLD_WIDTH_PX,
 } from "../game/world/constants";
 import { tilePalette } from "../game/world/tilePalette";
-import type { WorldGrid } from "../game/world/types";
+import type { TileKind, WorldGrid } from "../game/world/types";
 
 export class MineScene extends Phaser.Scene {
   private worldGrid: WorldGrid = [];
+  private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
+  private moveKeys?: {
+    left: Phaser.Input.Keyboard.Key;
+    right: Phaser.Input.Keyboard.Key;
+  };
+  private player?: PlayerMiner;
 
   constructor() {
     super("mine");
@@ -29,13 +36,68 @@ export class MineScene extends Phaser.Scene {
     this.drawBackdrop();
     this.drawWorldGrid();
     this.drawDepthGuides();
-    this.drawSpawnMarker();
+    this.createPlayer();
 
-    const spawnX = PLAYER_SPAWN_TILE.x * TILE_SIZE + TILE_SIZE / 2;
-    const spawnY = PLAYER_SPAWN_TILE.y * TILE_SIZE + TILE_SIZE / 2;
+    if (this.player) {
+      this.cameras.main.startFollow(this.player.sprite, true, 0.14, 0.18);
+      this.cameras.main.setDeadzone(120, 90);
+      this.cameras.main.centerOn(this.player.sprite.x, this.player.sprite.y);
+    }
 
-    this.cameras.main.centerOn(spawnX, spawnY);
+    this.cursors = this.input.keyboard?.createCursorKeys();
+    this.moveKeys = this.input.keyboard?.addKeys({
+      left: Phaser.Input.Keyboard.KeyCodes.A,
+      right: Phaser.Input.Keyboard.KeyCodes.D,
+    }) as { left: Phaser.Input.Keyboard.Key; right: Phaser.Input.Keyboard.Key } | undefined;
+
+    this.hideLegacyViewport();
     this.game.events.emit("phaser:mine-ready");
+  }
+
+  update(_: number, delta: number) {
+    if (!this.player) {
+      return;
+    }
+
+    const deltaSeconds = delta / 1000;
+    this.player.update(deltaSeconds);
+
+    if (this.player.fallCooldown === 0 && this.canOccupy(this.player.position.x, this.player.position.y + 1)) {
+      this.player.snapToTile({
+        x: this.player.position.x,
+        y: this.player.position.y + 1,
+      });
+      this.player.fallCooldown = 0.08;
+      return;
+    }
+
+    if (this.player.moveCooldown > 0) {
+      return;
+    }
+
+    const leftPressed =
+      this.cursors?.left.isDown || this.moveKeys?.left.isDown;
+    const rightPressed =
+      this.cursors?.right.isDown || this.moveKeys?.right.isDown;
+
+    const nextDirection = leftPressed ? -1 : rightPressed ? 1 : 0;
+
+    if (nextDirection === 0) {
+      return;
+    }
+
+    const nextX = this.player.position.x + nextDirection;
+    const nextY = this.player.position.y;
+
+    if (!this.canOccupy(nextX, nextY)) {
+      this.player.facing = nextDirection;
+      this.player.moveCooldown = 0.08;
+      return;
+    }
+
+    this.player.facing = nextDirection;
+    this.player.snapToTile({ x: nextX, y: nextY });
+    this.player.moveCooldown = 0.11;
   }
 
   private drawBackdrop() {
@@ -108,21 +170,36 @@ export class MineScene extends Phaser.Scene {
     frame.setScrollFactor(0);
   }
 
-  private drawSpawnMarker() {
-    const markerX = PLAYER_SPAWN_TILE.x * TILE_SIZE + TILE_SIZE / 2;
-    const markerY = PLAYER_SPAWN_TILE.y * TILE_SIZE + TILE_SIZE / 2;
+  private createPlayer() {
+    this.player = new PlayerMiner(this, PLAYER_SPAWN_TILE);
+  }
 
-    const glow = this.add.circle(markerX, markerY, 18, 0x58d7c4, 0.2);
-    const marker = this.add.rectangle(markerX, markerY, 18, 24, 0xffd166, 0.95);
-    marker.setStrokeStyle(2, 0x3b2b0e, 0.8);
+  private canOccupy(tileX: number, tileY: number) {
+    if (tileX < 0 || tileY < 0 || tileY >= this.worldGrid.length) {
+      return false;
+    }
 
-    this.tweens.add({
-      targets: [glow, marker],
-      y: "-=4",
-      duration: 1200,
-      yoyo: true,
-      repeat: -1,
-      ease: "sine.inOut",
-    });
+    const tile = this.worldGrid[tileY]?.[tileX];
+    return tile ? this.isPassable(tile.kind) : false;
+  }
+
+  private isPassable(kind: TileKind) {
+    return kind === "empty";
+  }
+
+  private hideLegacyViewport() {
+    const legacyCanvas = document.getElementById("game");
+    const instructions = document.getElementById("instructions");
+    const archCard = document.getElementById("arch-card");
+    const pauseOverlay = document.getElementById("pause");
+    const upgradeOverlay = document.getElementById("upgrade");
+    const confetti = document.getElementById("confetti-global");
+
+    legacyCanvas?.setAttribute("hidden", "true");
+    instructions?.setAttribute("hidden", "true");
+    archCard?.setAttribute("hidden", "true");
+    pauseOverlay?.setAttribute("hidden", "true");
+    upgradeOverlay?.setAttribute("hidden", "true");
+    confetti?.setAttribute("hidden", "true");
   }
 }
