@@ -12,8 +12,6 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   create() {
-    // O loop principal entra nos proximos commits. Por enquanto deixamos
-    // o runtime Phaser validado e pronto para assumir o jogo aos poucos.
-    this.scene.pause();
+    this.scene.start("mine");
   }
 }
