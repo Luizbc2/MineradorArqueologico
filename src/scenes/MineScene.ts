@@ -1,11 +1,15 @@
 import Phaser from "phaser";
 import {
+  createArchaeologyDeck,
+} from "../game/archaeology/archaeologyCards";
+import {
   createResourceInventory,
   getResourceFromTile,
   getResourceLabel,
 } from "../game/inventory/resourceInventory";
 import { PlayerMiner } from "../game/player/PlayerMiner";
 import { MineHud } from "../ui/hud/MineHud";
+import { ArchaeologyCardOverlay } from "../ui/overlays/ArchaeologyCardOverlay";
 import { generateWorld } from "../game/world/generateWorld";
 import {
   PLAYER_SPAWN_TILE,
@@ -31,12 +35,14 @@ type MiningTarget = {
 
 export class MineScene extends Phaser.Scene {
   private worldGrid: WorldGrid = [];
+  private readonly archaeologyDeck = createArchaeologyDeck();
   private inventory: ResourceInventory = createResourceInventory();
   private energy = 100;
   private pickaxeLevel = 1;
   private groundLayer?: Phaser.GameObjects.Graphics;
   private effectLayer?: Phaser.GameObjects.Graphics;
   private hud?: MineHud;
+  private archaeologyOverlay?: ArchaeologyCardOverlay;
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   private moveKeys?: {
     left: Phaser.Input.Keyboard.Key;
@@ -46,6 +52,8 @@ export class MineScene extends Phaser.Scene {
     down: Phaser.Input.Keyboard.Key;
     dig: Phaser.Input.Keyboard.Key;
   };
+  private interactKey?: Phaser.Input.Keyboard.Key;
+  private escapeKey?: Phaser.Input.Keyboard.Key;
   private player?: PlayerMiner;
   private miningTarget?: MiningTarget;
 
@@ -64,6 +72,7 @@ export class MineScene extends Phaser.Scene {
     this.drawDepthGuides();
     this.createPlayer();
     this.createHud();
+    this.createArchaeologyOverlay();
 
     if (this.player) {
       this.cameras.main.startFollow(this.player.sprite, true, 0.14, 0.18);
@@ -80,6 +89,8 @@ export class MineScene extends Phaser.Scene {
       down: Phaser.Input.Keyboard.KeyCodes.S,
       dig: Phaser.Input.Keyboard.KeyCodes.SPACE,
     }) as { down: Phaser.Input.Keyboard.Key; dig: Phaser.Input.Keyboard.Key } | undefined;
+    this.interactKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.E);
+    this.escapeKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
 
     this.hideLegacyViewport();
     this.game.events.emit("phaser:mine-ready");
@@ -90,9 +101,22 @@ export class MineScene extends Phaser.Scene {
       return;
     }
 
+    if (this.archaeologyOverlay?.isVisible) {
+      if (Phaser.Input.Keyboard.JustDown(this.escapeKey!) || Phaser.Input.Keyboard.JustDown(this.interactKey!)) {
+        this.closeArchaeologyOverlay();
+      }
+      return;
+    }
+
     const deltaSeconds = delta / 1000;
     this.player.update(deltaSeconds);
     this.updateHud();
+
+    if (Phaser.Input.Keyboard.JustDown(this.interactKey!)) {
+      if (this.tryOpenNearbyChest()) {
+        return;
+      }
+    }
 
     if (this.handleMining(deltaSeconds)) {
       return;
@@ -219,6 +243,10 @@ export class MineScene extends Phaser.Scene {
   private createHud() {
     this.hud = new MineHud(this);
     this.updateHud();
+  }
+
+  private createArchaeologyOverlay() {
+    this.archaeologyOverlay = new ArchaeologyCardOverlay(this);
   }
 
   private handleMining(deltaSeconds: number) {
@@ -435,8 +463,54 @@ export class MineScene extends Phaser.Scene {
       depth: this.player.position.y,
       energy: this.energy,
       pickaxeLevel: this.pickaxeLevel,
+      cardsFound: this.archaeologyDeck.collectedCount,
+      cardsTotal: this.archaeologyDeck.totalCount,
       inventory: this.inventory,
     });
+  }
+
+  private tryOpenNearbyChest() {
+    if (!this.player) {
+      return false;
+    }
+
+    const candidates = [
+      { x: this.player.position.x, y: this.player.position.y + 1 },
+      { x: this.player.position.x + this.player.facing, y: this.player.position.y },
+      { x: this.player.position.x, y: this.player.position.y },
+      { x: this.player.position.x - 1, y: this.player.position.y },
+      { x: this.player.position.x + 1, y: this.player.position.y },
+    ];
+
+    for (const candidate of candidates) {
+      const tile = this.worldGrid[candidate.y]?.[candidate.x];
+
+      if (tile?.kind !== "chest") {
+        continue;
+      }
+
+      this.worldGrid[candidate.y][candidate.x] = { kind: "empty" };
+      this.drawWorldGrid();
+      this.openArchaeologyCard();
+      return true;
+    }
+
+    return false;
+  }
+
+  private openArchaeologyCard() {
+    const cardBody = this.archaeologyDeck.drawNextCard();
+    this.archaeologyOverlay?.show({
+      body: cardBody,
+      collectedCount: this.archaeologyDeck.collectedCount,
+      totalCount: this.archaeologyDeck.totalCount,
+      onClose: () => this.closeArchaeologyOverlay(),
+    });
+    this.updateHud();
+  }
+
+  private closeArchaeologyOverlay() {
+    this.archaeologyOverlay?.hide();
   }
 
   private hideLegacyViewport() {

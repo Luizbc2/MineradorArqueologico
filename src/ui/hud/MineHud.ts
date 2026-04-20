@@ -5,6 +5,8 @@ type HudSnapshot = {
   depth: number;
   energy: number;
   pickaxeLevel: number;
+  cardsFound: number;
+  cardsTotal: number;
   inventory: ResourceInventory;
 };
 
@@ -13,6 +15,7 @@ export class MineHud {
   private readonly depthText: Phaser.GameObjects.Text;
   private readonly energyText: Phaser.GameObjects.Text;
   private readonly pickaxeText: Phaser.GameObjects.Text;
+  private readonly cardsText: Phaser.GameObjects.Text;
   private readonly inventoryText: Phaser.GameObjects.Text;
 
   constructor(scene: Phaser.Scene) {
@@ -53,10 +56,18 @@ export class MineHud {
       strokeThickness: 3,
     });
 
-    this.inventoryText = scene.add.text(28, 72, "", {
-      color: "#cfd9e2",
+    this.cardsText = scene.add.text(28, 72, "", {
+      color: "#d9e4f2",
       fontFamily: "monospace",
       fontSize: "15px",
+      stroke: "#091018",
+      strokeThickness: 3,
+    });
+
+    this.inventoryText = scene.add.text(28, 92, "", {
+      color: "#cfd9e2",
+      fontFamily: "monospace",
+      fontSize: "14px",
       stroke: "#091018",
       strokeThickness: 3,
     });
@@ -67,6 +78,7 @@ export class MineHud {
       this.depthText,
       this.energyText,
       this.pickaxeText,
+      this.cardsText,
       this.inventoryText,
     ]);
 
@@ -78,6 +90,7 @@ export class MineHud {
     this.depthText.setText(`Prof.: ${snapshot.depth}m`);
     this.energyText.setText(`Energia ${snapshot.energy}%`);
     this.pickaxeText.setText(`Picareta Lv ${snapshot.pickaxeLevel}`);
+    this.cardsText.setText(`Cards ${snapshot.cardsFound}/${snapshot.cardsTotal}`);
     this.inventoryText.setText(
       `Carvao ${snapshot.inventory.coal}  Ferro ${snapshot.inventory.iron}  Ouro ${snapshot.inventory.gold}  Diamante ${snapshot.inventory.diamond}`,
     );
