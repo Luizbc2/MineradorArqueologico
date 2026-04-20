@@ -1,13 +1,69 @@
 import type { TileKind } from "./types";
 
-export const tilePalette: Record<TileKind, number> = {
-  empty: 0x000000,
-  dirt: 0x8b623d,
-  stone: 0x6d7585,
-  coal: 0x252a30,
-  iron: 0xb8865d,
-  gold: 0xd4a63c,
-  diamond: 0x55d3dc,
-  chest: 0xb4782b,
-  bedrock: 0x2d3035,
+export type TileMaterial = {
+  base: number;
+  top: number;
+  edge: number;
+  detail: number;
+  glow?: number;
+};
+
+export const tilePalette: Record<TileKind, TileMaterial> = {
+  empty: {
+    base: 0x000000,
+    top: 0x000000,
+    edge: 0x000000,
+    detail: 0x000000,
+  },
+  dirt: {
+    base: 0x734726,
+    top: 0xa96d3e,
+    edge: 0x442716,
+    detail: 0xc8915d,
+  },
+  stone: {
+    base: 0x596270,
+    top: 0x8b96a7,
+    edge: 0x303847,
+    detail: 0xcfd8e6,
+  },
+  coal: {
+    base: 0x252c35,
+    top: 0x48515d,
+    edge: 0x13171d,
+    detail: 0xaab4c4,
+  },
+  iron: {
+    base: 0x9d6d4d,
+    top: 0xd4a57b,
+    edge: 0x603c2a,
+    detail: 0xf3d8bb,
+  },
+  gold: {
+    base: 0xc9911d,
+    top: 0xffdc74,
+    edge: 0x7e5810,
+    detail: 0xfff3c2,
+    glow: 0xffcf52,
+  },
+  diamond: {
+    base: 0x3db9d3,
+    top: 0xaaf3ff,
+    edge: 0x16606d,
+    detail: 0xe5fcff,
+    glow: 0x7ceeff,
+  },
+  chest: {
+    base: 0x92541e,
+    top: 0xc78435,
+    edge: 0x502b0d,
+    detail: 0xffe08a,
+    glow: 0xffd67a,
+  },
+  bedrock: {
+    base: 0x24292f,
+    top: 0x444b54,
+    edge: 0x0f1317,
+    detail: 0x8f98a1,
+  },
 };

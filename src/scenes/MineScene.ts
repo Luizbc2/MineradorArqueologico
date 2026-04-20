@@ -224,21 +224,81 @@ export class MineScene extends Phaser.Scene {
 
         const depthTint =
           y < SURFACE_ROW ? 0.08 : Math.min(0.92, 0.3 + y / WORLD_HEIGHT_TILES / 1.8);
-
-        ground.fillStyle(tilePalette[tile.kind], depthTint);
-        ground.fillRect(tileX, tileY, TILE_SIZE - 1, TILE_SIZE - 1);
-
-        if (tile.kind === "gold" || tile.kind === "diamond") {
-          ground.fillStyle(0xffffff, 0.18);
-          ground.fillRect(tileX + 6, tileY + 6, 4, 4);
-        }
-
-        if (tile.kind === "chest") {
-          ground.fillStyle(0xffe08a, 0.22);
-          ground.fillRect(tileX + 8, tileY + 8, TILE_SIZE - 16, TILE_SIZE - 16);
-        }
+        this.drawTileMaterial(ground, tile.kind, tileX, tileY, x, y, depthTint);
       }
     }
+  }
+
+  private drawTileMaterial(
+    ground: Phaser.GameObjects.Graphics,
+    kind: TileKind,
+    tileX: number,
+    tileY: number,
+    gridX: number,
+    gridY: number,
+    depthTint: number,
+  ) {
+    const material = tilePalette[kind];
+    const variant = this.sampleTileVariant(gridX, gridY);
+    const inset = kind === "chest" ? 2 : 1;
+    const width = TILE_SIZE - inset * 2;
+
+    ground.fillStyle(material.base, depthTint);
+    ground.fillRoundedRect(tileX + inset, tileY + inset, width, width, 5);
+
+    ground.fillStyle(material.top, depthTint * 0.92);
+    ground.fillRect(tileX + inset + 1, tileY + inset + 1, width - 2, 5);
+
+    ground.fillStyle(material.edge, depthTint * 0.9);
+    ground.fillRect(tileX + inset, tileY + TILE_SIZE - 7, width, 5);
+    ground.fillRect(tileX + TILE_SIZE - 7, tileY + inset + 3, 4, width - 7);
+
+    ground.lineStyle(1, material.edge, 0.45);
+    ground.strokeRoundedRect(tileX + inset, tileY + inset, width, width, 5);
+
+    if (kind === "dirt" || kind === "stone" || kind === "bedrock") {
+      for (let dot = 0; dot < 5; dot += 1) {
+        const px = tileX + 5 + ((variant + dot * 7) % 20);
+        const py = tileY + 6 + ((variant * 3 + dot * 5) % 18);
+        ground.fillStyle(material.detail, 0.12 + dot * 0.03);
+        ground.fillRect(px, py, dot % 2 === 0 ? 2 : 1, 1);
+      }
+    }
+
+    if (kind === "coal" || kind === "iron" || kind === "gold" || kind === "diamond") {
+      for (let cluster = 0; cluster < 4; cluster += 1) {
+        const px = tileX + 6 + ((variant + cluster * 5) % 16);
+        const py = tileY + 7 + ((variant * 2 + cluster * 7) % 14);
+        ground.fillStyle(material.detail, 0.85);
+        ground.fillRect(px, py, 3, 2);
+        ground.fillStyle(material.top, 0.4);
+        ground.fillRect(px + 1, py, 1, 1);
+      }
+    }
+
+    if (kind === "gold" || kind === "diamond") {
+      ground.fillStyle(material.glow ?? material.detail, 0.12 + ((variant % 5) * 0.02));
+      ground.fillCircle(tileX + 16, tileY + 16, 10);
+      ground.fillStyle(0xffffff, 0.18);
+      ground.fillRect(tileX + 8, tileY + 8, 3, 3);
+    }
+
+    if (kind === "chest") {
+      ground.fillStyle(material.top, 1);
+      ground.fillRoundedRect(tileX + 4, tileY + 6, 24, 16, 4);
+      ground.fillStyle(material.edge, 1);
+      ground.fillRect(tileX + 4, tileY + 14, 24, 3);
+      ground.fillRect(tileX + 14, tileY + 8, 4, 12);
+      ground.fillStyle(material.detail, 1);
+      ground.fillRect(tileX + 14, tileY + 14, 4, 4);
+      ground.fillStyle(material.glow ?? material.detail, 0.16);
+      ground.fillCircle(tileX + 16, tileY + 16, 11);
+    }
+  }
+
+  private sampleTileVariant(gridX: number, gridY: number) {
+    const hash = Math.imul(gridX + 17, 374761393) ^ Math.imul(gridY + 23, 668265263);
+    return (hash ^ (hash >>> 13)) >>> 0;
   }
 
   private drawDepthGuides() {
