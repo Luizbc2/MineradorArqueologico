@@ -47,7 +47,10 @@ export class MineScene extends Phaser.Scene {
   private energy = 100;
   private pickaxeLevel = 1;
   private groundLayer?: Phaser.GameObjects.Graphics;
+  private atmosphereLayer?: Phaser.GameObjects.Graphics;
   private effectLayer?: Phaser.GameObjects.Graphics;
+  private darknessLayer?: Phaser.GameObjects.Graphics;
+  private lightLayer?: Phaser.GameObjects.Graphics;
   private screenFlash?: Phaser.GameObjects.Rectangle;
   private hud?: MineHud;
   private archaeologyOverlay?: ArchaeologyCardOverlay;
@@ -79,6 +82,7 @@ export class MineScene extends Phaser.Scene {
 
     this.drawBackdrop();
     this.drawWorldGrid();
+    this.drawAtmosphere();
     this.drawDepthGuides();
     this.createPlayer();
     this.createScreenFlash();
@@ -208,6 +212,7 @@ export class MineScene extends Phaser.Scene {
     this.player.setMining(Boolean(state?.mining));
     this.player.setFalling(Boolean(state?.falling));
     this.player.update(deltaSeconds);
+    this.updateLighting();
     this.updateHud();
   }
 
@@ -255,6 +260,57 @@ export class MineScene extends Phaser.Scene {
         this.drawTileMaterial(ground, tile.kind, tileX, tileY, x, y, depthTint);
       }
     }
+  }
+
+  private drawAtmosphere() {
+    if (!this.atmosphereLayer) {
+      this.atmosphereLayer = this.add.graphics();
+    }
+
+    this.atmosphereLayer.clear();
+    const layer = this.atmosphereLayer;
+
+    for (let row = SURFACE_ROW + 6; row < WORLD_HEIGHT_TILES; row += 12) {
+      const y = row * TILE_SIZE + 16;
+      const ratio = row / WORLD_HEIGHT_TILES;
+
+      layer.fillStyle(gameTheme.colors.caveGlow, 0.03 + ratio * 0.04);
+      layer.fillEllipse(104, y, 220, 96);
+      layer.fillEllipse(WORLD_WIDTH_PX - 104, y + 18, 240, 108);
+
+      if (row % 24 === 0) {
+        layer.fillStyle(gameTheme.colors.ember, 0.02 + ratio * 0.03);
+        layer.fillEllipse(WORLD_WIDTH_PX / 2, y + 26, 180, 72);
+      }
+    }
+
+    for (let index = 0; index < 16; index += 1) {
+      const x = 48 + ((index * 41) % (WORLD_WIDTH_PX - 96));
+      const y = SURFACE_ROW * TILE_SIZE + 80 + ((index * 137) % (WORLD_HEIGHT_PX - SURFACE_ROW * TILE_SIZE - 140));
+      const mote = this.add.circle(x, y, 2 + (index % 3), gameTheme.colors.accentCool, 0.08 + (index % 4) * 0.02);
+
+      mote.setBlendMode(Phaser.BlendModes.ADD);
+
+      this.tweens.add({
+        targets: mote,
+        x: x + Phaser.Math.Between(-24, 24),
+        y: y + Phaser.Math.Between(-54, 36),
+        alpha: 0.02,
+        duration: 2400 + index * 220,
+        yoyo: true,
+        repeat: -1,
+        ease: "sine.inOut",
+      });
+    }
+
+    this.darknessLayer = this.add.graphics();
+    this.darknessLayer.setScrollFactor(0);
+    this.darknessLayer.setDepth(900);
+
+    this.lightLayer = this.add.graphics();
+    this.lightLayer.setScrollFactor(0);
+    this.lightLayer.setDepth(910);
+    this.lightLayer.setBlendMode(Phaser.BlendModes.ADD);
   }
 
   private drawTileMaterial(
@@ -730,6 +786,93 @@ export class MineScene extends Phaser.Scene {
       duration,
       ease: "quad.out",
     });
+  }
+
+  private updateLighting() {
+    if (!this.player || !this.darknessLayer || !this.lightLayer) {
+      return;
+    }
+
+    const camera = this.cameras.main;
+    const viewport = camera.worldView;
+    const playerX = this.player.sprite.x - viewport.x;
+    const playerY = this.player.sprite.y - viewport.y;
+    const depthRatio = Phaser.Math.Clamp(this.player.position.y / WORLD_HEIGHT_TILES, 0, 1);
+    const darknessAlpha = 0.12 + depthRatio * 0.4;
+    const lampX = playerX + this.player.facing * 8;
+    const lampY = playerY - 12;
+    const outerRadius = 82 - depthRatio * 8;
+    const coneWidth = 146 - depthRatio * 18;
+
+    this.darknessLayer.clear();
+    this.darknessLayer.fillStyle(0x02050a, darknessAlpha);
+    this.darknessLayer.fillRect(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
+    this.darknessLayer.fillStyle(0x08111b, 0.14 + depthRatio * 0.12);
+    this.darknessLayer.fillEllipse(VIEWPORT_WIDTH / 2, VIEWPORT_HEIGHT / 2, VIEWPORT_WIDTH + 120, VIEWPORT_HEIGHT + 90);
+    this.darknessLayer.fillStyle(0x02050a, 0.18 + depthRatio * 0.08);
+    this.darknessLayer.fillRect(0, 0, VIEWPORT_WIDTH, 38);
+    this.darknessLayer.fillRect(0, VIEWPORT_HEIGHT - 44, VIEWPORT_WIDTH, 44);
+
+    this.lightLayer.clear();
+    this.lightLayer.fillStyle(gameTheme.colors.accentCool, 0.12 + depthRatio * 0.03);
+    this.lightLayer.fillCircle(lampX, lampY, outerRadius + 28);
+    this.lightLayer.fillStyle(gameTheme.colors.accentSoft, 0.11);
+    this.lightLayer.fillCircle(lampX, lampY, outerRadius);
+    this.lightLayer.fillStyle(0xffffff, 0.12);
+    this.lightLayer.fillCircle(lampX, lampY, 24);
+    this.lightLayer.fillStyle(gameTheme.colors.warning, 0.07 + depthRatio * 0.02);
+    this.lightLayer.fillEllipse(
+      lampX + this.player.facing * (36 + depthRatio * 8),
+      lampY + 4,
+      coneWidth,
+      82 - depthRatio * 10,
+    );
+
+    if (this.miningTarget) {
+      const miningX = this.miningTarget.x * TILE_SIZE + TILE_SIZE / 2 - viewport.x;
+      const miningY = this.miningTarget.y * TILE_SIZE + TILE_SIZE / 2 - viewport.y;
+      const pulse = 0.08 + Math.sin(this.time.now / 80) * 0.025;
+
+      this.lightLayer.fillStyle(gameTheme.colors.accent, pulse);
+      this.lightLayer.fillCircle(miningX, miningY, 22);
+    }
+
+    this.drawVisibleOreGlows(viewport);
+  }
+
+  private drawVisibleOreGlows(viewport: Phaser.Geom.Rectangle) {
+    if (!this.lightLayer) {
+      return;
+    }
+
+    const startX = Math.max(0, Math.floor(viewport.x / TILE_SIZE) - 1);
+    const endX = Math.min(this.worldGrid[0].length - 1, Math.ceil((viewport.x + viewport.width) / TILE_SIZE) + 1);
+    const startY = Math.max(0, Math.floor(viewport.y / TILE_SIZE) - 1);
+    const endY = Math.min(this.worldGrid.length - 1, Math.ceil((viewport.y + viewport.height) / TILE_SIZE) + 1);
+
+    for (let y = startY; y <= endY; y += 1) {
+      for (let x = startX; x <= endX; x += 1) {
+        const tile = this.worldGrid[y]?.[x];
+
+        if (!tile || tile.kind === "empty") {
+          continue;
+        }
+
+        const material = tilePalette[tile.kind];
+
+        if (!material.glow) {
+          continue;
+        }
+
+        const screenX = x * TILE_SIZE + TILE_SIZE / 2 - viewport.x;
+        const screenY = y * TILE_SIZE + TILE_SIZE / 2 - viewport.y;
+        const shimmer = 0.04 + ((x + y) % 3) * 0.015 + Math.sin((this.time.now + x * 37 + y * 61) / 280) * 0.012;
+        const radius = tile.kind === "chest" ? 18 : tile.kind === "diamond" ? 16 : 14;
+
+        this.lightLayer.fillStyle(material.glow, shimmer);
+        this.lightLayer.fillCircle(screenX, screenY, radius);
+      }
+    }
   }
 
   private canOccupy(tileX: number, tileY: number) {
