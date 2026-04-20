@@ -1,4 +1,9 @@
 import Phaser from "phaser";
+import {
+  createResourceInventory,
+  getResourceFromTile,
+  getResourceLabel,
+} from "../game/inventory/resourceInventory";
 import { PlayerMiner } from "../game/player/PlayerMiner";
 import { generateWorld } from "../game/world/generateWorld";
 import {
@@ -14,6 +19,7 @@ import {
 import { tilePalette } from "../game/world/tilePalette";
 import { tileDefinitions } from "../game/world/tileDefinitions";
 import type { TileKind, WorldGrid } from "../game/world/types";
+import type { ResourceInventory, ResourceKind } from "../game/inventory/resourceInventory";
 
 type MiningTarget = {
   x: number;
@@ -24,6 +30,7 @@ type MiningTarget = {
 
 export class MineScene extends Phaser.Scene {
   private worldGrid: WorldGrid = [];
+  private inventory: ResourceInventory = createResourceInventory();
   private groundLayer?: Phaser.GameObjects.Graphics;
   private effectLayer?: Phaser.GameObjects.Graphics;
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -251,8 +258,10 @@ export class MineScene extends Phaser.Scene {
     this.player.moveCooldown = 0.05;
 
     if (this.miningTarget.progress >= this.miningTarget.required) {
+      const brokenKind = this.worldGrid[target.y][target.x].kind;
       this.worldGrid[target.y][target.x] = { kind: "empty" };
       this.drawWorldGrid();
+      this.collectTileDrop(brokenKind, target.x, target.y);
       this.clearMiningTarget();
       this.player.moveCooldown = 0.08;
       return true;
@@ -332,6 +341,59 @@ export class MineScene extends Phaser.Scene {
   private clearMiningTarget() {
     this.miningTarget = undefined;
     this.effectLayer?.clear();
+  }
+
+  private collectTileDrop(kind: TileKind, tileX: number, tileY: number) {
+    const resource = getResourceFromTile(kind);
+
+    if (!resource) {
+      return;
+    }
+
+    this.inventory[resource] += 1;
+    this.game.events.emit("inventory:changed", { ...this.inventory });
+    this.spawnPickupFeedback(resource, tileX, tileY, this.inventory[resource]);
+  }
+
+  private spawnPickupFeedback(resource: ResourceKind, tileX: number, tileY: number, total: number) {
+    const worldX = tileX * TILE_SIZE + TILE_SIZE / 2;
+    const worldY = tileY * TILE_SIZE + TILE_SIZE / 2;
+    const color = resource === "diamond" ? "#b8f7fa" : resource === "gold" ? "#ffe28a" : resource === "iron" ? "#f4c69a" : "#cfd9e2";
+
+    const text = this.add.text(worldX, worldY - 10, `+1 ${getResourceLabel(resource)}`, {
+      color,
+      fontFamily: "monospace",
+      fontSize: "18px",
+      stroke: "#091018",
+      strokeThickness: 4,
+    });
+    text.setOrigin(0.5);
+
+    const badge = this.add.text(worldX, worldY + 12, `total ${total}`, {
+      color: "#d9e4f2",
+      fontFamily: "monospace",
+      fontSize: "13px",
+      stroke: "#091018",
+      strokeThickness: 3,
+    });
+    badge.setOrigin(0.5);
+    badge.setAlpha(0.88);
+
+    const burst = this.add.circle(worldX, worldY, 8, Phaser.Display.Color.HexStringToColor(color).color, 0.32);
+
+    this.tweens.add({
+      targets: [text, badge, burst],
+      y: "-=26",
+      alpha: 0,
+      scale: { from: 1, to: 1.18 },
+      duration: 600,
+      ease: "cubic.out",
+      onComplete: () => {
+        text.destroy();
+        badge.destroy();
+        burst.destroy();
+      },
+    });
   }
 
   private canOccupy(tileX: number, tileY: number) {
