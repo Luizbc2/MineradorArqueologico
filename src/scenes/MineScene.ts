@@ -3,6 +3,10 @@ import {
   createArchaeologyDeck,
 } from "../game/archaeology/archaeologyCards";
 import {
+  canAffordPickaxeUpgrade,
+  getPickaxeUpgradeCost,
+} from "../game/progression/pickaxeUpgrade";
+import {
   createResourceInventory,
   getResourceFromTile,
   getResourceLabel,
@@ -10,6 +14,7 @@ import {
 import { PlayerMiner } from "../game/player/PlayerMiner";
 import { MineHud } from "../ui/hud/MineHud";
 import { ArchaeologyCardOverlay } from "../ui/overlays/ArchaeologyCardOverlay";
+import { UpgradeOverlay } from "../ui/overlays/UpgradeOverlay";
 import { generateWorld } from "../game/world/generateWorld";
 import {
   PLAYER_SPAWN_TILE,
@@ -43,6 +48,7 @@ export class MineScene extends Phaser.Scene {
   private effectLayer?: Phaser.GameObjects.Graphics;
   private hud?: MineHud;
   private archaeologyOverlay?: ArchaeologyCardOverlay;
+  private upgradeOverlay?: UpgradeOverlay;
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   private moveKeys?: {
     left: Phaser.Input.Keyboard.Key;
@@ -54,6 +60,7 @@ export class MineScene extends Phaser.Scene {
   };
   private interactKey?: Phaser.Input.Keyboard.Key;
   private escapeKey?: Phaser.Input.Keyboard.Key;
+  private upgradeKey?: Phaser.Input.Keyboard.Key;
   private player?: PlayerMiner;
   private miningTarget?: MiningTarget;
 
@@ -73,6 +80,7 @@ export class MineScene extends Phaser.Scene {
     this.createPlayer();
     this.createHud();
     this.createArchaeologyOverlay();
+    this.createUpgradeOverlay();
 
     if (this.player) {
       this.cameras.main.startFollow(this.player.sprite, true, 0.14, 0.18);
@@ -91,6 +99,7 @@ export class MineScene extends Phaser.Scene {
     }) as { down: Phaser.Input.Keyboard.Key; dig: Phaser.Input.Keyboard.Key } | undefined;
     this.interactKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.E);
     this.escapeKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
+    this.upgradeKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.U);
 
     this.hideLegacyViewport();
     this.game.events.emit("phaser:mine-ready");
@@ -108,9 +117,21 @@ export class MineScene extends Phaser.Scene {
       return;
     }
 
+    if (this.upgradeOverlay?.isVisible) {
+      if (Phaser.Input.Keyboard.JustDown(this.escapeKey!) || Phaser.Input.Keyboard.JustDown(this.upgradeKey!)) {
+        this.closeUpgradeOverlay();
+      }
+      return;
+    }
+
     const deltaSeconds = delta / 1000;
     this.player.update(deltaSeconds);
     this.updateHud();
+
+    if (Phaser.Input.Keyboard.JustDown(this.upgradeKey!)) {
+      this.toggleUpgradeOverlay();
+      return;
+    }
 
     if (Phaser.Input.Keyboard.JustDown(this.interactKey!)) {
       if (this.tryOpenNearbyChest()) {
@@ -249,6 +270,10 @@ export class MineScene extends Phaser.Scene {
     this.archaeologyOverlay = new ArchaeologyCardOverlay(this);
   }
 
+  private createUpgradeOverlay() {
+    this.upgradeOverlay = new UpgradeOverlay(this);
+  }
+
   private handleMining(deltaSeconds: number) {
     if (!this.player) {
       return false;
@@ -278,7 +303,9 @@ export class MineScene extends Phaser.Scene {
       return false;
     }
 
-    const required = tileDefinitions[tile.kind].hardness * 0.35;
+    const required =
+      (tileDefinitions[tile.kind].hardness * 0.35) /
+      (1 + (this.pickaxeLevel - 1) * 0.25);
 
     if (
       !this.miningTarget ||
@@ -511,6 +538,50 @@ export class MineScene extends Phaser.Scene {
 
   private closeArchaeologyOverlay() {
     this.archaeologyOverlay?.hide();
+  }
+
+  private toggleUpgradeOverlay() {
+    if (this.upgradeOverlay?.isVisible) {
+      this.closeUpgradeOverlay();
+      return;
+    }
+
+    if (!this.player || this.player.position.y > 5) {
+      return;
+    }
+
+    const nextLevel = this.pickaxeLevel + 1;
+    const cost = getPickaxeUpgradeCost(nextLevel);
+    const canUpgrade = canAffordPickaxeUpgrade(this.inventory, cost);
+
+    this.upgradeOverlay?.show({
+      level: this.pickaxeLevel,
+      cost,
+      canUpgrade,
+      onUpgrade: () => this.applyPickaxeUpgrade(),
+      onClose: () => this.closeUpgradeOverlay(),
+    });
+  }
+
+  private applyPickaxeUpgrade() {
+    const nextLevel = this.pickaxeLevel + 1;
+    const cost = getPickaxeUpgradeCost(nextLevel);
+
+    if (!canAffordPickaxeUpgrade(this.inventory, cost)) {
+      this.toggleUpgradeOverlay();
+      return;
+    }
+
+    this.inventory.iron -= cost.iron;
+    this.inventory.gold -= cost.gold;
+    this.inventory.diamond -= cost.diamond;
+    this.pickaxeLevel = nextLevel;
+    this.updateHud();
+    this.toggleUpgradeOverlay();
+  }
+
+  private closeUpgradeOverlay() {
+    this.upgradeOverlay?.hide();
   }
 
   private hideLegacyViewport() {
