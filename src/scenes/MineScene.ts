@@ -5,6 +5,7 @@ import {
   getResourceLabel,
 } from "../game/inventory/resourceInventory";
 import { PlayerMiner } from "../game/player/PlayerMiner";
+import { MineHud } from "../ui/hud/MineHud";
 import { generateWorld } from "../game/world/generateWorld";
 import {
   PLAYER_SPAWN_TILE,
@@ -31,8 +32,11 @@ type MiningTarget = {
 export class MineScene extends Phaser.Scene {
   private worldGrid: WorldGrid = [];
   private inventory: ResourceInventory = createResourceInventory();
+  private energy = 100;
+  private pickaxeLevel = 1;
   private groundLayer?: Phaser.GameObjects.Graphics;
   private effectLayer?: Phaser.GameObjects.Graphics;
+  private hud?: MineHud;
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   private moveKeys?: {
     left: Phaser.Input.Keyboard.Key;
@@ -59,6 +63,7 @@ export class MineScene extends Phaser.Scene {
     this.drawWorldGrid();
     this.drawDepthGuides();
     this.createPlayer();
+    this.createHud();
 
     if (this.player) {
       this.cameras.main.startFollow(this.player.sprite, true, 0.14, 0.18);
@@ -87,6 +92,7 @@ export class MineScene extends Phaser.Scene {
 
     const deltaSeconds = delta / 1000;
     this.player.update(deltaSeconds);
+    this.updateHud();
 
     if (this.handleMining(deltaSeconds)) {
       return;
@@ -208,6 +214,11 @@ export class MineScene extends Phaser.Scene {
 
   private createPlayer() {
     this.player = new PlayerMiner(this, PLAYER_SPAWN_TILE);
+  }
+
+  private createHud() {
+    this.hud = new MineHud(this);
+    this.updateHud();
   }
 
   private handleMining(deltaSeconds: number) {
@@ -347,11 +358,13 @@ export class MineScene extends Phaser.Scene {
     const resource = getResourceFromTile(kind);
 
     if (!resource) {
+      this.updateHud();
       return;
     }
 
     this.inventory[resource] += 1;
     this.game.events.emit("inventory:changed", { ...this.inventory });
+    this.updateHud();
     this.spawnPickupFeedback(resource, tileX, tileY, this.inventory[resource]);
   }
 
@@ -413,19 +426,36 @@ export class MineScene extends Phaser.Scene {
     return tileDefinitions[kind].breakable;
   }
 
+  private updateHud() {
+    if (!this.player || !this.hud) {
+      return;
+    }
+
+    this.hud.update({
+      depth: this.player.position.y,
+      energy: this.energy,
+      pickaxeLevel: this.pickaxeLevel,
+      inventory: this.inventory,
+    });
+  }
+
   private hideLegacyViewport() {
+    const legacyHud = document.querySelector(".hud");
     const legacyCanvas = document.getElementById("game");
     const instructions = document.getElementById("instructions");
     const archCard = document.getElementById("arch-card");
     const pauseOverlay = document.getElementById("pause");
     const upgradeOverlay = document.getElementById("upgrade");
     const confetti = document.getElementById("confetti-global");
+    const legacyFooter = document.querySelector(".footer");
 
+    legacyHud?.setAttribute("hidden", "true");
     legacyCanvas?.setAttribute("hidden", "true");
     instructions?.setAttribute("hidden", "true");
     archCard?.setAttribute("hidden", "true");
     pauseOverlay?.setAttribute("hidden", "true");
     upgradeOverlay?.setAttribute("hidden", "true");
     confetti?.setAttribute("hidden", "true");
+    legacyFooter?.setAttribute("hidden", "true");
   }
 }
