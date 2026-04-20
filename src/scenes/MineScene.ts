@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { generateWorld } from "../game/world/generateWorld";
 import {
   PLAYER_SPAWN_TILE,
   SURFACE_ROW,
@@ -8,21 +9,25 @@ import {
   WORLD_HEIGHT_PX,
   WORLD_HEIGHT_TILES,
   WORLD_WIDTH_PX,
-  WORLD_WIDTH_TILES,
 } from "../game/world/constants";
+import { tilePalette } from "../game/world/tilePalette";
+import type { WorldGrid } from "../game/world/types";
 
 export class MineScene extends Phaser.Scene {
+  private worldGrid: WorldGrid = [];
+
   constructor() {
     super("mine");
   }
 
   create() {
+    this.worldGrid = generateWorld();
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH_PX, WORLD_HEIGHT_PX);
     this.physics.world.setBounds(0, 0, WORLD_WIDTH_PX, WORLD_HEIGHT_PX);
     this.cameras.main.setBackgroundColor("#06080f");
 
     this.drawBackdrop();
-    this.drawSurfaceLayer();
+    this.drawWorldGrid();
     this.drawDepthGuides();
     this.drawSpawnMarker();
 
@@ -43,25 +48,34 @@ export class MineScene extends Phaser.Scene {
     background.fillRect(0, 0, WORLD_WIDTH_PX, SURFACE_ROW * TILE_SIZE);
   }
 
-  private drawSurfaceLayer() {
+  private drawWorldGrid() {
     const ground = this.add.graphics();
 
     for (let y = 0; y < WORLD_HEIGHT_TILES; y += 1) {
-      for (let x = 0; x < WORLD_WIDTH_TILES; x += 1) {
+      for (let x = 0; x < this.worldGrid[y].length; x += 1) {
         const tileX = x * TILE_SIZE;
         const tileY = y * TILE_SIZE;
+        const tile = this.worldGrid[y][x];
 
-        if (y < SURFACE_ROW) {
-          ground.fillStyle(0x141c2a, 0.08);
-          ground.fillRect(tileX, tileY, TILE_SIZE - 1, TILE_SIZE - 1);
+        if (tile.kind === "empty") {
           continue;
         }
 
-        const depthTint = Math.min(0.9, 0.26 + y / WORLD_HEIGHT_TILES / 1.8);
-        const color = y % 2 === 0 ? 0x5d4128 : 0x4d341f;
+        const depthTint =
+          y < SURFACE_ROW ? 0.08 : Math.min(0.92, 0.3 + y / WORLD_HEIGHT_TILES / 1.8);
 
-        ground.fillStyle(color, depthTint);
+        ground.fillStyle(tilePalette[tile.kind], depthTint);
         ground.fillRect(tileX, tileY, TILE_SIZE - 1, TILE_SIZE - 1);
+
+        if (tile.kind === "gold" || tile.kind === "diamond") {
+          ground.fillStyle(0xffffff, 0.18);
+          ground.fillRect(tileX + 6, tileY + 6, 4, 4);
+        }
+
+        if (tile.kind === "chest") {
+          ground.fillStyle(0xffe08a, 0.22);
+          ground.fillRect(tileX + 8, tileY + 8, TILE_SIZE - 16, TILE_SIZE - 16);
+        }
       }
     }
   }

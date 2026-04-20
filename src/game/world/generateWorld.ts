@@ -1,0 +1,121 @@
+import {
+  SURFACE_ROW,
+  WORLD_HEIGHT_TILES,
+  WORLD_WIDTH_TILES,
+} from "./constants";
+import type { TileCell, TileKind, WorldGrid } from "./types";
+
+type RandomFn = () => number;
+
+function createSeededRandom(seed: number): RandomFn {
+  let current = seed >>> 0;
+
+  return () => {
+    current += 0x6d2b79f5;
+    let value = current;
+    value = Math.imul(value ^ (value >>> 15), value | 1);
+    value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function createFilledGrid(kind: TileKind): WorldGrid {
+  return Array.from({ length: WORLD_HEIGHT_TILES }, () =>
+    Array.from({ length: WORLD_WIDTH_TILES }, (): TileCell => ({ kind })),
+  );
+}
+
+export function generateWorld(seed = 0x0badc0de): WorldGrid {
+  const random = createSeededRandom(seed);
+  const grid = createFilledGrid("dirt");
+  const rowChestCount = new Array(WORLD_HEIGHT_TILES).fill(0);
+
+  for (let y = 0; y < WORLD_HEIGHT_TILES; y += 1) {
+    for (let x = 0; x < WORLD_WIDTH_TILES; x += 1) {
+      let kind: TileKind = "dirt";
+
+      if (y > SURFACE_ROW + 2) {
+        kind = "stone";
+      }
+
+      const depthFactor = y / WORLD_HEIGHT_TILES;
+
+      if (kind === "stone") {
+        const roll = random();
+
+        if (roll < 0.002 + depthFactor * 0.01) kind = "diamond";
+        else if (roll < 0.006 + depthFactor * 0.025) kind = "gold";
+        else if (roll < 0.015 + depthFactor * 0.04) kind = "iron";
+        else if (roll < 0.02 + depthFactor * 0.05) kind = "coal";
+      }
+
+      if (y > 10 && y < WORLD_HEIGHT_TILES - 5) {
+        const chestChance = 0.012 + depthFactor * 0.04;
+        const maxPerRow = 2 + (depthFactor > 0.6 ? 1 : 0);
+
+        if (rowChestCount[y] < maxPerRow && random() < chestChance) {
+          let nearChest = false;
+
+          for (let offsetY = -1; offsetY <= 1 && !nearChest; offsetY += 1) {
+            for (let offsetX = -2; offsetX <= 2; offsetX += 1) {
+              const nextX = x + offsetX;
+              const nextY = y + offsetY;
+
+              if (nextX < 0 || nextX >= WORLD_WIDTH_TILES || nextY < 0 || nextY >= WORLD_HEIGHT_TILES) {
+                continue;
+              }
+
+              if (grid[nextY][nextX].kind === "chest") {
+                nearChest = true;
+                break;
+              }
+            }
+          }
+
+          if (!nearChest) {
+            kind = "chest";
+            rowChestCount[y] += 1;
+          }
+        }
+      }
+
+      if (y === WORLD_HEIGHT_TILES - 1) {
+        kind = "bedrock";
+      }
+
+      grid[y][x] = { kind };
+    }
+  }
+
+  const totalChests = grid.flat().filter((cell) => cell.kind === "chest").length;
+  const targetMinimumChests = 18;
+
+  if (totalChests < targetMinimumChests) {
+    let needed = targetMinimumChests - totalChests;
+
+    for (let attempt = 0; attempt < 500 && needed > 0; attempt += 1) {
+      const randomY = 12 + Math.floor(random() * Math.min(120, WORLD_HEIGHT_TILES - 20));
+      const randomX = 4 + Math.floor(random() * (WORLD_WIDTH_TILES - 8));
+      const current = grid[randomY][randomX].kind;
+
+      if (current === "chest" || current === "bedrock") {
+        continue;
+      }
+
+      if (current === "diamond" && random() < 0.6) {
+        continue;
+      }
+
+      grid[randomY][randomX] = { kind: "chest" };
+      needed -= 1;
+    }
+  }
+
+  for (let y = 0; y < SURFACE_ROW; y += 1) {
+    for (let x = 13; x < 19; x += 1) {
+      grid[y][x] = { kind: "empty" };
+    }
+  }
+
+  return grid;
+}
