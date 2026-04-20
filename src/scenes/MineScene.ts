@@ -111,10 +111,13 @@ export class MineScene extends Phaser.Scene {
       return;
     }
 
+    const deltaSeconds = delta / 1000;
+
     if (this.archaeologyOverlay?.isVisible) {
       if (Phaser.Input.Keyboard.JustDown(this.escapeKey!) || Phaser.Input.Keyboard.JustDown(this.interactKey!)) {
         this.closeArchaeologyOverlay();
       }
+      this.finalizeFrame(deltaSeconds);
       return;
     }
 
@@ -122,25 +125,25 @@ export class MineScene extends Phaser.Scene {
       if (Phaser.Input.Keyboard.JustDown(this.escapeKey!) || Phaser.Input.Keyboard.JustDown(this.upgradeKey!)) {
         this.closeUpgradeOverlay();
       }
+      this.finalizeFrame(deltaSeconds);
       return;
     }
 
-    const deltaSeconds = delta / 1000;
-    this.player.update(deltaSeconds);
-    this.updateHud();
-
     if (Phaser.Input.Keyboard.JustDown(this.upgradeKey!)) {
       this.toggleUpgradeOverlay();
+      this.finalizeFrame(deltaSeconds);
       return;
     }
 
     if (Phaser.Input.Keyboard.JustDown(this.interactKey!)) {
       if (this.tryOpenNearbyChest()) {
+        this.finalizeFrame(deltaSeconds);
         return;
       }
     }
 
     if (this.handleMining(deltaSeconds)) {
+      this.finalizeFrame(deltaSeconds, { mining: true });
       return;
     }
 
@@ -151,10 +154,12 @@ export class MineScene extends Phaser.Scene {
       });
       this.player.fallCooldown = 0.08;
       this.clearMiningTarget();
+      this.finalizeFrame(deltaSeconds, { falling: true });
       return;
     }
 
     if (this.player.moveCooldown > 0) {
+      this.finalizeFrame(deltaSeconds);
       return;
     }
 
@@ -166,6 +171,7 @@ export class MineScene extends Phaser.Scene {
     const nextDirection = leftPressed ? -1 : rightPressed ? 1 : 0;
 
     if (nextDirection === 0) {
+      this.finalizeFrame(deltaSeconds);
       return;
     }
 
@@ -175,12 +181,31 @@ export class MineScene extends Phaser.Scene {
     if (!this.canOccupy(nextX, nextY)) {
       this.player.facing = nextDirection;
       this.player.moveCooldown = 0.08;
+      this.finalizeFrame(deltaSeconds);
       return;
     }
 
     this.player.facing = nextDirection;
     this.player.snapToTile({ x: nextX, y: nextY });
     this.player.moveCooldown = 0.11;
+    this.finalizeFrame(deltaSeconds);
+  }
+
+  private finalizeFrame(
+    deltaSeconds: number,
+    state?: {
+      mining?: boolean;
+      falling?: boolean;
+    },
+  ) {
+    if (!this.player) {
+      return;
+    }
+
+    this.player.setMining(Boolean(state?.mining));
+    this.player.setFalling(Boolean(state?.falling));
+    this.player.update(deltaSeconds);
+    this.updateHud();
   }
 
   private drawBackdrop() {
