@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { PHASER_ROOT_ID, phaserGameConfig } from "./gameConfig";
+import { gameTheme } from "../../ui/theme/gameTheme";
 
 function ensurePhaserRoot() {
   let root = document.getElementById(PHASER_ROOT_ID);
@@ -12,11 +13,14 @@ function ensurePhaserRoot() {
     root.style.position = "relative";
     root.style.width = "640px";
     root.style.height = "576px";
-    root.style.border = "4px solid #303a52";
-    root.style.background = "#05070d";
+    root.style.border = `1px solid #${gameTheme.colors.border.toString(16).padStart(6, "0")}`;
+    root.style.borderRadius = "22px";
+    root.style.overflow = "hidden";
+    root.style.background = `linear-gradient(180deg, #0b1220 0%, #090d15 100%)`;
     root.style.boxSizing = "content-box";
     root.style.imageRendering = "pixelated";
-    root.style.boxShadow = "0 0 0 4px #0a111c inset";
+    root.style.boxShadow =
+      "0 28px 70px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,209,102,0.08), inset 0 1px 0 rgba(255,255,255,0.08)";
 
     if (viewportWrapper) {
       viewportWrapper.append(root);

@@ -30,6 +30,7 @@ import { tilePalette } from "../game/world/tilePalette";
 import { tileDefinitions } from "../game/world/tileDefinitions";
 import type { TileKind, WorldGrid } from "../game/world/types";
 import type { ResourceInventory, ResourceKind } from "../game/inventory/resourceInventory";
+import { gameTheme, makeGameTextStyle } from "../ui/theme/gameTheme";
 
 type MiningTarget = {
   x: number;
@@ -185,10 +186,21 @@ export class MineScene extends Phaser.Scene {
   private drawBackdrop() {
     const background = this.add.graphics();
 
-    background.fillGradientStyle(0x111827, 0x111827, 0x05070d, 0x05070d, 1);
+    background.fillGradientStyle(
+      gameTheme.colors.bgMid,
+      gameTheme.colors.bgMid,
+      gameTheme.colors.bgBottom,
+      gameTheme.colors.bgBottom,
+      1,
+    );
     background.fillRect(0, 0, WORLD_WIDTH_PX, WORLD_HEIGHT_PX);
 
-    background.fillStyle(0x1d3557, 0.2);
+    background.fillStyle(gameTheme.colors.caveGlow, 0.08);
+    background.fillCircle(120, 140, 220);
+    background.fillStyle(gameTheme.colors.ember, 0.06);
+    background.fillCircle(540, WORLD_HEIGHT_PX - 260, 260);
+
+    background.fillStyle(0x1d3557, 0.16);
     background.fillRect(0, 0, WORLD_WIDTH_PX, SURFACE_ROW * TILE_SIZE);
   }
 
@@ -234,14 +246,21 @@ export class MineScene extends Phaser.Scene {
 
     for (let row = SURFACE_ROW; row < WORLD_HEIGHT_TILES; row += 10) {
       const y = row * TILE_SIZE;
-      guides.lineStyle(2, 0xffd166, 0.08);
+      guides.lineStyle(2, gameTheme.colors.accent, 0.09);
       guides.lineBetween(0, y, WORLD_WIDTH_PX, y);
 
-      const label = this.add.text(12, y + 6, `${row}m`, {
-        color: "#d9b76a",
-        fontFamily: "monospace",
-        fontSize: "16px",
-      });
+      const label = this.add.text(
+        12,
+        y + 6,
+        `${row}m`,
+        makeGameTextStyle({
+          family: "display",
+          color: "#e7c98b",
+          fontSize: "16px",
+          fontStyle: "700",
+          strokeThickness: 3,
+        }),
+      );
 
       label.setAlpha(0.55);
       label.setScrollFactor(1);
@@ -253,7 +272,7 @@ export class MineScene extends Phaser.Scene {
       VIEWPORT_WIDTH - 8,
       VIEWPORT_HEIGHT - 8,
     );
-    frame.setStrokeStyle(2, 0x9bb0d1, 0.12);
+    frame.setStrokeStyle(1, gameTheme.colors.accentSoft, 0.07);
     frame.setScrollFactor(0);
   }
 

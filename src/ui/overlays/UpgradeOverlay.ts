@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import type { PickaxeUpgradeCost } from "../../game/progression/pickaxeUpgrade";
+import { createPanelChrome, gameTheme, makeGameTextStyle } from "../theme/gameTheme";
 
 type OverlaySnapshot = {
   level: number;
@@ -18,91 +19,118 @@ export class UpgradeOverlay {
   private readonly closeButton: Phaser.GameObjects.Text;
 
   constructor(scene: Phaser.Scene) {
-    const scrim = scene.add.rectangle(0, 0, 640, 576, 0x05070d, 0.82);
+    const scrim = scene.add.rectangle(0, 0, 640, 576, gameTheme.colors.bgTop, 0.86);
     scrim.setOrigin(0);
 
-    const panel = scene.add.rectangle(320, 288, 430, 250, 0x132031, 0.97);
-    panel.setStrokeStyle(3, 0x34516e, 1);
-
-    const title = scene.add.text(320, 188, "Upgrade da Picareta", {
-      color: "#ffe28a",
-      fontFamily: "monospace",
-      fontSize: "24px",
-      fontStyle: "bold",
-      stroke: "#091018",
-      strokeThickness: 4,
+    const chrome = createPanelChrome(scene, {
+      x: 105,
+      y: 163,
+      width: 430,
+      height: 250,
+      accentColor: gameTheme.colors.accent,
     });
+
+    const title = scene.add.text(
+      320,
+      188,
+      "Upgrade da Picareta",
+      makeGameTextStyle({
+        family: "display",
+        color: "#ffe7b0",
+        fontSize: "28px",
+        fontStyle: "700",
+        strokeThickness: 5,
+      }),
+    );
     title.setOrigin(0.5);
 
-    this.levelText = scene.add.text(320, 228, "", {
-      color: "#d9e4f2",
-      fontFamily: "monospace",
-      fontSize: "17px",
-      stroke: "#091018",
-      strokeThickness: 3,
-    });
+    this.levelText = scene.add.text(
+      320,
+      228,
+      "",
+      makeGameTextStyle({
+        color: gameTheme.colors.text,
+        fontSize: "19px",
+        fontStyle: "700",
+      }),
+    );
     this.levelText.setOrigin(0.5);
 
     this.descriptionText = scene.add.text(
       320,
       262,
       "Cada nivel aumenta a velocidade de escavacao.",
-      {
-        color: "#cfd9e2",
-        fontFamily: "monospace",
-        fontSize: "15px",
+      makeGameTextStyle({
+        color: gameTheme.colors.textMuted,
+        fontSize: "17px",
         align: "center",
-        wordWrap: { width: 340, useAdvancedWrap: true },
-        stroke: "#091018",
-        strokeThickness: 3,
-      },
+        wordWrapWidth: 340,
+      }),
     );
     this.descriptionText.setOrigin(0.5, 0);
 
-    this.costText = scene.add.text(320, 330, "", {
-      color: "#d9e4f2",
-      fontFamily: "monospace",
-      fontSize: "15px",
-      align: "center",
-      stroke: "#091018",
-      strokeThickness: 3,
-    });
+    this.costText = scene.add.text(
+      320,
+      330,
+      "",
+      makeGameTextStyle({
+        color: gameTheme.colors.text,
+        fontSize: "17px",
+        align: "center",
+      }),
+    );
     this.costText.setOrigin(0.5);
 
-    this.upgradeButton = scene.add.text(250, 400, "Evoluir", {
-      color: "#091018",
-      backgroundColor: "#ffe28a",
-      fontFamily: "monospace",
-      fontSize: "18px",
-      fontStyle: "bold",
-      padding: { left: 16, right: 16, top: 8, bottom: 8 },
-    });
+    this.upgradeButton = scene.add.text(
+      250,
+      400,
+      "Evoluir",
+      makeGameTextStyle({
+        family: "display",
+        color: gameTheme.colors.textDark,
+        fontSize: "20px",
+        fontStyle: "800",
+        strokeThickness: 0,
+      }),
+    );
     this.upgradeButton.setOrigin(0.5);
+    this.upgradeButton.setBackgroundColor("#ffe28a");
+    this.upgradeButton.setPadding(18, 10, 18, 10);
     this.upgradeButton.setInteractive({ useHandCursor: true });
 
-    this.closeButton = scene.add.text(390, 400, "Fechar", {
-      color: "#d9e4f2",
-      backgroundColor: "#26384e",
-      fontFamily: "monospace",
-      fontSize: "18px",
-      fontStyle: "bold",
-      padding: { left: 16, right: 16, top: 8, bottom: 8 },
-    });
+    this.closeButton = scene.add.text(
+      390,
+      400,
+      "Fechar",
+      makeGameTextStyle({
+        family: "display",
+        color: gameTheme.colors.text,
+        fontSize: "20px",
+        fontStyle: "700",
+        strokeThickness: 0,
+      }),
+    );
     this.closeButton.setOrigin(0.5);
+    this.closeButton.setBackgroundColor("#26384e");
+    this.closeButton.setPadding(18, 10, 18, 10);
     this.closeButton.setInteractive({ useHandCursor: true });
 
-    const hint = scene.add.text(320, 448, "Use U ou ESC para fechar", {
-      color: "#9cb2cb",
-      fontFamily: "monospace",
-      fontSize: "14px",
-      stroke: "#091018",
-      strokeThickness: 2,
-    });
+    const hint = scene.add.text(
+      320,
+      448,
+      "Use U ou ESC para fechar",
+      makeGameTextStyle({
+        color: gameTheme.colors.textSoft,
+        fontSize: "15px",
+        fontStyle: "600",
+        strokeThickness: 2,
+      }),
+    );
     hint.setOrigin(0.5);
 
     this.container = scene.add.container(0, 0, [
       scrim,
-      panel,
+      ...chrome,
       title,
       this.levelText,
       this.descriptionText,
@@ -122,6 +150,7 @@ export class UpgradeOverlay {
       `Custo proximo nivel\nFerro ${snapshot.cost.iron}  Ouro ${snapshot.cost.gold}  Diamante ${snapshot.cost.diamond}`,
     );
     this.upgradeButton.setAlpha(snapshot.canUpgrade ? 1 : 0.45);
+    this.upgradeButton.setScale(1);
     this.upgradeButton.disableInteractive();
     if (snapshot.canUpgrade) {
       this.upgradeButton.setInteractive({ useHandCursor: true });

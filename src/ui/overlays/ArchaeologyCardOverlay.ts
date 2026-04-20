@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { createPanelChrome, gameTheme, makeGameTextStyle } from "../theme/gameTheme";
 
 type OverlaySnapshot = {
   body: string;
@@ -14,66 +15,90 @@ export class ArchaeologyCardOverlay {
   private readonly closeButton: Phaser.GameObjects.Text;
 
   constructor(scene: Phaser.Scene) {
-    const scrim = scene.add.rectangle(0, 0, 640, 576, 0x05070d, 0.82);
+    const scrim = scene.add.rectangle(0, 0, 640, 576, gameTheme.colors.bgTop, 0.86);
     scrim.setOrigin(0);
 
-    const panel = scene.add.rectangle(320, 288, 470, 290, 0x132031, 0.97);
-    panel.setStrokeStyle(3, 0x34516e, 1);
-
-    const title = scene.add.text(320, 176, "Card de Arqueologia", {
-      color: "#ffe28a",
-      fontFamily: "monospace",
-      fontSize: "24px",
-      fontStyle: "bold",
-      stroke: "#091018",
-      strokeThickness: 4,
+    const chrome = createPanelChrome(scene, {
+      x: 85,
+      y: 145,
+      width: 470,
+      height: 290,
+      accentColor: gameTheme.colors.accentCool,
     });
+
+    const title = scene.add.text(
+      320,
+      176,
+      "Card de Arqueologia",
+      makeGameTextStyle({
+        family: "display",
+        color: "#e9fff8",
+        fontSize: "28px",
+        fontStyle: "700",
+        strokeThickness: 5,
+      }),
+    );
     title.setOrigin(0.5);
 
-    this.bodyText = scene.add.text(320, 236, "", {
-      color: "#e4edf7",
-      fontFamily: "monospace",
-      fontSize: "16px",
-      align: "center",
-      wordWrap: { width: 380, useAdvancedWrap: true },
-      lineSpacing: 6,
-      stroke: "#091018",
-      strokeThickness: 3,
-    });
+    this.bodyText = scene.add.text(
+      320,
+      236,
+      "",
+      makeGameTextStyle({
+        color: gameTheme.colors.text,
+        fontSize: "18px",
+        align: "center",
+        wordWrapWidth: 390,
+      }),
+    );
     this.bodyText.setOrigin(0.5, 0);
+    this.bodyText.setLineSpacing(8);
 
-    this.progressText = scene.add.text(320, 432, "", {
-      color: "#d0dbea",
-      fontFamily: "monospace",
-      fontSize: "15px",
-      stroke: "#091018",
-      strokeThickness: 3,
-    });
+    this.progressText = scene.add.text(
+      320,
+      432,
+      "",
+      makeGameTextStyle({
+        color: "#d4e4ee",
+        fontSize: "16px",
+        fontStyle: "700",
+      }),
+    );
     this.progressText.setOrigin(0.5);
 
-    this.closeButton = scene.add.text(320, 472, "Fechar", {
-      color: "#091018",
-      backgroundColor: "#ffe28a",
-      fontFamily: "monospace",
-      fontSize: "18px",
-      fontStyle: "bold",
-      padding: { left: 18, right: 18, top: 8, bottom: 8 },
-    });
+    this.closeButton = scene.add.text(
+      320,
+      472,
+      "Fechar",
+      makeGameTextStyle({
+        family: "display",
+        color: gameTheme.colors.textDark,
+        fontSize: "20px",
+        fontStyle: "800",
+        strokeThickness: 0,
+      }),
+    );
     this.closeButton.setOrigin(0.5);
+    this.closeButton.setBackgroundColor("#ffe28a");
+    this.closeButton.setPadding(22, 10, 22, 10);
     this.closeButton.setInteractive({ useHandCursor: true });
 
-    const hint = scene.add.text(320, 520, "Pressione ESC ou E para voltar", {
-      color: "#9cb2cb",
-      fontFamily: "monospace",
-      fontSize: "14px",
-      stroke: "#091018",
-      strokeThickness: 2,
-    });
+    const hint = scene.add.text(
+      320,
+      520,
+      "Pressione ESC ou E para voltar",
+      makeGameTextStyle({
+        color: gameTheme.colors.textSoft,
+        fontSize: "15px",
+        fontStyle: "600",
+        strokeThickness: 2,
+      }),
+    );
     hint.setOrigin(0.5);
 
     this.container = scene.add.container(0, 0, [
       scrim,
-      panel,
+      ...chrome,
       title,
       this.bodyText,
       this.progressText,
@@ -91,6 +116,7 @@ export class ArchaeologyCardOverlay {
     this.container.setVisible(true);
     this.closeButton.removeAllListeners();
     this.closeButton.on("pointerup", snapshot.onClose);
+    this.closeButton.setScale(1);
   }
 
   hide() {

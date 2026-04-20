@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import type { ResourceInventory } from "../../game/inventory/resourceInventory";
+import { createPanelChrome, gameTheme, makeGameTextStyle } from "../theme/gameTheme";
 
 type HudSnapshot = {
   depth: number;
@@ -12,6 +13,7 @@ type HudSnapshot = {
 
 export class MineHud {
   private readonly container: Phaser.GameObjects.Container;
+  private readonly energyFill: Phaser.GameObjects.Rectangle;
   private readonly depthText: Phaser.GameObjects.Text;
   private readonly energyText: Phaser.GameObjects.Text;
   private readonly pickaxeText: Phaser.GameObjects.Text;
@@ -19,62 +21,87 @@ export class MineHud {
   private readonly inventoryText: Phaser.GameObjects.Text;
 
   constructor(scene: Phaser.Scene) {
-    const background = scene.add.rectangle(14, 14, 372, 92, 0x0b1320, 0.84);
-    background.setOrigin(0);
-    background.setStrokeStyle(2, 0x2f4766, 0.9);
-
-    const title = scene.add.text(28, 24, "Minerador Arqueologico", {
-      color: "#ffe28a",
-      fontFamily: "monospace",
-      fontSize: "20px",
-      fontStyle: "bold",
-      stroke: "#091018",
-      strokeThickness: 4,
+    const chrome = createPanelChrome(scene, {
+      x: 14,
+      y: 14,
+      width: 430,
+      height: 122,
+      accentColor: gameTheme.colors.accent,
     });
 
-    this.depthText = scene.add.text(28, 50, "", {
-      color: "#d9e4f2",
-      fontFamily: "monospace",
-      fontSize: "16px",
-      stroke: "#091018",
-      strokeThickness: 3,
-    });
+    const title = scene.add.text(
+      30,
+      24,
+      "MINERADOR ARQUEOLOGICO",
+      makeGameTextStyle({
+        family: "display",
+        color: "#ffe7b0",
+        fontSize: "22px",
+        fontStyle: "700",
+        strokeThickness: 5,
+      }),
+    );
 
-    this.energyText = scene.add.text(170, 50, "", {
-      color: "#d9e4f2",
-      fontFamily: "monospace",
-      fontSize: "16px",
-      stroke: "#091018",
-      strokeThickness: 3,
-    });
+    const subtitle = scene.add.text(
+      31,
+      46,
+      "Expedicao subterranea",
+      makeGameTextStyle({
+        color: gameTheme.colors.textSoft,
+        fontSize: "15px",
+        fontStyle: "600",
+        strokeThickness: 2,
+      }),
+    );
 
-    this.pickaxeText = scene.add.text(290, 50, "", {
-      color: "#d9e4f2",
-      fontFamily: "monospace",
-      fontSize: "16px",
-      stroke: "#091018",
-      strokeThickness: 3,
-    });
+    const energyTrack = scene.add.rectangle(258, 54, 150, 14, gameTheme.colors.panelDeep, 1);
+    energyTrack.setOrigin(0, 0.5);
+    energyTrack.setStrokeStyle(1, gameTheme.colors.borderSoft, 0.8);
 
-    this.cardsText = scene.add.text(28, 72, "", {
-      color: "#d9e4f2",
-      fontFamily: "monospace",
-      fontSize: "15px",
-      stroke: "#091018",
-      strokeThickness: 3,
-    });
+    this.energyFill = scene.add.rectangle(258, 54, 150, 10, gameTheme.colors.accentCool, 1);
+    this.energyFill.setOrigin(0, 0.5);
 
-    this.inventoryText = scene.add.text(28, 92, "", {
-      color: "#cfd9e2",
-      fontFamily: "monospace",
-      fontSize: "14px",
-      stroke: "#091018",
-      strokeThickness: 3,
-    });
+    this.depthText = scene.add.text(
+      30,
+      70,
+      "",
+      makeGameTextStyle({ family: "display", fontSize: "20px", fontStyle: "700" }),
+    );
+
+    this.energyText = scene.add.text(
+      258,
+      34,
+      "",
+      makeGameTextStyle({ color: gameTheme.colors.textMuted, fontSize: "14px", fontStyle: "700" }),
+    );
+
+    this.pickaxeText = scene.add.text(
+      200,
+      72,
+      "",
+      makeGameTextStyle({ fontSize: "17px", fontStyle: "700" }),
+    );
+
+    this.cardsText = scene.add.text(
+      200,
+      96,
+      "",
+      makeGameTextStyle({ color: "#f5d78f", fontSize: "17px", fontStyle: "700" }),
+    );
+
+    this.inventoryText = scene.add.text(
+      30,
+      100,
+      "",
+      makeGameTextStyle({ color: gameTheme.colors.textMuted, fontSize: "16px", fontStyle: "600" }),
+    );
 
     this.container = scene.add.container(0, 0, [
-      background,
+      ...chrome,
       title,
+      subtitle,
+      energyTrack,
+      this.energyFill,
       this.depthText,
       this.energyText,
       this.pickaxeText,
@@ -87,12 +114,13 @@ export class MineHud {
   }
 
   update(snapshot: HudSnapshot) {
-    this.depthText.setText(`Prof.: ${snapshot.depth}m`);
-    this.energyText.setText(`Energia ${snapshot.energy}%`);
-    this.pickaxeText.setText(`Picareta Lv ${snapshot.pickaxeLevel}`);
-    this.cardsText.setText(`Cards ${snapshot.cardsFound}/${snapshot.cardsTotal}`);
+    this.depthText.setText(`${snapshot.depth}m`);
+    this.energyText.setText(`ENERGIA ${snapshot.energy}%`);
+    this.pickaxeText.setText(`Picareta  Lv ${snapshot.pickaxeLevel}`);
+    this.cardsText.setText(`Codex  ${snapshot.cardsFound}/${snapshot.cardsTotal}`);
     this.inventoryText.setText(
-      `Carvao ${snapshot.inventory.coal}  Ferro ${snapshot.inventory.iron}  Ouro ${snapshot.inventory.gold}  Diamante ${snapshot.inventory.diamond}`,
+      `C ${snapshot.inventory.coal}   F ${snapshot.inventory.iron}   O ${snapshot.inventory.gold}   D ${snapshot.inventory.diamond}`,
     );
+    this.energyFill.width = Math.max(12, 150 * (snapshot.energy / 100));
   }
 }
