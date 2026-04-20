@@ -8,6 +8,10 @@ type HudSnapshot = {
   pickaxeLevel: number;
   cardsFound: number;
   cardsTotal: number;
+  comboCount: number;
+  comboWindowRatio: number;
+  comboLabel: string;
+  comboColor: string;
   inventory: ResourceInventory;
 };
 
@@ -25,13 +29,17 @@ export class MineHud {
   private readonly energyText: Phaser.GameObjects.Text;
   private readonly pickaxeText: Phaser.GameObjects.Text;
   private readonly cardsText: Phaser.GameObjects.Text;
+  private readonly comboFill: Phaser.GameObjects.Rectangle;
+  private readonly comboGlow: Phaser.GameObjects.Rectangle;
+  private readonly comboCountText: Phaser.GameObjects.Text;
+  private readonly comboLabelText: Phaser.GameObjects.Text;
   private readonly resourceChips: Record<keyof ResourceInventory, ResourceChip>;
 
   constructor(scene: Phaser.Scene) {
     const chrome = createPanelChrome(scene, {
       x: 14,
       y: 14,
-      width: 486,
+      width: 514,
       height: 154,
       accentColor: gameTheme.colors.accentCool,
     });
@@ -116,12 +124,12 @@ export class MineHud {
     this.energyShine = scene.add.rectangle(216, 110, 28, 10, 0xffffff, 0.18);
     this.energyShine.setOrigin(0, 0.5);
 
-    const pickaxePanel = scene.add.rectangle(408, 74, 78, 54, gameTheme.colors.panelDeep, 0.98);
+    const pickaxePanel = scene.add.rectangle(408, 74, 92, 54, gameTheme.colors.panelDeep, 0.98);
     pickaxePanel.setOrigin(0);
     pickaxePanel.setStrokeStyle(1, gameTheme.colors.borderSoft, 0.95);
 
     const pickaxeLabel = scene.add.text(
-      422,
+      425,
       81,
       "PICARETA",
       makeGameTextStyle({
@@ -133,7 +141,7 @@ export class MineHud {
     );
 
     this.pickaxeText = scene.add.text(
-      422,
+      428,
       100,
       "",
       makeGameTextStyle({
@@ -145,7 +153,7 @@ export class MineHud {
       }),
     );
 
-    const codexPill = scene.add.rectangle(28, 136, 174, 20, gameTheme.colors.panelDeep, 0.92);
+    const codexPill = scene.add.rectangle(28, 136, 128, 20, gameTheme.colors.panelDeep, 0.92);
     codexPill.setOrigin(0);
     codexPill.setStrokeStyle(1, gameTheme.colors.borderSoft, 0.85);
 
@@ -161,8 +169,46 @@ export class MineHud {
       }),
     );
 
+    const comboPanel = scene.add.rectangle(168, 136, 150, 20, gameTheme.colors.panelDeep, 0.92);
+    comboPanel.setOrigin(0);
+    comboPanel.setStrokeStyle(1, gameTheme.colors.borderSoft, 0.85);
+
+    const comboTrack = scene.add.rectangle(242, 146, 64, 6, gameTheme.colors.panel, 1);
+    comboTrack.setOrigin(0, 0.5);
+
+    this.comboFill = scene.add.rectangle(242, 146, 64, 4, gameTheme.colors.accent, 1);
+    this.comboFill.setOrigin(0, 0.5);
+
+    this.comboGlow = scene.add.rectangle(242, 146, 18, 4, 0xffffff, 0.22);
+    this.comboGlow.setOrigin(0, 0.5);
+
+    this.comboCountText = scene.add.text(
+      180,
+      138,
+      "",
+      makeGameTextStyle({
+        family: "display",
+        color: "#ffe7b0",
+        fontSize: "15px",
+        fontStyle: "800",
+        strokeThickness: 2,
+      }),
+    );
+
+    this.comboLabelText = scene.add.text(
+      242,
+      136,
+      "",
+      makeGameTextStyle({
+        color: gameTheme.colors.textSoft,
+        fontSize: "12px",
+        fontStyle: "700",
+        strokeThickness: 2,
+      }),
+    );
+
     const inventoryHeading = scene.add.text(
-      222,
+      328,
       138,
       "COLETA",
       makeGameTextStyle({
@@ -175,25 +221,25 @@ export class MineHud {
 
     this.resourceChips = {
       coal: this.createResourceChip(scene, {
-        x: 276,
+        x: 376,
         y: 136,
         label: "C",
         color: gameTheme.colors.coal,
       }),
       iron: this.createResourceChip(scene, {
-        x: 331,
+        x: 411,
         y: 136,
         label: "F",
         color: gameTheme.colors.iron,
       }),
       gold: this.createResourceChip(scene, {
-        x: 386,
+        x: 446,
         y: 136,
         label: "O",
         color: gameTheme.colors.gold,
       }),
       diamond: this.createResourceChip(scene, {
-        x: 441,
+        x: 481,
         y: 136,
         label: "D",
         color: gameTheme.colors.diamond,
@@ -217,6 +263,12 @@ export class MineHud {
       this.pickaxeText,
       codexPill,
       this.cardsText,
+      comboPanel,
+      comboTrack,
+      this.comboFill,
+      this.comboGlow,
+      this.comboCountText,
+      this.comboLabelText,
       inventoryHeading,
       ...this.resourceChips.coal.nodes,
       ...this.resourceChips.iron.nodes,
@@ -244,6 +296,15 @@ export class MineHud {
       repeat: -1,
       ease: "sine.inOut",
     });
+
+    scene.tweens.add({
+      targets: this.comboGlow,
+      alpha: 0.34,
+      duration: 720,
+      yoyo: true,
+      repeat: -1,
+      ease: "sine.inOut",
+    });
   }
 
   update(snapshot: HudSnapshot) {
@@ -251,6 +312,10 @@ export class MineHud {
     this.energyText.setText(`ENERGIA ${snapshot.energy}%`);
     this.pickaxeText.setText(`Lv${snapshot.pickaxeLevel}`);
     this.cardsText.setText(`CODEX ${snapshot.cardsFound}/${snapshot.cardsTotal}`);
+    this.comboCountText.setText(snapshot.comboCount > 0 ? `x${snapshot.comboCount}` : "x0");
+    this.comboLabelText.setText(snapshot.comboLabel);
+    this.comboCountText.setColor(snapshot.comboColor);
+    this.comboLabelText.setColor(snapshot.comboColor);
     this.resourceChips.coal.valueText.setText(`C ${snapshot.inventory.coal}`);
     this.resourceChips.iron.valueText.setText(`F ${snapshot.inventory.iron}`);
     this.resourceChips.gold.valueText.setText(`O ${snapshot.inventory.gold}`);
@@ -267,13 +332,19 @@ export class MineHud {
           : gameTheme.colors.danger;
     this.energyShine.visible = fillWidth > 26;
     this.energyShine.x = 198 + Math.max(4, fillWidth - 22);
+
+    const comboWidth = Math.max(10, 64 * Phaser.Math.Clamp(snapshot.comboWindowRatio, 0, 1));
+    this.comboFill.width = comboWidth;
+    this.comboFill.fillColor = Phaser.Display.Color.HexStringToColor(snapshot.comboColor).color;
+    this.comboGlow.visible = comboWidth > 14;
+    this.comboGlow.x = 242 + Math.max(2, comboWidth - 14);
   }
 
   private createResourceChip(
     scene: Phaser.Scene,
     options: { x: number; y: number; label: string; color: number },
   ): ResourceChip {
-    const bg = scene.add.rectangle(options.x, options.y, 46, 20, gameTheme.colors.panelDeep, 0.94);
+    const bg = scene.add.rectangle(options.x, options.y, 32, 20, gameTheme.colors.panelDeep, 0.94);
     bg.setOrigin(0);
     bg.setStrokeStyle(1, gameTheme.colors.borderSoft, 0.8);
 
@@ -287,7 +358,7 @@ export class MineHud {
       makeGameTextStyle({
         family: "display",
         color: gameTheme.colors.text,
-        fontSize: "16px",
+        fontSize: "13px",
         fontStyle: "800",
         strokeThickness: 2,
       }),

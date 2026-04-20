@@ -9,7 +9,8 @@ import {
 import {
   createResourceInventory,
   getResourceFromTile,
-  getResourceLabel,
+  getResourceMeta,
+  getResourceTierLabel,
 } from "../game/inventory/resourceInventory";
 import { PlayerMiner } from "../game/player/PlayerMiner";
 import { MineHud } from "../ui/hud/MineHud";
@@ -69,6 +70,11 @@ export class MineScene extends Phaser.Scene {
   private upgradeKey?: Phaser.Input.Keyboard.Key;
   private player?: PlayerMiner;
   private miningTarget?: MiningTarget;
+  private rewardComboCount = 0;
+  private rewardComboTimer = 0;
+  private rewardComboWindow = 2.6;
+  private rewardLabel = "Mina fria";
+  private rewardColor: string = gameTheme.colors.textSoft;
 
   constructor() {
     super("mine");
@@ -212,6 +218,7 @@ export class MineScene extends Phaser.Scene {
     this.player.setMining(Boolean(state?.mining));
     this.player.setFalling(Boolean(state?.falling));
     this.player.update(deltaSeconds);
+    this.updateRewardLoop(deltaSeconds);
     this.updateLighting();
     this.updateHud();
   }
@@ -616,21 +623,52 @@ export class MineScene extends Phaser.Scene {
     }
 
     this.inventory[resource] += 1;
+    const rewardState = this.registerReward(resource);
     this.game.events.emit("inventory:changed", { ...this.inventory });
     this.updateHud();
-    this.spawnPickupFeedback(resource, tileX, tileY, this.inventory[resource]);
+    this.spawnPickupFeedback(tileX, tileY, this.inventory[resource], rewardState);
   }
 
-  private spawnPickupFeedback(resource: ResourceKind, tileX: number, tileY: number, total: number) {
+  private registerReward(resource: ResourceKind) {
+    const meta = getResourceMeta(resource);
+    const chainActive = this.rewardComboTimer > 0;
+
+    this.rewardComboCount = chainActive ? this.rewardComboCount + 1 : 1;
+    this.rewardComboWindow = 2.5 + Math.min(1.2, this.rewardComboCount * 0.08) + meta.value * 0.06;
+    this.rewardComboTimer = this.rewardComboWindow;
+    this.rewardColor = meta.accent;
+    this.rewardLabel = `${getResourceTierLabel(meta.tier).toUpperCase()} ${meta.label.toUpperCase()}`;
+
+    return {
+      streak: this.rewardComboCount,
+      tierLabel: getResourceTierLabel(meta.tier).toUpperCase(),
+      accent: meta.accent,
+      lootLabel: meta.label.toUpperCase(),
+      momentum: Math.min(1, (this.rewardComboCount * 0.12) + meta.value * 0.1),
+    };
+  }
+
+  private spawnPickupFeedback(
+    tileX: number,
+    tileY: number,
+    total: number,
+    rewardState: {
+      streak: number;
+      tierLabel: string;
+      accent: string;
+      lootLabel: string;
+      momentum: number;
+    },
+  ) {
     const worldX = tileX * TILE_SIZE + TILE_SIZE / 2;
     const worldY = tileY * TILE_SIZE + TILE_SIZE / 2;
-    const color = resource === "diamond" ? "#b8f7fa" : resource === "gold" ? "#ffe28a" : resource === "iron" ? "#f4c69a" : "#cfd9e2";
+    const color = rewardState.accent;
     const colorValue = Phaser.Display.Color.HexStringToColor(color).color;
 
     const text = this.add.text(
       worldX,
       worldY - 10,
-      `+1 ${getResourceLabel(resource).toUpperCase()}`,
+      `+1 ${rewardState.lootLabel}`,
       makeGameTextStyle({
         family: "display",
         color,
@@ -646,10 +684,10 @@ export class MineScene extends Phaser.Scene {
     const badge = this.add.text(
       worldX,
       worldY + 12,
-      `TOTAL ${total}`,
+      rewardState.streak > 1 ? `STREAK x${rewardState.streak}` : `TOTAL ${total}`,
       makeGameTextStyle({
         family: "body",
-        color: "#d9e4f2",
+        color: rewardState.streak > 1 ? color : "#d9e4f2",
         fontSize: "14px",
         fontStyle: "700",
         strokeThickness: 3,
@@ -658,19 +696,43 @@ export class MineScene extends Phaser.Scene {
     badge.setOrigin(0.5);
     badge.setAlpha(0);
 
+    const rarity = this.add.text(
+      worldX,
+      worldY - 28,
+      rewardState.tierLabel,
+      makeGameTextStyle({
+        family: "body",
+        color,
+        fontSize: "12px",
+        fontStyle: "800",
+        strokeThickness: 3,
+      }),
+    );
+    rarity.setOrigin(0.5);
+    rarity.setAlpha(0);
+    rarity.setScale(0.72);
+
     const ring = this.add.circle(worldX, worldY, 10, colorValue, 0);
     ring.setStrokeStyle(2, colorValue, 0.65);
     ring.setScale(0.4);
 
-    const burst = this.add.circle(worldX, worldY, 8, colorValue, 0.32);
+    const burst = this.add.circle(worldX, worldY, 8, colorValue, 0.28 + rewardState.momentum * 0.12);
     burst.setScale(0.7);
 
     this.tweens.add({
       targets: text,
-      scale: 1.12,
+      scale: 1.1 + rewardState.momentum * 0.1,
       alpha: 1,
       y: worldY - 36,
       duration: 180,
+      ease: "back.out",
+    });
+    this.tweens.add({
+      targets: rarity,
+      scale: 1,
+      alpha: 0.95,
+      y: worldY - 50,
+      duration: 220,
       ease: "back.out",
     });
     this.tweens.add({
@@ -692,7 +754,7 @@ export class MineScene extends Phaser.Scene {
       targets: [text, badge, burst],
       y: "-=18",
       alpha: 0,
-      scale: { from: 1, to: 1.24 },
+      scale: { from: 1, to: 1.24 + rewardState.momentum * 0.12 },
       delay: 220,
       duration: 420,
       ease: "cubic.out",
@@ -701,7 +763,66 @@ export class MineScene extends Phaser.Scene {
         badge.destroy();
         burst.destroy();
         ring.destroy();
+        rarity.destroy();
       },
+    });
+
+    this.tweens.add({
+      targets: rarity,
+      y: "-=14",
+      alpha: 0,
+      delay: 240,
+      duration: 360,
+      ease: "cubic.out",
+    });
+
+    if (rewardState.streak >= 3) {
+      this.spawnComboToast(worldX, worldY - 56, rewardState);
+    }
+  }
+
+  private spawnComboToast(
+    worldX: number,
+    worldY: number,
+    rewardState: {
+      streak: number;
+      tierLabel: string;
+      accent: string;
+    },
+  ) {
+    const toast = this.add.text(
+      worldX,
+      worldY,
+      rewardState.streak >= 6 ? `FRENESI x${rewardState.streak}` : `RITMO x${rewardState.streak}`,
+      makeGameTextStyle({
+        family: "display",
+        color: rewardState.accent,
+        fontSize: "18px",
+        fontStyle: "800",
+        strokeThickness: 4,
+      }),
+    );
+    toast.setOrigin(0.5);
+    toast.setScale(0.74);
+    toast.setAlpha(0);
+
+    this.tweens.add({
+      targets: toast,
+      scale: 1.08,
+      alpha: 1,
+      y: worldY - 12,
+      duration: 160,
+      ease: "back.out",
+    });
+
+    this.tweens.add({
+      targets: toast,
+      alpha: 0,
+      y: worldY - 30,
+      delay: 180,
+      duration: 320,
+      ease: "quad.out",
+      onComplete: () => toast.destroy(),
     });
   }
 
@@ -903,8 +1024,32 @@ export class MineScene extends Phaser.Scene {
       pickaxeLevel: this.pickaxeLevel,
       cardsFound: this.archaeologyDeck.collectedCount,
       cardsTotal: this.archaeologyDeck.totalCount,
+      comboCount: this.rewardComboCount,
+      comboWindowRatio:
+        this.rewardComboWindow > 0
+          ? Phaser.Math.Clamp(this.rewardComboTimer / this.rewardComboWindow, 0, 1)
+          : 0,
+      comboLabel: this.rewardLabel,
+      comboColor: this.rewardColor,
       inventory: this.inventory,
     });
+  }
+
+  private updateRewardLoop(deltaSeconds: number) {
+    if (this.rewardComboTimer <= 0) {
+      return;
+    }
+
+    this.rewardComboTimer = Math.max(0, this.rewardComboTimer - deltaSeconds);
+
+    if (this.rewardComboTimer > 0) {
+      return;
+    }
+
+    this.rewardComboCount = 0;
+    this.rewardComboWindow = 2.6;
+    this.rewardLabel = "Mina fria";
+    this.rewardColor = gameTheme.colors.textSoft;
   }
 
   private tryOpenNearbyChest() {
