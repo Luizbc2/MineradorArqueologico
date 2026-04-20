@@ -37,6 +37,7 @@ type MiningTarget = {
   y: number;
   progress: number;
   required: number;
+  impacts: number;
 };
 
 export class MineScene extends Phaser.Scene {
@@ -47,6 +48,7 @@ export class MineScene extends Phaser.Scene {
   private pickaxeLevel = 1;
   private groundLayer?: Phaser.GameObjects.Graphics;
   private effectLayer?: Phaser.GameObjects.Graphics;
+  private screenFlash?: Phaser.GameObjects.Rectangle;
   private hud?: MineHud;
   private archaeologyOverlay?: ArchaeologyCardOverlay;
   private upgradeOverlay?: UpgradeOverlay;
@@ -79,6 +81,7 @@ export class MineScene extends Phaser.Scene {
     this.drawWorldGrid();
     this.drawDepthGuides();
     this.createPlayer();
+    this.createScreenFlash();
     this.createHud();
     this.createArchaeologyOverlay();
     this.createUpgradeOverlay();
@@ -370,6 +373,21 @@ export class MineScene extends Phaser.Scene {
     this.updateHud();
   }
 
+  private createScreenFlash() {
+    this.screenFlash = this.add.rectangle(
+      VIEWPORT_WIDTH / 2,
+      VIEWPORT_HEIGHT / 2,
+      VIEWPORT_WIDTH,
+      VIEWPORT_HEIGHT,
+      gameTheme.colors.accentSoft,
+      0,
+    );
+    this.screenFlash.setScrollFactor(0);
+    this.screenFlash.setDepth(2000);
+    this.screenFlash.setBlendMode(Phaser.BlendModes.ADD);
+    this.screenFlash.setAlpha(0);
+  }
+
   private createArchaeologyOverlay() {
     this.archaeologyOverlay = new ArchaeologyCardOverlay(this);
   }
@@ -420,17 +438,32 @@ export class MineScene extends Phaser.Scene {
         ...target,
         progress: 0,
         required,
+        impacts: 0,
       };
+      this.spawnMiningImpact(target.x, target.y, tile.kind, false, 0.18);
     }
 
     this.player.facing = target.x < this.player.position.x ? -1 : target.x > this.player.position.x ? 1 : this.player.facing;
     this.miningTarget.progress += deltaSeconds;
     this.player.moveCooldown = 0.05;
 
+    const completion = Phaser.Math.Clamp(
+      this.miningTarget.progress / this.miningTarget.required,
+      0,
+      1,
+    );
+    const impactThreshold = Math.floor(completion * 4);
+
+    if (impactThreshold > this.miningTarget.impacts) {
+      this.miningTarget.impacts = impactThreshold;
+      this.spawnMiningImpact(target.x, target.y, tile.kind, false, completion);
+    }
+
     if (this.miningTarget.progress >= this.miningTarget.required) {
       const brokenKind = this.worldGrid[target.y][target.x].kind;
       this.worldGrid[target.y][target.x] = { kind: "empty" };
       this.drawWorldGrid();
+      this.spawnMiningImpact(target.x, target.y, brokenKind, true, 1);
       this.collectTileDrop(brokenKind, target.x, target.y);
       this.clearMiningTarget();
       this.player.moveCooldown = 0.08;
@@ -493,18 +526,23 @@ export class MineScene extends Phaser.Scene {
       0,
       1,
     );
+    const pulse = 0.52 + Math.sin(this.time.now / 60) * 0.16;
+    const material = tilePalette[this.worldGrid[this.miningTarget.y]?.[this.miningTarget.x]?.kind ?? "stone"];
 
-    this.effectLayer.lineStyle(2, 0xffffff, 0.35 + completion * 0.4);
+    this.effectLayer.lineStyle(2, material.detail, pulse + completion * 0.18);
     this.effectLayer.strokeRect(tileX + 2, tileY + 2, TILE_SIZE - 4, TILE_SIZE - 4);
 
-    this.effectLayer.lineStyle(2, 0x111111, 0.45);
+    this.effectLayer.fillStyle(material.glow ?? material.detail, 0.1 + completion * 0.08);
+    this.effectLayer.fillRoundedRect(tileX + 4, tileY + 4, TILE_SIZE - 8, TILE_SIZE - 8, 5);
+
+    this.effectLayer.lineStyle(2, material.edge, 0.5);
     this.effectLayer.lineBetween(tileX + 6, tileY + 8, tileX + 16, tileY + 18);
     this.effectLayer.lineBetween(tileX + 14, tileY + 18, tileX + 24, tileY + 10);
     this.effectLayer.lineBetween(tileX + 10, tileY + 22, tileX + 20, tileY + 24);
 
     this.effectLayer.fillStyle(0x0d1118, 0.75);
     this.effectLayer.fillRect(tileX + 4, tileY - 10, TILE_SIZE - 8, 6);
-    this.effectLayer.fillStyle(0xffd166, 0.95);
+    this.effectLayer.fillStyle(material.glow ?? gameTheme.colors.accent, 0.95);
     this.effectLayer.fillRect(tileX + 4, tileY - 10, (TILE_SIZE - 8) * completion, 6);
   }
 
@@ -531,40 +569,166 @@ export class MineScene extends Phaser.Scene {
     const worldX = tileX * TILE_SIZE + TILE_SIZE / 2;
     const worldY = tileY * TILE_SIZE + TILE_SIZE / 2;
     const color = resource === "diamond" ? "#b8f7fa" : resource === "gold" ? "#ffe28a" : resource === "iron" ? "#f4c69a" : "#cfd9e2";
+    const colorValue = Phaser.Display.Color.HexStringToColor(color).color;
 
-    const text = this.add.text(worldX, worldY - 10, `+1 ${getResourceLabel(resource)}`, {
-      color,
-      fontFamily: "monospace",
-      fontSize: "18px",
-      stroke: "#091018",
-      strokeThickness: 4,
-    });
+    const text = this.add.text(
+      worldX,
+      worldY - 10,
+      `+1 ${getResourceLabel(resource).toUpperCase()}`,
+      makeGameTextStyle({
+        family: "display",
+        color,
+        fontSize: "18px",
+        fontStyle: "700",
+        strokeThickness: 4,
+      }),
+    );
     text.setOrigin(0.5);
+    text.setScale(0.78);
+    text.setAlpha(0);
 
-    const badge = this.add.text(worldX, worldY + 12, `total ${total}`, {
-      color: "#d9e4f2",
-      fontFamily: "monospace",
-      fontSize: "13px",
-      stroke: "#091018",
-      strokeThickness: 3,
-    });
+    const badge = this.add.text(
+      worldX,
+      worldY + 12,
+      `TOTAL ${total}`,
+      makeGameTextStyle({
+        family: "body",
+        color: "#d9e4f2",
+        fontSize: "14px",
+        fontStyle: "700",
+        strokeThickness: 3,
+      }),
+    );
     badge.setOrigin(0.5);
-    badge.setAlpha(0.88);
+    badge.setAlpha(0);
 
-    const burst = this.add.circle(worldX, worldY, 8, Phaser.Display.Color.HexStringToColor(color).color, 0.32);
+    const ring = this.add.circle(worldX, worldY, 10, colorValue, 0);
+    ring.setStrokeStyle(2, colorValue, 0.65);
+    ring.setScale(0.4);
+
+    const burst = this.add.circle(worldX, worldY, 8, colorValue, 0.32);
+    burst.setScale(0.7);
+
+    this.tweens.add({
+      targets: text,
+      scale: 1.12,
+      alpha: 1,
+      y: worldY - 36,
+      duration: 180,
+      ease: "back.out",
+    });
+    this.tweens.add({
+      targets: badge,
+      alpha: 0.96,
+      y: worldY - 8,
+      duration: 200,
+      ease: "quad.out",
+    });
+    this.tweens.add({
+      targets: ring,
+      scale: 1.7,
+      alpha: 0,
+      duration: 420,
+      ease: "cubic.out",
+    });
 
     this.tweens.add({
       targets: [text, badge, burst],
-      y: "-=26",
+      y: "-=18",
       alpha: 0,
-      scale: { from: 1, to: 1.18 },
-      duration: 600,
+      scale: { from: 1, to: 1.24 },
+      delay: 220,
+      duration: 420,
       ease: "cubic.out",
       onComplete: () => {
         text.destroy();
         badge.destroy();
         burst.destroy();
+        ring.destroy();
       },
+    });
+  }
+
+  private spawnMiningImpact(
+    tileX: number,
+    tileY: number,
+    kind: TileKind,
+    burst: boolean,
+    intensity: number,
+  ) {
+    const worldX = tileX * TILE_SIZE + TILE_SIZE / 2;
+    const worldY = tileY * TILE_SIZE + TILE_SIZE / 2;
+    const material = tilePalette[kind];
+    const particleCount = burst ? 12 : 5;
+    const cameraIntensity = burst ? 0.0036 : 0.0015 + intensity * 0.0008;
+    const flashColor = material.glow ?? material.detail;
+
+    this.cameras.main.shake(burst ? 90 : 42, cameraIntensity);
+    this.pulseScreenFlash(flashColor, burst ? 0.1 : 0.045 + intensity * 0.02, burst ? 180 : 120);
+
+    const shock = this.add.circle(worldX, worldY, burst ? 10 : 6, flashColor, burst ? 0.22 : 0.14);
+    shock.setScale(0.75);
+
+    this.tweens.add({
+      targets: shock,
+      scale: burst ? 2.2 : 1.45,
+      alpha: 0,
+      duration: burst ? 260 : 170,
+      ease: "quad.out",
+      onComplete: () => shock.destroy(),
+    });
+
+    for (let index = 0; index < particleCount; index += 1) {
+      const angle = Phaser.Math.FloatBetween(-Math.PI, Math.PI);
+      const speed = burst ? Phaser.Math.FloatBetween(34, 78) : Phaser.Math.FloatBetween(18, 42);
+      const distanceX = Math.cos(angle) * speed;
+      const distanceY = Math.sin(angle) * speed - (burst ? 8 : 2);
+      const size = burst ? Phaser.Math.Between(3, 7) : Phaser.Math.Between(2, 4);
+
+      const shard = this.add.rectangle(worldX, worldY, size, size, material.detail, 0.95);
+      shard.setAngle(Phaser.Math.Between(-35, 35));
+
+      this.tweens.add({
+        targets: shard,
+        x: worldX + distanceX,
+        y: worldY + distanceY,
+        alpha: 0,
+        angle: shard.angle + Phaser.Math.Between(-90, 90),
+        scaleX: 0.35,
+        scaleY: 0.35,
+        duration: burst ? 360 : 220,
+        ease: "cubic.out",
+        onComplete: () => shard.destroy(),
+      });
+    }
+
+    const dust = this.add.circle(worldX, worldY + 2, burst ? 9 : 6, material.base, burst ? 0.16 : 0.11);
+
+    this.tweens.add({
+      targets: dust,
+      y: worldY - (burst ? 8 : 4),
+      scale: burst ? 2.4 : 1.8,
+      alpha: 0,
+      duration: burst ? 300 : 180,
+      ease: "sine.out",
+      onComplete: () => dust.destroy(),
+    });
+  }
+
+  private pulseScreenFlash(color: number, alpha: number, duration: number) {
+    if (!this.screenFlash) {
+      return;
+    }
+
+    this.tweens.killTweensOf(this.screenFlash);
+    this.screenFlash.setFillStyle(color, alpha);
+    this.screenFlash.setAlpha(alpha);
+
+    this.tweens.add({
+      targets: this.screenFlash,
+      alpha: 0,
+      duration,
+      ease: "quad.out",
     });
   }
 
@@ -622,6 +786,7 @@ export class MineScene extends Phaser.Scene {
 
       this.worldGrid[candidate.y][candidate.x] = { kind: "empty" };
       this.drawWorldGrid();
+      this.spawnMiningImpact(candidate.x, candidate.y, "chest", true, 1);
       this.openArchaeologyCard();
       return true;
     }
