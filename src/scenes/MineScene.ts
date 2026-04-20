@@ -12,16 +12,31 @@ import {
   WORLD_WIDTH_PX,
 } from "../game/world/constants";
 import { tilePalette } from "../game/world/tilePalette";
+import { tileDefinitions } from "../game/world/tileDefinitions";
 import type { TileKind, WorldGrid } from "../game/world/types";
+
+type MiningTarget = {
+  x: number;
+  y: number;
+  progress: number;
+  required: number;
+};
 
 export class MineScene extends Phaser.Scene {
   private worldGrid: WorldGrid = [];
+  private groundLayer?: Phaser.GameObjects.Graphics;
+  private effectLayer?: Phaser.GameObjects.Graphics;
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   private moveKeys?: {
     left: Phaser.Input.Keyboard.Key;
     right: Phaser.Input.Keyboard.Key;
   };
+  private digKeys?: {
+    down: Phaser.Input.Keyboard.Key;
+    dig: Phaser.Input.Keyboard.Key;
+  };
   private player?: PlayerMiner;
+  private miningTarget?: MiningTarget;
 
   constructor() {
     super("mine");
@@ -49,6 +64,10 @@ export class MineScene extends Phaser.Scene {
       left: Phaser.Input.Keyboard.KeyCodes.A,
       right: Phaser.Input.Keyboard.KeyCodes.D,
     }) as { left: Phaser.Input.Keyboard.Key; right: Phaser.Input.Keyboard.Key } | undefined;
+    this.digKeys = this.input.keyboard?.addKeys({
+      down: Phaser.Input.Keyboard.KeyCodes.S,
+      dig: Phaser.Input.Keyboard.KeyCodes.SPACE,
+    }) as { down: Phaser.Input.Keyboard.Key; dig: Phaser.Input.Keyboard.Key } | undefined;
 
     this.hideLegacyViewport();
     this.game.events.emit("phaser:mine-ready");
@@ -62,12 +81,17 @@ export class MineScene extends Phaser.Scene {
     const deltaSeconds = delta / 1000;
     this.player.update(deltaSeconds);
 
+    if (this.handleMining(deltaSeconds)) {
+      return;
+    }
+
     if (this.player.fallCooldown === 0 && this.canOccupy(this.player.position.x, this.player.position.y + 1)) {
       this.player.snapToTile({
         x: this.player.position.x,
         y: this.player.position.y + 1,
       });
       this.player.fallCooldown = 0.08;
+      this.clearMiningTarget();
       return;
     }
 
@@ -111,7 +135,12 @@ export class MineScene extends Phaser.Scene {
   }
 
   private drawWorldGrid() {
-    const ground = this.add.graphics();
+    if (!this.groundLayer) {
+      this.groundLayer = this.add.graphics();
+    }
+
+    this.groundLayer.clear();
+    const ground = this.groundLayer;
 
     for (let y = 0; y < WORLD_HEIGHT_TILES; y += 1) {
       for (let x = 0; x < this.worldGrid[y].length; x += 1) {
@@ -174,6 +203,137 @@ export class MineScene extends Phaser.Scene {
     this.player = new PlayerMiner(this, PLAYER_SPAWN_TILE);
   }
 
+  private handleMining(deltaSeconds: number) {
+    if (!this.player) {
+      return false;
+    }
+
+    const leftPressed = this.cursors?.left.isDown || this.moveKeys?.left.isDown;
+    const rightPressed = this.cursors?.right.isDown || this.moveKeys?.right.isDown;
+    const downPressed = this.cursors?.down.isDown || this.digKeys?.down.isDown;
+    const digPressed = this.digKeys?.dig.isDown;
+
+    const target = this.resolveMiningTarget({
+      leftPressed: Boolean(leftPressed),
+      rightPressed: Boolean(rightPressed),
+      downPressed: Boolean(downPressed),
+      digPressed: Boolean(digPressed),
+    });
+
+    if (!target) {
+      this.clearMiningTarget();
+      return false;
+    }
+
+    const tile = this.worldGrid[target.y]?.[target.x];
+
+    if (!tile || !this.isMineable(tile.kind)) {
+      this.clearMiningTarget();
+      return false;
+    }
+
+    const required = tileDefinitions[tile.kind].hardness * 0.35;
+
+    if (
+      !this.miningTarget ||
+      this.miningTarget.x !== target.x ||
+      this.miningTarget.y !== target.y
+    ) {
+      this.miningTarget = {
+        ...target,
+        progress: 0,
+        required,
+      };
+    }
+
+    this.player.facing = target.x < this.player.position.x ? -1 : target.x > this.player.position.x ? 1 : this.player.facing;
+    this.miningTarget.progress += deltaSeconds;
+    this.player.moveCooldown = 0.05;
+
+    if (this.miningTarget.progress >= this.miningTarget.required) {
+      this.worldGrid[target.y][target.x] = { kind: "empty" };
+      this.drawWorldGrid();
+      this.clearMiningTarget();
+      this.player.moveCooldown = 0.08;
+      return true;
+    }
+
+    this.drawMiningOverlay();
+    return true;
+  }
+
+  private resolveMiningTarget(input: {
+    leftPressed: boolean;
+    rightPressed: boolean;
+    downPressed: boolean;
+    digPressed: boolean;
+  }) {
+    if (!this.player) {
+      return null;
+    }
+
+    if (input.digPressed && input.leftPressed) {
+      return {
+        x: this.player.position.x - 1,
+        y: this.player.position.y,
+      };
+    }
+
+    if (input.digPressed && input.rightPressed) {
+      return {
+        x: this.player.position.x + 1,
+        y: this.player.position.y,
+      };
+    }
+
+    if (input.downPressed || input.digPressed) {
+      return {
+        x: this.player.position.x,
+        y: this.player.position.y + 1,
+      };
+    }
+
+    return null;
+  }
+
+  private drawMiningOverlay() {
+    if (!this.miningTarget) {
+      return;
+    }
+
+    if (!this.effectLayer) {
+      this.effectLayer = this.add.graphics();
+    }
+
+    this.effectLayer.clear();
+
+    const tileX = this.miningTarget.x * TILE_SIZE;
+    const tileY = this.miningTarget.y * TILE_SIZE;
+    const completion = Phaser.Math.Clamp(
+      this.miningTarget.progress / this.miningTarget.required,
+      0,
+      1,
+    );
+
+    this.effectLayer.lineStyle(2, 0xffffff, 0.35 + completion * 0.4);
+    this.effectLayer.strokeRect(tileX + 2, tileY + 2, TILE_SIZE - 4, TILE_SIZE - 4);
+
+    this.effectLayer.lineStyle(2, 0x111111, 0.45);
+    this.effectLayer.lineBetween(tileX + 6, tileY + 8, tileX + 16, tileY + 18);
+    this.effectLayer.lineBetween(tileX + 14, tileY + 18, tileX + 24, tileY + 10);
+    this.effectLayer.lineBetween(tileX + 10, tileY + 22, tileX + 20, tileY + 24);
+
+    this.effectLayer.fillStyle(0x0d1118, 0.75);
+    this.effectLayer.fillRect(tileX + 4, tileY - 10, TILE_SIZE - 8, 6);
+    this.effectLayer.fillStyle(0xffd166, 0.95);
+    this.effectLayer.fillRect(tileX + 4, tileY - 10, (TILE_SIZE - 8) * completion, 6);
+  }
+
+  private clearMiningTarget() {
+    this.miningTarget = undefined;
+    this.effectLayer?.clear();
+  }
+
   private canOccupy(tileX: number, tileY: number) {
     if (tileX < 0 || tileY < 0 || tileY >= this.worldGrid.length) {
       return false;
@@ -185,6 +345,10 @@ export class MineScene extends Phaser.Scene {
 
   private isPassable(kind: TileKind) {
     return kind === "empty";
+  }
+
+  private isMineable(kind: TileKind) {
+    return tileDefinitions[kind].breakable;
   }
 
   private hideLegacyViewport() {
