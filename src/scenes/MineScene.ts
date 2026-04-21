@@ -6,6 +6,7 @@ import {
   canAffordPickaxeUpgrade,
   getPickaxeUpgradeCost,
 } from "../game/progression/pickaxeUpgrade";
+import { createExpeditionProgression } from "../game/progression/expeditionGoals";
 import {
   createResourceInventory,
   getResourceFromTile,
@@ -14,6 +15,7 @@ import {
 } from "../game/inventory/resourceInventory";
 import { MineAudioDirector } from "../game/audio/MineAudioDirector";
 import { PlayerMiner } from "../game/player/PlayerMiner";
+import { ExpeditionGoalsPanel } from "../ui/hud/ExpeditionGoalsPanel";
 import { MineHud } from "../ui/hud/MineHud";
 import { ArchaeologyCardOverlay } from "../ui/overlays/ArchaeologyCardOverlay";
 import { UpgradeOverlay } from "../ui/overlays/UpgradeOverlay";
@@ -50,6 +52,7 @@ const SURFACE_RETURN_TILE = {
 export class MineScene extends Phaser.Scene {
   private worldGrid: WorldGrid = [];
   private readonly archaeologyDeck = createArchaeologyDeck();
+  private readonly expeditionProgression = createExpeditionProgression();
   private inventory: ResourceInventory = createResourceInventory();
   private energy = 100;
   private pickaxeLevel = 1;
@@ -64,6 +67,7 @@ export class MineScene extends Phaser.Scene {
   private surfaceButtonLabel?: Phaser.GameObjects.Text;
   private surfaceStatusText?: Phaser.GameObjects.Text;
   private audioDirector?: MineAudioDirector;
+  private goalsPanel?: ExpeditionGoalsPanel;
   private hud?: MineHud;
   private archaeologyOverlay?: ArchaeologyCardOverlay;
   private upgradeOverlay?: UpgradeOverlay;
@@ -109,6 +113,7 @@ export class MineScene extends Phaser.Scene {
     this.createScreenFlash();
     this.createSurfaceReturnUi();
     this.createHud();
+    this.createGoalsPanel();
     this.createArchaeologyOverlay();
     this.createUpgradeOverlay();
     this.createAudioDirector();
@@ -201,6 +206,8 @@ export class MineScene extends Phaser.Scene {
       return;
     }
 
+    const moveTempoScale = 1 - this.expeditionProgression.getSnapshot().perks.moveTempoBonus;
+
     const leftPressed =
       this.cursors?.left.isDown || this.moveKeys?.left.isDown;
     const rightPressed =
@@ -218,14 +225,14 @@ export class MineScene extends Phaser.Scene {
 
     if (!this.canOccupy(nextX, nextY)) {
       this.player.facing = nextDirection;
-      this.player.moveCooldown = 0.08;
+      this.player.moveCooldown = 0.08 * moveTempoScale;
       this.finalizeFrame(deltaSeconds);
       return;
     }
 
     this.player.facing = nextDirection;
     this.player.snapToTile({ x: nextX, y: nextY });
-    this.player.moveCooldown = 0.11;
+    this.player.moveCooldown = 0.11 * moveTempoScale;
     this.audioDirector?.playStep(this.player.position.y / WORLD_HEIGHT_TILES);
     this.finalizeFrame(deltaSeconds);
   }
@@ -244,6 +251,7 @@ export class MineScene extends Phaser.Scene {
     this.player.setMining(Boolean(state?.mining));
     this.player.setFalling(Boolean(state?.falling));
     this.player.update(deltaSeconds);
+    this.syncExpeditionProgress(this.expeditionProgression.applyDepth(this.player.position.y));
     this.updateRewardLoop(deltaSeconds);
     this.audioDirector?.update(deltaSeconds, {
       depthRatio: this.player.position.y / WORLD_HEIGHT_TILES,
@@ -529,6 +537,11 @@ export class MineScene extends Phaser.Scene {
     this.updateHud();
   }
 
+  private createGoalsPanel() {
+    this.goalsPanel = new ExpeditionGoalsPanel(this);
+    this.updateGoalsPanel();
+  }
+
   private createSurfaceReturnUi() {
     this.surfaceButton = this.add.rectangle(584, 36, 84, 34, gameTheme.colors.panelDeep, 0.98);
     this.surfaceButton.setScrollFactor(0);
@@ -647,7 +660,9 @@ export class MineScene extends Phaser.Scene {
 
     const required =
       (tileDefinitions[tile.kind].hardness * 0.35) /
-      (1 + (this.pickaxeLevel - 1) * 0.25);
+      (1 +
+        (this.pickaxeLevel - 1) * 0.25 +
+        this.expeditionProgression.getSnapshot().perks.miningSpeedBonus);
 
     if (
       !this.miningTarget ||
@@ -784,6 +799,7 @@ export class MineScene extends Phaser.Scene {
 
     this.inventory[resource] += 1;
     const rewardState = this.registerReward(resource);
+    this.syncExpeditionProgress(this.expeditionProgression.applyResource(resource));
     this.game.events.emit("inventory:changed", { ...this.inventory });
     this.updateHud();
     this.audioDirector?.playPickup(resource, rewardState.streak);
@@ -793,9 +809,14 @@ export class MineScene extends Phaser.Scene {
   private registerReward(resource: ResourceKind) {
     const meta = getResourceMeta(resource);
     const chainActive = this.rewardComboTimer > 0;
+    const comboBonus = this.expeditionProgression.getSnapshot().perks.comboWindowBonus;
 
     this.rewardComboCount = chainActive ? this.rewardComboCount + 1 : 1;
-    this.rewardComboWindow = 2.5 + Math.min(1.2, this.rewardComboCount * 0.08) + meta.value * 0.06;
+    this.rewardComboWindow =
+      2.5 +
+      comboBonus +
+      Math.min(1.2, this.rewardComboCount * 0.08) +
+      meta.value * 0.06;
     this.rewardComboTimer = this.rewardComboWindow;
     this.rewardColor = meta.accent;
     this.rewardLabel = `${getResourceTierLabel(meta.tier).toUpperCase()} ${meta.label.toUpperCase()}`;
@@ -1169,7 +1190,12 @@ export class MineScene extends Phaser.Scene {
 
         const screenX = x * TILE_SIZE + TILE_SIZE / 2 - viewport.x;
         const screenY = y * TILE_SIZE + TILE_SIZE / 2 - viewport.y;
-        const shimmer = 0.04 + ((x + y) % 3) * 0.015 + Math.sin((this.time.now + x * 37 + y * 61) / 280) * 0.012;
+        const shimmerBase =
+          0.04 +
+          ((x + y) % 3) * 0.015 +
+          Math.sin((this.time.now + x * 37 + y * 61) / 280) * 0.012;
+        const shimmer =
+          shimmerBase * (1 + this.expeditionProgression.getSnapshot().perks.rareGlowBonus);
         const radius = tile.kind === "chest" ? 18 : tile.kind === "diamond" ? 16 : 14;
 
         this.lightLayer.fillStyle(material.glow, shimmer);
@@ -1217,6 +1243,29 @@ export class MineScene extends Phaser.Scene {
     });
   }
 
+  private updateGoalsPanel(
+    snapshot = this.expeditionProgression.getSnapshot(),
+  ) {
+    this.goalsPanel?.update({
+      rank: snapshot.rank,
+      progressLabel: snapshot.progressLabel,
+      perkSummary: snapshot.perkSummary,
+      activeGoal: snapshot.activeGoal,
+      nextGoal: snapshot.nextGoal,
+    });
+  }
+
+  private syncExpeditionProgress(
+    snapshot: ReturnType<ReturnType<typeof createExpeditionProgression>["getSnapshot"]>,
+  ) {
+    this.updateGoalsPanel(snapshot);
+
+    for (const completed of snapshot.newlyCompleted) {
+      this.audioDirector?.playUpgrade();
+      this.showMissionToast(completed.title, completed.rewardLabel);
+    }
+  }
+
   private isAtSurface() {
     return Boolean(this.player && this.player.position.y <= SURFACE_RETURN_TILE.y);
   }
@@ -1232,6 +1281,7 @@ export class MineScene extends Phaser.Scene {
     }
 
     this.surfaceReturnLocked = true;
+    const departureDepth = this.player.position.y;
     this.clearMiningTarget();
     this.rewardComboCount = 0;
     this.rewardComboTimer = 0;
@@ -1252,6 +1302,7 @@ export class MineScene extends Phaser.Scene {
         this.player.fallCooldown = 0.2;
       }
       this.energy = 100;
+      this.syncExpeditionProgress(this.expeditionProgression.applySurfaceReturn(departureDepth));
       this.spawnSurfaceArrivalEffect();
       this.audioDirector?.playSurfaceArrive();
       camera.startFollow(this.player!.sprite, true, 0.16, 0.2);
@@ -1352,6 +1403,46 @@ export class MineScene extends Phaser.Scene {
     });
   }
 
+  private showMissionToast(title: string, rewardLabel: string) {
+    const toast = this.add.text(
+      VIEWPORT_WIDTH / 2,
+      214,
+      `META CONCLUIDA: ${title}\n${rewardLabel}`,
+      makeGameTextStyle({
+        family: "display",
+        color: "#fff0bc",
+        fontSize: "15px",
+        fontStyle: "800",
+        strokeThickness: 4,
+        align: "center",
+      }),
+    );
+    toast.setOrigin(0.5);
+    toast.setScrollFactor(0);
+    toast.setDepth(1420);
+    toast.setAlpha(0);
+    toast.setScale(0.82);
+
+    this.tweens.add({
+      targets: toast,
+      y: 198,
+      alpha: 1,
+      scale: 1,
+      duration: 200,
+      ease: "back.out",
+    });
+
+    this.tweens.add({
+      targets: toast,
+      y: 176,
+      alpha: 0,
+      delay: 700,
+      duration: 320,
+      ease: "quad.out",
+      onComplete: () => toast.destroy(),
+    });
+  }
+
   private updateRewardLoop(deltaSeconds: number) {
     if (this.rewardComboTimer <= 0) {
       return;
@@ -1392,6 +1483,7 @@ export class MineScene extends Phaser.Scene {
       this.worldGrid[candidate.y][candidate.x] = { kind: "empty" };
       this.drawWorldGrid();
       this.spawnMiningImpact(candidate.x, candidate.y, "chest", true, 1);
+      this.syncExpeditionProgress(this.expeditionProgression.applyChestOpened());
       this.audioDirector?.playChestOpen();
       this.openArchaeologyCard();
       return true;
@@ -1402,6 +1494,7 @@ export class MineScene extends Phaser.Scene {
 
   private openArchaeologyCard() {
     const cardBody = this.archaeologyDeck.drawNextCard();
+    this.syncExpeditionProgress(this.expeditionProgression.applyCardFound());
     this.archaeologyOverlay?.show({
       body: cardBody,
       collectedCount: this.archaeologyDeck.collectedCount,
@@ -1451,6 +1544,7 @@ export class MineScene extends Phaser.Scene {
     this.inventory.gold -= cost.gold;
     this.inventory.diamond -= cost.diamond;
     this.pickaxeLevel = nextLevel;
+    this.syncExpeditionProgress(this.expeditionProgression.applyPickaxeLevel(this.pickaxeLevel));
     this.audioDirector?.playUpgrade();
     this.updateHud();
     this.toggleUpgradeOverlay();
