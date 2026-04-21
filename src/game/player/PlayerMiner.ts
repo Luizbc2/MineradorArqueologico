@@ -184,6 +184,15 @@ export class PlayerMiner {
     this.targetY = this.toWorldY(nextPosition.y);
   }
 
+  warpToTile(nextPosition: PlayerTilePosition) {
+    this.position = { ...nextPosition };
+    this.targetX = this.toWorldX(nextPosition.x);
+    this.targetY = this.toWorldY(nextPosition.y);
+    this.sprite.x = this.targetX;
+    this.sprite.y = this.targetY;
+    this.stepKick = 0;
+  }
+
   private toWorldX(tileX: number) {
     return tileX * TILE_SIZE + TILE_SIZE / 2;
   }

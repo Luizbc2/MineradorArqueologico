@@ -41,6 +41,11 @@ type MiningTarget = {
   impacts: number;
 };
 
+const SURFACE_RETURN_TILE = {
+  x: PLAYER_SPAWN_TILE.x,
+  y: SURFACE_ROW - 1,
+} as const;
+
 export class MineScene extends Phaser.Scene {
   private worldGrid: WorldGrid = [];
   private readonly archaeologyDeck = createArchaeologyDeck();
@@ -53,6 +58,10 @@ export class MineScene extends Phaser.Scene {
   private darknessLayer?: Phaser.GameObjects.Graphics;
   private lightLayer?: Phaser.GameObjects.Graphics;
   private screenFlash?: Phaser.GameObjects.Rectangle;
+  private surfacePadLayer?: Phaser.GameObjects.Graphics;
+  private surfaceButton?: Phaser.GameObjects.Rectangle;
+  private surfaceButtonLabel?: Phaser.GameObjects.Text;
+  private surfaceStatusText?: Phaser.GameObjects.Text;
   private hud?: MineHud;
   private archaeologyOverlay?: ArchaeologyCardOverlay;
   private upgradeOverlay?: UpgradeOverlay;
@@ -68,6 +77,7 @@ export class MineScene extends Phaser.Scene {
   private interactKey?: Phaser.Input.Keyboard.Key;
   private escapeKey?: Phaser.Input.Keyboard.Key;
   private upgradeKey?: Phaser.Input.Keyboard.Key;
+  private surfaceKey?: Phaser.Input.Keyboard.Key;
   private player?: PlayerMiner;
   private miningTarget?: MiningTarget;
   private rewardComboCount = 0;
@@ -75,6 +85,7 @@ export class MineScene extends Phaser.Scene {
   private rewardComboWindow = 2.6;
   private rewardLabel = "Mina fria";
   private rewardColor: string = gameTheme.colors.textSoft;
+  private surfaceReturnLocked = false;
 
   constructor() {
     super("mine");
@@ -82,6 +93,7 @@ export class MineScene extends Phaser.Scene {
 
   create() {
     this.worldGrid = generateWorld();
+    this.prepareSurfaceSafeZone();
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH_PX, WORLD_HEIGHT_PX);
     this.physics.world.setBounds(0, 0, WORLD_WIDTH_PX, WORLD_HEIGHT_PX);
     this.cameras.main.setBackgroundColor("#06080f");
@@ -89,9 +101,11 @@ export class MineScene extends Phaser.Scene {
     this.drawBackdrop();
     this.drawWorldGrid();
     this.drawAtmosphere();
+    this.drawSurfaceSafeZone();
     this.drawDepthGuides();
     this.createPlayer();
     this.createScreenFlash();
+    this.createSurfaceReturnUi();
     this.createHud();
     this.createArchaeologyOverlay();
     this.createUpgradeOverlay();
@@ -114,6 +128,7 @@ export class MineScene extends Phaser.Scene {
     this.interactKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.E);
     this.escapeKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
     this.upgradeKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.U);
+    this.surfaceKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.R);
 
     this.hideLegacyViewport();
     this.game.events.emit("phaser:mine-ready");
@@ -140,6 +155,13 @@ export class MineScene extends Phaser.Scene {
       }
       this.finalizeFrame(deltaSeconds);
       return;
+    }
+
+    if (Phaser.Input.Keyboard.JustDown(this.surfaceKey!)) {
+      if (this.tryReturnToSurface()) {
+        this.finalizeFrame(deltaSeconds);
+        return;
+      }
     }
 
     if (Phaser.Input.Keyboard.JustDown(this.upgradeKey!)) {
@@ -220,7 +242,27 @@ export class MineScene extends Phaser.Scene {
     this.player.update(deltaSeconds);
     this.updateRewardLoop(deltaSeconds);
     this.updateLighting();
+    this.updateSurfaceUi();
     this.updateHud();
+  }
+
+  private prepareSurfaceSafeZone() {
+    const startX = SURFACE_RETURN_TILE.x - 4;
+    const endX = SURFACE_RETURN_TILE.x + 4;
+
+    for (let y = 0; y <= SURFACE_ROW - 1; y += 1) {
+      for (let x = startX; x <= endX; x += 1) {
+        if (this.worldGrid[y]?.[x]) {
+          this.worldGrid[y][x] = { kind: "empty" };
+        }
+      }
+    }
+
+    for (let x = startX; x <= endX; x += 1) {
+      if (this.worldGrid[SURFACE_ROW]?.[x]) {
+        this.worldGrid[SURFACE_ROW][x] = { kind: "stone" };
+      }
+    }
   }
 
   private drawBackdrop() {
@@ -318,6 +360,48 @@ export class MineScene extends Phaser.Scene {
     this.lightLayer.setScrollFactor(0);
     this.lightLayer.setDepth(910);
     this.lightLayer.setBlendMode(Phaser.BlendModes.ADD);
+  }
+
+  private drawSurfaceSafeZone() {
+    if (!this.surfacePadLayer) {
+      this.surfacePadLayer = this.add.graphics();
+    }
+
+    this.surfacePadLayer.clear();
+    const layer = this.surfacePadLayer;
+    const startX = (SURFACE_RETURN_TILE.x - 4) * TILE_SIZE;
+    const topY = SURFACE_ROW * TILE_SIZE - 10;
+    const width = TILE_SIZE * 9;
+
+    layer.fillStyle(0x113048, 0.38);
+    layer.fillRoundedRect(startX - 10, topY - 16, width + 20, 44, 14);
+    layer.fillStyle(gameTheme.colors.accentCool, 0.14);
+    layer.fillRoundedRect(startX - 6, topY - 12, width + 12, 36, 12);
+    layer.fillStyle(gameTheme.colors.accentSoft, 0.8);
+    layer.fillRect(startX + 14, topY + 8, width - 28, 3);
+
+    for (let index = 0; index < 3; index += 1) {
+      const lightX = startX + 38 + index * 104;
+      layer.fillStyle(gameTheme.colors.accentCool, 0.2);
+      layer.fillCircle(lightX, topY + 10, 11);
+      layer.fillStyle(0xdffffa, 0.95);
+      layer.fillCircle(lightX, topY + 10, 4);
+    }
+
+    const label = this.add.text(
+      startX + width / 2,
+      topY - 30,
+      "BASE SEGURA",
+      makeGameTextStyle({
+        family: "display",
+        color: "#d9fff8",
+        fontSize: "16px",
+        fontStyle: "800",
+        strokeThickness: 4,
+      }),
+    );
+    label.setOrigin(0.5, 0);
+    label.setAlpha(0.72);
   }
 
   private drawTileMaterial(
@@ -434,6 +518,56 @@ export class MineScene extends Phaser.Scene {
   private createHud() {
     this.hud = new MineHud(this);
     this.updateHud();
+  }
+
+  private createSurfaceReturnUi() {
+    this.surfaceButton = this.add.rectangle(584, 36, 84, 34, gameTheme.colors.panelDeep, 0.98);
+    this.surfaceButton.setScrollFactor(0);
+    this.surfaceButton.setStrokeStyle(2, gameTheme.colors.border, 0.95);
+    this.surfaceButton.setDepth(1100);
+    this.surfaceButton.setInteractive({ useHandCursor: true });
+    this.surfaceButton.on("pointerdown", () => {
+      this.tryReturnToSurface();
+    });
+    this.surfaceButton.on("pointerover", () => {
+      this.surfaceButton?.setFillStyle(gameTheme.colors.panelRaised, 1);
+    });
+    this.surfaceButton.on("pointerout", () => {
+      this.updateSurfaceUi();
+    });
+
+    this.surfaceButtonLabel = this.add.text(
+      584,
+      26,
+      "BASE [R]",
+      makeGameTextStyle({
+        family: "display",
+        color: "#dbfdfa",
+        fontSize: "13px",
+        fontStyle: "800",
+        strokeThickness: 3,
+      }),
+    );
+    this.surfaceButtonLabel.setOrigin(0.5, 0);
+    this.surfaceButtonLabel.setScrollFactor(0);
+    this.surfaceButtonLabel.setDepth(1110);
+
+    this.surfaceStatusText = this.add.text(
+      584,
+      49,
+      "",
+      makeGameTextStyle({
+        color: gameTheme.colors.textSoft,
+        fontSize: "11px",
+        fontStyle: "700",
+        strokeThickness: 2,
+      }),
+    );
+    this.surfaceStatusText.setOrigin(0.5, 0);
+    this.surfaceStatusText.setScrollFactor(0);
+    this.surfaceStatusText.setDepth(1110);
+
+    this.updateSurfaceUi();
   }
 
   private createScreenFlash() {
@@ -961,6 +1095,27 @@ export class MineScene extends Phaser.Scene {
     this.drawVisibleOreGlows(viewport);
   }
 
+  private updateSurfaceUi() {
+    const atSurface = this.isAtSurface();
+    const locked = this.surfaceReturnLocked;
+    const fillColor = atSurface ? 0x173420 : gameTheme.colors.panelDeep;
+    const borderColor = atSurface ? gameTheme.colors.success : gameTheme.colors.border;
+
+    this.surfaceButton?.setFillStyle(fillColor, locked ? 0.55 : 0.98);
+    this.surfaceButton?.setStrokeStyle(2, borderColor, locked ? 0.55 : 0.95);
+    this.surfaceButton?.setAlpha(locked ? 0.7 : 1);
+
+    this.surfaceButtonLabel?.setColor(atSurface ? "#b8ffd4" : "#dbfdfa");
+    this.surfaceStatusText?.setColor(atSurface ? "#90f0b8" : gameTheme.colors.textSoft);
+    this.surfaceStatusText?.setText(
+      locked
+        ? "subindo..."
+        : atSurface
+          ? "abrigo"
+          : `${Math.max(0, this.player?.position.y ?? 0)}m`,
+    );
+  }
+
   private drawVisibleOreGlows(viewport: Phaser.Geom.Rectangle) {
     if (!this.lightLayer) {
       return;
@@ -1032,6 +1187,139 @@ export class MineScene extends Phaser.Scene {
       comboLabel: this.rewardLabel,
       comboColor: this.rewardColor,
       inventory: this.inventory,
+    });
+  }
+
+  private isAtSurface() {
+    return Boolean(this.player && this.player.position.y <= SURFACE_RETURN_TILE.y);
+  }
+
+  private tryReturnToSurface() {
+    if (!this.player || this.surfaceReturnLocked || this.archaeologyOverlay?.isVisible || this.upgradeOverlay?.isVisible) {
+      return false;
+    }
+
+    if (this.isAtSurface()) {
+      this.showSurfaceToast("Voce ja esta na base.");
+      return false;
+    }
+
+    this.surfaceReturnLocked = true;
+    this.clearMiningTarget();
+    this.rewardComboCount = 0;
+    this.rewardComboTimer = 0;
+    this.rewardComboWindow = 2.6;
+    this.rewardLabel = "Retorno seguro";
+    this.rewardColor = "#d2fff7";
+    this.updateSurfaceUi();
+
+    const camera = this.cameras.main;
+
+    camera.stopFollow();
+    this.pulseScreenFlash(gameTheme.colors.accentCool, 0.16, 220);
+    camera.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.player?.warpToTile(SURFACE_RETURN_TILE);
+      if (this.player) {
+        this.player.moveCooldown = 0.2;
+        this.player.fallCooldown = 0.2;
+      }
+      this.energy = 100;
+      this.spawnSurfaceArrivalEffect();
+      camera.startFollow(this.player!.sprite, true, 0.16, 0.2);
+      camera.centerOn(this.player!.sprite.x, this.player!.sprite.y);
+      camera.fadeIn(220, 7, 14, 22);
+      this.surfaceReturnLocked = false;
+      this.showSurfaceToast("Base segura alcancada.");
+      this.updateSurfaceUi();
+    });
+    camera.fadeOut(180, 7, 14, 22);
+
+    return true;
+  }
+
+  private spawnSurfaceArrivalEffect() {
+    const worldX = SURFACE_RETURN_TILE.x * TILE_SIZE + TILE_SIZE / 2;
+    const worldY = SURFACE_RETURN_TILE.y * TILE_SIZE + TILE_SIZE / 2;
+
+    this.spawnMiningImpact(SURFACE_RETURN_TILE.x, SURFACE_ROW, "diamond", false, 0.45);
+
+    const text = this.add.text(
+      worldX,
+      worldY - 34,
+      "BASE SEGURA",
+      makeGameTextStyle({
+        family: "display",
+        color: "#d2fff7",
+        fontSize: "20px",
+        fontStyle: "800",
+        strokeThickness: 4,
+      }),
+    );
+    text.setOrigin(0.5);
+    text.setAlpha(0);
+    text.setScale(0.82);
+
+    const halo = this.add.circle(worldX, worldY + 10, 14, gameTheme.colors.accentCool, 0.2);
+
+    this.tweens.add({
+      targets: text,
+      y: worldY - 50,
+      alpha: 1,
+      scale: 1.04,
+      duration: 220,
+      ease: "back.out",
+    });
+
+    this.tweens.add({
+      targets: [text, halo],
+      alpha: 0,
+      scale: { from: 1, to: 1.8 },
+      delay: 260,
+      duration: 360,
+      ease: "quad.out",
+      onComplete: () => {
+        text.destroy();
+        halo.destroy();
+      },
+    });
+  }
+
+  private showSurfaceToast(message: string) {
+    const toast = this.add.text(
+      VIEWPORT_WIDTH / 2,
+      180,
+      message,
+      makeGameTextStyle({
+        family: "display",
+        color: "#d8fff7",
+        fontSize: "16px",
+        fontStyle: "800",
+        strokeThickness: 4,
+      }),
+    );
+    toast.setOrigin(0.5);
+    toast.setScrollFactor(0);
+    toast.setDepth(1400);
+    toast.setAlpha(0);
+    toast.setScale(0.82);
+
+    this.tweens.add({
+      targets: toast,
+      y: 168,
+      alpha: 1,
+      scale: 1,
+      duration: 180,
+      ease: "back.out",
+    });
+
+    this.tweens.add({
+      targets: toast,
+      y: 152,
+      alpha: 0,
+      delay: 300,
+      duration: 260,
+      ease: "quad.out",
+      onComplete: () => toast.destroy(),
     });
   }
 
