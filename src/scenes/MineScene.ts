@@ -12,6 +12,7 @@ import {
   getResourceMeta,
   getResourceTierLabel,
 } from "../game/inventory/resourceInventory";
+import { MineAudioDirector } from "../game/audio/MineAudioDirector";
 import { PlayerMiner } from "../game/player/PlayerMiner";
 import { MineHud } from "../ui/hud/MineHud";
 import { ArchaeologyCardOverlay } from "../ui/overlays/ArchaeologyCardOverlay";
@@ -62,6 +63,7 @@ export class MineScene extends Phaser.Scene {
   private surfaceButton?: Phaser.GameObjects.Rectangle;
   private surfaceButtonLabel?: Phaser.GameObjects.Text;
   private surfaceStatusText?: Phaser.GameObjects.Text;
+  private audioDirector?: MineAudioDirector;
   private hud?: MineHud;
   private archaeologyOverlay?: ArchaeologyCardOverlay;
   private upgradeOverlay?: UpgradeOverlay;
@@ -109,6 +111,7 @@ export class MineScene extends Phaser.Scene {
     this.createHud();
     this.createArchaeologyOverlay();
     this.createUpgradeOverlay();
+    this.createAudioDirector();
 
     if (this.player) {
       this.cameras.main.startFollow(this.player.sprite, true, 0.14, 0.18);
@@ -223,6 +226,7 @@ export class MineScene extends Phaser.Scene {
     this.player.facing = nextDirection;
     this.player.snapToTile({ x: nextX, y: nextY });
     this.player.moveCooldown = 0.11;
+    this.audioDirector?.playStep(this.player.position.y / WORLD_HEIGHT_TILES);
     this.finalizeFrame(deltaSeconds);
   }
 
@@ -241,6 +245,11 @@ export class MineScene extends Phaser.Scene {
     this.player.setFalling(Boolean(state?.falling));
     this.player.update(deltaSeconds);
     this.updateRewardLoop(deltaSeconds);
+    this.audioDirector?.update(deltaSeconds, {
+      depthRatio: this.player.position.y / WORLD_HEIGHT_TILES,
+      atSurface: this.isAtSurface(),
+      comboCount: this.rewardComboCount,
+    });
     this.updateLighting();
     this.updateSurfaceUi();
     this.updateHud();
@@ -570,6 +579,20 @@ export class MineScene extends Phaser.Scene {
     this.updateSurfaceUi();
   }
 
+  private createAudioDirector() {
+    this.audioDirector = new MineAudioDirector(this);
+
+    this.input.on("pointerdown", () => {
+      this.audioDirector?.unlock();
+    });
+    this.input.keyboard?.on("keydown", () => {
+      this.audioDirector?.unlock();
+    });
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.audioDirector?.destroy();
+    });
+  }
+
   private createScreenFlash() {
     this.screenFlash = this.add.rectangle(
       VIEWPORT_WIDTH / 2,
@@ -638,6 +661,7 @@ export class MineScene extends Phaser.Scene {
         impacts: 0,
       };
       this.spawnMiningImpact(target.x, target.y, tile.kind, false, 0.18);
+      this.audioDirector?.playMiningTick(tile.kind, 0.24);
     }
 
     this.player.facing = target.x < this.player.position.x ? -1 : target.x > this.player.position.x ? 1 : this.player.facing;
@@ -654,6 +678,7 @@ export class MineScene extends Phaser.Scene {
     if (impactThreshold > this.miningTarget.impacts) {
       this.miningTarget.impacts = impactThreshold;
       this.spawnMiningImpact(target.x, target.y, tile.kind, false, completion);
+      this.audioDirector?.playMiningTick(tile.kind, completion);
     }
 
     if (this.miningTarget.progress >= this.miningTarget.required) {
@@ -661,6 +686,7 @@ export class MineScene extends Phaser.Scene {
       this.worldGrid[target.y][target.x] = { kind: "empty" };
       this.drawWorldGrid();
       this.spawnMiningImpact(target.x, target.y, brokenKind, true, 1);
+      this.audioDirector?.playBlockBreak(brokenKind);
       this.collectTileDrop(brokenKind, target.x, target.y);
       this.clearMiningTarget();
       this.player.moveCooldown = 0.08;
@@ -760,6 +786,7 @@ export class MineScene extends Phaser.Scene {
     const rewardState = this.registerReward(resource);
     this.game.events.emit("inventory:changed", { ...this.inventory });
     this.updateHud();
+    this.audioDirector?.playPickup(resource, rewardState.streak);
     this.spawnPickupFeedback(tileX, tileY, this.inventory[resource], rewardState);
   }
 
@@ -1216,6 +1243,7 @@ export class MineScene extends Phaser.Scene {
     const camera = this.cameras.main;
 
     camera.stopFollow();
+    this.audioDirector?.playSurfaceReturn();
     this.pulseScreenFlash(gameTheme.colors.accentCool, 0.16, 220);
     camera.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.player?.warpToTile(SURFACE_RETURN_TILE);
@@ -1225,6 +1253,7 @@ export class MineScene extends Phaser.Scene {
       }
       this.energy = 100;
       this.spawnSurfaceArrivalEffect();
+      this.audioDirector?.playSurfaceArrive();
       camera.startFollow(this.player!.sprite, true, 0.16, 0.2);
       camera.centerOn(this.player!.sprite.x, this.player!.sprite.y);
       camera.fadeIn(220, 7, 14, 22);
@@ -1363,6 +1392,7 @@ export class MineScene extends Phaser.Scene {
       this.worldGrid[candidate.y][candidate.x] = { kind: "empty" };
       this.drawWorldGrid();
       this.spawnMiningImpact(candidate.x, candidate.y, "chest", true, 1);
+      this.audioDirector?.playChestOpen();
       this.openArchaeologyCard();
       return true;
     }
@@ -1421,6 +1451,7 @@ export class MineScene extends Phaser.Scene {
     this.inventory.gold -= cost.gold;
     this.inventory.diamond -= cost.diamond;
     this.pickaxeLevel = nextLevel;
+    this.audioDirector?.playUpgrade();
     this.updateHud();
     this.toggleUpgradeOverlay();
   }
