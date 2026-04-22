@@ -24,13 +24,6 @@ function ensurePhaserRoot() {
 
   root.style.display = "block";
 
-  const legacyRoot = document.getElementById("game-root");
-  if (legacyRoot) {
-    legacyRoot.style.minHeight = "0";
-    legacyRoot.style.height = "0";
-    legacyRoot.style.overflow = "hidden";
-  }
-
   return root;
 }
 

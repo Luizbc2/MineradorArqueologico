@@ -214,7 +214,6 @@ export class MineScene extends Phaser.Scene {
     });
     this.handleResize(this.scale.gameSize);
 
-    this.hideLegacyViewport();
     this.drawWorldGrid(true);
     this.game.events.emit("phaser:mine-ready");
   }
@@ -1657,26 +1656,6 @@ export class MineScene extends Phaser.Scene {
 
   private closeUpgradeOverlay() {
     this.upgradeOverlay?.hide();
-  }
-
-  private hideLegacyViewport() {
-    const legacyHud = document.querySelector(".hud");
-    const legacyCanvas = document.getElementById("game");
-    const instructions = document.getElementById("instructions");
-    const archCard = document.getElementById("arch-card");
-    const pauseOverlay = document.getElementById("pause");
-    const upgradeOverlay = document.getElementById("upgrade");
-    const confetti = document.getElementById("confetti-global");
-    const legacyFooter = document.querySelector(".footer");
-
-    legacyHud?.setAttribute("hidden", "true");
-    legacyCanvas?.setAttribute("hidden", "true");
-    instructions?.setAttribute("hidden", "true");
-    archCard?.setAttribute("hidden", "true");
-    pauseOverlay?.setAttribute("hidden", "true");
-    upgradeOverlay?.setAttribute("hidden", "true");
-    confetti?.setAttribute("hidden", "true");
-    legacyFooter?.setAttribute("hidden", "true");
   }
 
   private registerFixedUiElement<T extends FixedUiElement>(element: T) {
