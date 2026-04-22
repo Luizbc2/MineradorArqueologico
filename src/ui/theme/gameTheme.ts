@@ -129,5 +129,6 @@ export function makeGameTextStyle(options: GameTextStyleOptions = {}): Phaser.Ty
       : undefined,
     stroke: "#08111b",
     strokeThickness: options.strokeThickness ?? 3,
+    resolution: 2,
   };
 }

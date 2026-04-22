@@ -16,7 +16,7 @@ function ensurePhaserRoot() {
     root.style.overflow = "hidden";
     root.style.background = `radial-gradient(circle at top, #0f1830 0%, #090d15 42%, #06080f 100%)`;
     root.style.boxSizing = "border-box";
-    root.style.imageRendering = "pixelated";
+    root.style.imageRendering = "auto";
     root.style.zIndex = "0";
 
     document.body.append(root);

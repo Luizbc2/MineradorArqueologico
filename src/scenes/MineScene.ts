@@ -537,10 +537,10 @@ export class MineScene extends Phaser.Scene {
   }
 
   private createSurfaceReturnUi() {
-    const buttonX = VIEWPORT_WIDTH - 62;
-    const buttonY = 118;
+    const buttonX = 78;
+    const buttonY = VIEWPORT_HEIGHT - 54;
 
-    this.surfaceButton = this.add.rectangle(buttonX, buttonY, 96, 28, gameTheme.colors.panelDeep, 0.98);
+    this.surfaceButton = this.add.rectangle(buttonX, buttonY, 116, 30, gameTheme.colors.panelDeep, 0.98);
     this.surfaceButton.setScrollFactor(0);
     this.surfaceButton.setStrokeStyle(2, gameTheme.colors.border, 0.95);
     this.surfaceButton.setDepth(1100);
@@ -557,7 +557,7 @@ export class MineScene extends Phaser.Scene {
 
     this.surfaceButtonLabel = this.add.text(
       buttonX,
-      buttonY - 9,
+      buttonY - 10,
       "BASE [R]",
       makeGameTextStyle({
         family: "display",
@@ -573,7 +573,7 @@ export class MineScene extends Phaser.Scene {
 
     this.surfaceStatusText = this.add.text(
       buttonX,
-      buttonY + 4,
+      buttonY + 5,
       "",
       makeGameTextStyle({
         color: gameTheme.colors.textSoft,
@@ -1103,7 +1103,7 @@ export class MineScene extends Phaser.Scene {
       this.lastLightingState.facing !== nextLightingState.facing ||
       this.lastLightingState.mining !== nextLightingState.mining;
 
-    if (!lightingStateChanged && this.lightingTick < 1 / 10) {
+    if (!lightingStateChanged && this.lightingTick < 1 / 12) {
       return;
     }
 
@@ -1118,31 +1118,38 @@ export class MineScene extends Phaser.Scene {
     const darknessAlpha = 0.12 + depthRatio * 0.4;
     const lampX = playerX + this.player.facing * 8;
     const lampY = playerY - 12;
-    const outerRadius = 72 - depthRatio * 8;
-    const coneWidth = 108 - depthRatio * 10;
+    const outerRadius = 64 - depthRatio * 4;
+    const glowRadius = outerRadius + 22;
+    const coneLength = 114 - depthRatio * 10;
+    const coneSpread = 30 - depthRatio * 4;
 
     this.darknessLayer.clear();
     this.darknessLayer.fillStyle(0x02050a, darknessAlpha);
     this.darknessLayer.fillRect(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
 
     this.lightLayer.clear();
-    this.lightLayer.fillStyle(gameTheme.colors.accentCool, 0.1 + depthRatio * 0.03);
+    this.lightLayer.fillStyle(gameTheme.colors.accentCool, 0.06 + depthRatio * 0.02);
+    this.lightLayer.fillCircle(lampX, lampY, glowRadius);
+    this.lightLayer.fillStyle(0xfff2cb, 0.08);
     this.lightLayer.fillCircle(lampX, lampY, outerRadius);
-    this.lightLayer.fillStyle(gameTheme.colors.warning, 0.05 + depthRatio * 0.02);
-    this.lightLayer.fillRect(
-      lampX + this.player.facing * (36 + depthRatio * 8),
-      lampY - 18,
-      coneWidth,
-      36 - depthRatio * 4,
+
+    this.lightLayer.fillStyle(gameTheme.colors.warning, 0.05 + depthRatio * 0.015);
+    this.lightLayer.fillTriangle(
+      lampX + this.player.facing * 10,
+      lampY - 4,
+      lampX + this.player.facing * coneLength,
+      lampY - coneSpread,
+      lampX + this.player.facing * coneLength,
+      lampY + coneSpread,
     );
 
     if (this.miningTarget) {
       const miningX = this.miningTarget.x * TILE_SIZE + TILE_SIZE / 2 - viewport.x;
       const miningY = this.miningTarget.y * TILE_SIZE + TILE_SIZE / 2 - viewport.y;
-      const pulse = 0.06 + Math.sin(this.time.now / 90) * 0.02;
+      const pulse = 0.04 + Math.sin(this.time.now / 100) * 0.02;
 
       this.lightLayer.fillStyle(gameTheme.colors.accent, pulse);
-      this.lightLayer.fillRect(miningX - 12, miningY - 12, 24, 24);
+      this.lightLayer.fillCircle(miningX, miningY, 14);
     }
   }
 

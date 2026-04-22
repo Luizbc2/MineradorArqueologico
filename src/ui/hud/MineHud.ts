@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { VIEWPORT_WIDTH } from "../../game/world/constants";
 import type { ResourceInventory } from "../../game/inventory/resourceInventory";
 import { createPanelChrome, gameTheme, makeGameTextStyle } from "../theme/gameTheme";
 
@@ -32,6 +33,8 @@ export class MineHud {
   private readonly energyGlow: Phaser.GameObjects.Rectangle;
   private readonly comboFill: Phaser.GameObjects.Rectangle;
   private readonly resourceChips: Record<keyof ResourceInventory, ResourceChip>;
+  private readonly energyBaseX: number;
+  private readonly comboBaseX: number;
 
   private lastInfoKey = "";
   private lastEnergyWidth = -1;
@@ -40,10 +43,10 @@ export class MineHud {
   private lastComboColor = "";
 
   constructor(scene: Phaser.Scene) {
-    const panelX = 14;
-    const panelY = 14;
-    const panelWidth = 364;
-    const panelHeight = 82;
+    const panelX = 12;
+    const panelY = 12;
+    const panelWidth = VIEWPORT_WIDTH - 24;
+    const panelHeight = 66;
 
     const chrome = createPanelChrome(scene, {
       x: panelX,
@@ -51,26 +54,26 @@ export class MineHud {
       width: panelWidth,
       height: panelHeight,
       accentColor: gameTheme.colors.accentCool,
-      alpha: 0.94,
+      alpha: 0.95,
     });
 
     const title = scene.add.text(
       panelX + 14,
-      panelY + 10,
-      "MINERADOR ARQUEOLOGICO",
+      panelY + 8,
+      "MINERADOR",
       makeGameTextStyle({
         family: "display",
         color: "#f7f3e6",
-        fontSize: "14px",
+        fontSize: "12px",
         fontStyle: "800",
         strokeThickness: 3,
       }),
     );
 
-    const subtitle = scene.add.text(
-      panelX + 14,
-      panelY + 25,
-      "run atual",
+    const depthLabel = scene.add.text(
+      panelX + 16,
+      panelY + 29,
+      "PROFUNDIDADE",
       makeGameTextStyle({
         color: gameTheme.colors.textSoft,
         fontSize: "10px",
@@ -79,34 +82,24 @@ export class MineHud {
       }),
     );
 
-    const depthCaption = scene.add.text(
-      panelX + 16,
-      panelY + 44,
-      "PROF.",
-      makeGameTextStyle({
-        color: gameTheme.colors.textSoft,
-        fontSize: "11px",
-        fontStyle: "700",
-        strokeThickness: 2,
-      }),
-    );
-
     this.depthText = scene.add.text(
-      panelX + 54,
-      panelY + 40,
+      panelX + 16,
+      panelY + 42,
       "0m",
       makeGameTextStyle({
         family: "display",
         color: "#ffffff",
-        fontSize: "24px",
+        fontSize: "22px",
         fontStyle: "800",
         strokeThickness: 4,
       }),
     );
 
+    this.energyBaseX = panelX + 128;
+
     this.energyText = scene.add.text(
-      panelX + 110,
-      panelY + 16,
+      this.energyBaseX,
+      panelY + 14,
       "ENERGIA 100%",
       makeGameTextStyle({
         color: gameTheme.colors.textSoft,
@@ -117,9 +110,9 @@ export class MineHud {
     );
 
     const energyTrack = scene.add.rectangle(
-      panelX + 110,
-      panelY + 43,
-      126,
+      this.energyBaseX,
+      panelY + 40,
+      142,
       12,
       gameTheme.colors.panelDeep,
       1,
@@ -128,9 +121,9 @@ export class MineHud {
     energyTrack.setStrokeStyle(1, gameTheme.colors.borderSoft, 0.9);
 
     this.energyFill = scene.add.rectangle(
-      panelX + 110,
-      panelY + 43,
-      126,
+      this.energyBaseX,
+      panelY + 40,
+      142,
       8,
       gameTheme.colors.success,
       1,
@@ -138,76 +131,64 @@ export class MineHud {
     this.energyFill.setOrigin(0, 0.5);
 
     this.energyGlow = scene.add.rectangle(
-      panelX + 214,
-      panelY + 43,
+      this.energyBaseX + 112,
+      panelY + 40,
       18,
       8,
       0xffffff,
-      0.18,
+      0.16,
     );
     this.energyGlow.setOrigin(0, 0.5);
 
-    const pickaxePill = scene.add.rectangle(
-      panelX + 110,
-      panelY + 62,
-      64,
-      16,
-      gameTheme.colors.panelDeep,
-      0.94,
-    );
-    pickaxePill.setOrigin(0);
-    pickaxePill.setStrokeStyle(1, gameTheme.colors.borderSoft, 0.8);
+    const pickaxePill = this.createInfoPill(scene, {
+      x: panelX + 274,
+      y: panelY + 29,
+      width: 50,
+    });
+    const cardsPill = this.createInfoPill(scene, {
+      x: panelX + 332,
+      y: panelY + 29,
+      width: 66,
+    });
+    const comboPill = this.createInfoPill(scene, {
+      x: panelX + 406,
+      y: panelY + 29,
+      width: 50,
+    });
 
     this.pickaxeText = scene.add.text(
-      panelX + 117,
-      panelY + 62,
-      "PICK Lv1",
+      panelX + 299,
+      panelY + 40,
+      "Lv1",
       makeGameTextStyle({
         family: "display",
         color: "#ffe2a3",
         fontSize: "11px",
         fontStyle: "800",
         strokeThickness: 2,
+        align: "center",
       }),
     );
-
-    const cardsPill = scene.add.rectangle(
-      panelX + 181,
-      panelY + 62,
-      66,
-      16,
-      gameTheme.colors.panelDeep,
-      0.94,
-    );
-    cardsPill.setOrigin(0);
-    cardsPill.setStrokeStyle(1, gameTheme.colors.borderSoft, 0.8);
+    this.pickaxeText.setOrigin(0.5, 0.5);
 
     this.cardsText = scene.add.text(
-      panelX + 188,
-      panelY + 62,
-      "CDX 0/0",
+      panelX + 365,
+      panelY + 40,
+      "0/0",
       makeGameTextStyle({
+        family: "display",
         color: "#d7f8ff",
         fontSize: "11px",
-        fontStyle: "700",
+        fontStyle: "800",
         strokeThickness: 2,
+        align: "center",
       }),
     );
-
-    const comboPill = scene.add.rectangle(
-      panelX + 254,
-      panelY + 62,
-      56,
-      16,
-      gameTheme.colors.panelDeep,
-      0.94,
-    );
-    comboPill.setOrigin(0);
-    comboPill.setStrokeStyle(1, gameTheme.colors.borderSoft, 0.8);
+    this.cardsText.setOrigin(0.5, 0.5);
 
     this.comboText = scene.add.text(
-      panelX + 266,
-      panelY + 62,
+      panelX + 431,
+      panelY + 40,
       "x0",
       makeGameTextStyle({
         family: "display",
@@ -215,23 +196,26 @@ export class MineHud {
         fontSize: "11px",
         fontStyle: "800",
         strokeThickness: 2,
+        align: "center",
       }),
     );
+    this.comboText.setOrigin(0.5, 0.5);
 
     const comboTrack = scene.add.rectangle(
-      panelX + 254,
-      panelY + 48,
-      56,
+      panelX + 406,
+      panelY + 55,
+      50,
       5,
       gameTheme.colors.panelDeep,
       1,
     );
     comboTrack.setOrigin(0, 0.5);
 
+    this.comboBaseX = panelX + 406;
     this.comboFill = scene.add.rectangle(
-      panelX + 254,
-      panelY + 48,
-      56,
+      this.comboBaseX,
+      panelY + 55,
+      50,
       3,
       gameTheme.colors.accent,
       1,
@@ -240,26 +224,26 @@ export class MineHud {
 
     this.resourceChips = {
       coal: this.createResourceChip(scene, {
-        x: panelX + 318,
-        y: panelY + 18,
+        x: panelX + 472,
+        y: panelY + 20,
         label: "C",
         color: gameTheme.colors.coal,
       }),
       iron: this.createResourceChip(scene, {
-        x: panelX + 318,
-        y: panelY + 38,
+        x: panelX + 508,
+        y: panelY + 20,
         label: "F",
         color: gameTheme.colors.iron,
       }),
       gold: this.createResourceChip(scene, {
-        x: panelX + 318,
-        y: panelY + 58,
+        x: panelX + 544,
+        y: panelY + 20,
         label: "O",
         color: gameTheme.colors.gold,
       }),
       diamond: this.createResourceChip(scene, {
-        x: panelX + 318,
-        y: panelY + 78,
+        x: panelX + 580,
+        y: panelY + 20,
         label: "D",
         color: gameTheme.colors.diamond,
       }),
@@ -268,18 +252,17 @@ export class MineHud {
     this.container = scene.add.container(0, 0, [
       ...chrome,
       title,
-      subtitle,
-      depthCaption,
+      depthLabel,
       this.depthText,
       this.energyText,
       energyTrack,
       this.energyFill,
       this.energyGlow,
-      pickaxePill,
+      ...pickaxePill,
+      ...cardsPill,
+      ...comboPill,
       this.pickaxeText,
-      cardsPill,
       this.cardsText,
-      comboPill,
       this.comboText,
       comboTrack,
       this.comboFill,
@@ -312,8 +295,8 @@ export class MineHud {
       this.lastInfoKey = infoKey;
       this.depthText.setText(`${snapshot.depth}m`);
       this.energyText.setText(`ENERGIA ${snapshot.energy}%`);
-      this.pickaxeText.setText(`PICK Lv${snapshot.pickaxeLevel}`);
-      this.cardsText.setText(`CDX ${snapshot.cardsFound}/${snapshot.cardsTotal}`);
+      this.pickaxeText.setText(`Lv${snapshot.pickaxeLevel}`);
+      this.cardsText.setText(`${snapshot.cardsFound}/${snapshot.cardsTotal}`);
       this.comboText.setText(snapshot.comboCount > 0 ? `x${snapshot.comboCount}` : "x0");
       this.comboText.setColor(snapshot.comboCount > 0 ? snapshot.comboColor : gameTheme.colors.textSoft);
 
@@ -324,7 +307,7 @@ export class MineHud {
     }
 
     const normalizedEnergy = Phaser.Math.Clamp(snapshot.energy / 100, 0, 1);
-    const energyWidth = Math.max(10, Math.round(126 * normalizedEnergy));
+    const energyWidth = Math.max(12, Math.round(142 * normalizedEnergy));
     const energyColor =
       normalizedEnergy > 0.6
         ? gameTheme.colors.success
@@ -335,7 +318,7 @@ export class MineHud {
     if (energyWidth !== this.lastEnergyWidth) {
       this.lastEnergyWidth = energyWidth;
       this.energyFill.width = energyWidth;
-      this.energyGlow.x = 124 + Math.max(6, energyWidth - 18);
+      this.energyGlow.x = this.energyBaseX + Math.max(6, energyWidth - 18);
       this.energyGlow.visible = energyWidth > 18;
     }
 
@@ -344,7 +327,7 @@ export class MineHud {
       this.energyFill.fillColor = energyColor;
     }
 
-    const comboWidth = Math.max(8, Math.round(56 * Phaser.Math.Clamp(snapshot.comboWindowRatio, 0, 1)));
+    const comboWidth = Math.max(8, Math.round(50 * Phaser.Math.Clamp(snapshot.comboWindowRatio, 0, 1)));
 
     if (comboWidth !== this.lastComboWidth) {
       this.lastComboWidth = comboWidth;
@@ -359,27 +342,38 @@ export class MineHud {
 
   private syncResourceChip(chip: ResourceChip, label: string, value: number) {
     chip.valueText.setText(`${label}${value}`);
-    chip.bg.setAlpha(value > 0 ? 0.98 : 0.78);
+    chip.bg.setAlpha(value > 0 ? 0.98 : 0.76);
+  }
+
+  private createInfoPill(
+    scene: Phaser.Scene,
+    options: { x: number; y: number; width: number },
+  ) {
+    const bg = scene.add.rectangle(options.x, options.y, options.width, 22, gameTheme.colors.panelDeep, 0.94);
+    bg.setOrigin(0);
+    bg.setStrokeStyle(1, gameTheme.colors.borderSoft, 0.82);
+
+    return [bg];
   }
 
   private createResourceChip(
     scene: Phaser.Scene,
     options: { x: number; y: number; label: string; color: number },
   ): ResourceChip {
-    const bg = scene.add.rectangle(options.x, options.y, 42, 16, gameTheme.colors.panelDeep, 0.82);
-    bg.setOrigin(0, 1);
-    bg.setStrokeStyle(1, gameTheme.colors.borderSoft, 0.7);
+    const bg = scene.add.rectangle(options.x, options.y, 32, 18, gameTheme.colors.panelDeep, 0.82);
+    bg.setOrigin(0);
+    bg.setStrokeStyle(1, gameTheme.colors.borderSoft, 0.75);
 
-    const icon = scene.add.circle(options.x + 8, options.y - 8, 3, options.color, 1);
+    const icon = scene.add.circle(options.x + 7, options.y + 9, 3, options.color, 1);
 
     const valueText = scene.add.text(
-      options.x + 14,
-      options.y - 15,
+      options.x + 13,
+      options.y + 3,
       `${options.label}0`,
       makeGameTextStyle({
         family: "display",
         color: gameTheme.colors.text,
-        fontSize: "10px",
+        fontSize: "9px",
         fontStyle: "800",
         strokeThickness: 2,
       }),
