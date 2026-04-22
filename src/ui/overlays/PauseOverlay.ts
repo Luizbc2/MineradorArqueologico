@@ -115,13 +115,13 @@ export class PauseOverlay {
     );
     roadmapLabel.setOrigin(0.5, 0);
 
-    this.resumeButtonBody = scene.add.rectangle(centerX - 88, panelY + 300, 172, 44, 0xe8cb79, 1);
+    this.resumeButtonBody = scene.add.rectangle(0, 0, 172, 44, 0xe8cb79, 1);
     this.resumeButtonBody.setStrokeStyle(2, 0x70511d, 0.88);
-    this.resumeButtonGlow = scene.add.rectangle(centerX - 88, panelY + 300, 172, 44, 0xffefb6, 0.08);
+    this.resumeButtonGlow = scene.add.rectangle(0, 0, 172, 44, 0xffefb6, 0.08);
 
     const resumeButtonLabel = scene.add.text(
-      centerX - 88,
-      panelY + 287,
+      0,
+      -13,
       "CONTINUAR",
       makeGameTextStyle({
         family: "display",
@@ -133,23 +133,23 @@ export class PauseOverlay {
     );
     resumeButtonLabel.setOrigin(0.5, 0);
 
-    this.resumeButton = scene.add.container(0, 0, [
+    this.resumeButton = scene.add.container(centerX - 88, panelY + 300, [
       this.resumeButtonGlow,
       this.resumeButtonBody,
       resumeButtonLabel,
     ]);
     this.resumeButton.setSize(172, 44);
     this.resumeButton.setInteractive(
-      new Phaser.Geom.Rectangle(centerX - 174, panelY + 278, 172, 44),
+      new Phaser.Geom.Rectangle(-86, -22, 172, 44),
       Phaser.Geom.Rectangle.Contains,
     );
 
-    this.menuButtonBody = scene.add.rectangle(centerX + 98, panelY + 300, 162, 44, gameTheme.colors.panelRaised, 1);
+    this.menuButtonBody = scene.add.rectangle(0, 0, 162, 44, gameTheme.colors.panelRaised, 1);
     this.menuButtonBody.setStrokeStyle(2, gameTheme.colors.border, 0.9);
 
     const menuButtonLabel = scene.add.text(
-      centerX + 98,
-      panelY + 287,
+      0,
+      -13,
       "MENU EM BREVE",
       makeGameTextStyle({
         family: "display",
@@ -161,7 +161,7 @@ export class PauseOverlay {
     );
     menuButtonLabel.setOrigin(0.5, 0);
 
-    this.menuButton = scene.add.container(0, 0, [
+    this.menuButton = scene.add.container(centerX + 98, panelY + 300, [
       this.menuButtonBody,
       menuButtonLabel,
     ]);

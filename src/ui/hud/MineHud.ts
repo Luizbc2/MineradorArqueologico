@@ -647,19 +647,21 @@ export class MineHud {
       onTrigger?: () => void;
     },
   ) {
-    const body = scene.add.rectangle(options.x, options.y, options.width, options.height, gameTheme.colors.panelDeep, 0.98);
-    body.setOrigin(0);
+    const buttonX = options.x + options.width / 2;
+    const buttonY = options.y + options.height / 2;
+
+    const body = scene.add.rectangle(0, 0, options.width, options.height, gameTheme.colors.panelDeep, 0.98);
     body.setStrokeStyle(1, gameTheme.colors.border, 0.92);
 
-    const glow = scene.add.rectangle(options.x + 8, options.y + 6, options.width - 16, 10, gameTheme.colors.accentCool, 0.08);
+    const glow = scene.add.rectangle(-options.width / 2 + 8, -options.height / 2 + 6, options.width - 16, 10, gameTheme.colors.accentCool, 0.08);
     glow.setOrigin(0);
 
-    const accent = scene.add.rectangle(options.x + 10, options.y + 9, 4, options.height - 18, gameTheme.colors.accentCool, 0.95);
+    const accent = scene.add.rectangle(-options.width / 2 + 10, -options.height / 2 + 9, 4, options.height - 18, gameTheme.colors.accentCool, 0.95);
     accent.setOrigin(0);
 
     const label = scene.add.text(
-      options.x + 22,
-      options.y + 8,
+      -options.width / 2 + 22,
+      -options.height / 2 + 8,
       options.label,
       makeGameTextStyle({
         family: "display",
@@ -671,8 +673,8 @@ export class MineHud {
     );
 
     const hint = scene.add.text(
-      options.x + options.width - 10,
-      options.y + 9,
+      options.width / 2 - 10,
+      -options.height / 2 + 9,
       options.hint,
       makeGameTextStyle({
         color: gameTheme.colors.textSoft,
@@ -683,10 +685,10 @@ export class MineHud {
     );
     hint.setOrigin(1, 0);
 
-    const button = scene.add.container(0, 0, [body, glow, accent, label, hint]);
+    const button = scene.add.container(buttonX, buttonY, [body, glow, accent, label, hint]);
     button.setSize(options.width, options.height);
     button.setInteractive(
-      new Phaser.Geom.Rectangle(options.x, options.y, options.width, options.height),
+      new Phaser.Geom.Rectangle(-options.width / 2, -options.height / 2, options.width, options.height),
       Phaser.Geom.Rectangle.Contains,
     );
     button.on("pointerover", () => {

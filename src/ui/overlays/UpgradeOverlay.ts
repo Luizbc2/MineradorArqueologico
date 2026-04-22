@@ -193,12 +193,12 @@ export class UpgradeOverlay {
     );
     this.costDiamondText.setOrigin(0.5, 0);
 
-    this.upgradeButtonBody = scene.add.rectangle(centerX - 82, panelY + 268, 164, 46, 0xe8cb79, 1);
+    this.upgradeButtonBody = scene.add.rectangle(0, 0, 164, 46, 0xe8cb79, 1);
     this.upgradeButtonBody.setStrokeStyle(2, 0x6f531c, 0.88);
-    this.upgradeButtonGlow = scene.add.rectangle(centerX - 82, panelY + 268, 164, 46, 0xffefb6, 0.08);
+    this.upgradeButtonGlow = scene.add.rectangle(0, 0, 164, 46, 0xffefb6, 0.08);
     this.upgradeButtonLabel = scene.add.text(
-      centerX - 82,
-      panelY + 255,
+      0,
+      -13,
       "EVOLUIR",
       makeGameTextStyle({
         family: "display",
@@ -209,22 +209,22 @@ export class UpgradeOverlay {
       }),
     );
     this.upgradeButtonLabel.setOrigin(0.5, 0);
-    this.upgradeButton = scene.add.container(0, 0, [
+    this.upgradeButton = scene.add.container(centerX - 82, panelY + 268, [
       this.upgradeButtonGlow,
       this.upgradeButtonBody,
       this.upgradeButtonLabel,
     ]);
     this.upgradeButton.setSize(164, 46);
     this.upgradeButton.setInteractive(
-      new Phaser.Geom.Rectangle(centerX - 164, panelY + 245, 164, 46),
+      new Phaser.Geom.Rectangle(-82, -23, 164, 46),
       Phaser.Geom.Rectangle.Contains,
     );
 
-    this.closeButtonBody = scene.add.rectangle(centerX + 96, panelY + 268, 140, 46, gameTheme.colors.panelRaised, 1);
+    this.closeButtonBody = scene.add.rectangle(0, 0, 140, 46, gameTheme.colors.panelRaised, 1);
     this.closeButtonBody.setStrokeStyle(2, gameTheme.colors.border, 0.9);
     this.closeButtonLabel = scene.add.text(
-      centerX + 96,
-      panelY + 255,
+      0,
+      -13,
       "FECHAR",
       makeGameTextStyle({
         family: "display",
@@ -235,13 +235,13 @@ export class UpgradeOverlay {
       }),
     );
     this.closeButtonLabel.setOrigin(0.5, 0);
-    this.closeButton = scene.add.container(0, 0, [
+    this.closeButton = scene.add.container(centerX + 96, panelY + 268, [
       this.closeButtonBody,
       this.closeButtonLabel,
     ]);
     this.closeButton.setSize(140, 46);
     this.closeButton.setInteractive(
-      new Phaser.Geom.Rectangle(centerX + 26, panelY + 245, 140, 46),
+      new Phaser.Geom.Rectangle(-70, -23, 140, 46),
       Phaser.Geom.Rectangle.Contains,
     );
 
@@ -314,7 +314,7 @@ export class UpgradeOverlay {
     this.upgradeButton.disableInteractive();
     if (snapshot.canUpgrade) {
       this.upgradeButton.setInteractive(
-        new Phaser.Geom.Rectangle(169, 372, 150, 44),
+        new Phaser.Geom.Rectangle(-82, -23, 164, 46),
         Phaser.Geom.Rectangle.Contains,
       );
     }

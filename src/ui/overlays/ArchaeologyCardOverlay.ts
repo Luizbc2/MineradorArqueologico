@@ -135,14 +135,14 @@ export class ArchaeologyCardOverlay {
     this.progressFill = scene.add.rectangle(centerX - 124, panelY + 316, 248, 6, gameTheme.colors.accentCool, 1);
     this.progressFill.setOrigin(0, 0.5);
 
-    this.closeButtonBody = scene.add.rectangle(centerX, panelY + 356, 180, 44, 0xe8cb79, 1);
+    this.closeButtonBody = scene.add.rectangle(0, 0, 180, 44, 0xe8cb79, 1);
     this.closeButtonBody.setStrokeStyle(2, 0x70511d, 0.88);
 
-    this.closeButtonGlow = scene.add.rectangle(centerX, panelY + 356, 180, 44, 0xffefb6, 0.08);
+    this.closeButtonGlow = scene.add.rectangle(0, 0, 180, 44, 0xffefb6, 0.08);
 
     this.closeButtonLabel = scene.add.text(
-      centerX,
-      panelY + 343,
+      0,
+      -13,
       "VOLTAR AO TUNEL",
       makeGameTextStyle({
         family: "display",
@@ -154,14 +154,14 @@ export class ArchaeologyCardOverlay {
     );
     this.closeButtonLabel.setOrigin(0.5, 0);
 
-    this.closeButton = scene.add.container(0, 0, [
+    this.closeButton = scene.add.container(centerX, panelY + 356, [
       this.closeButtonGlow,
       this.closeButtonBody,
       this.closeButtonLabel,
     ]);
     this.closeButton.setSize(180, 44);
     this.closeButton.setInteractive(
-      new Phaser.Geom.Rectangle(centerX - 90, panelY + 334, 180, 44),
+      new Phaser.Geom.Rectangle(-90, -22, 180, 44),
       Phaser.Geom.Rectangle.Contains,
     );
     this.closeButton.on("pointerover", () => this.setButtonState(true));
