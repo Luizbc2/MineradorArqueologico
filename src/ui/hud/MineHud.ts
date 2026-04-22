@@ -685,22 +685,16 @@ export class MineHud {
     hint.setOrigin(1, 0);
 
     const button = scene.add.container(buttonX, buttonY, [body, glow, accent, label, hint]);
-    button.setSize(options.width, options.height);
-    button.setInteractive(
-      new Phaser.Geom.Rectangle(-options.width / 2, -options.height / 2, options.width, options.height),
-      Phaser.Geom.Rectangle.Contains,
-    );
-    button.on("pointerover", () => {
+    body.setInteractive({ useHandCursor: true });
+    body.on("pointerover", () => {
       body.setFillStyle(gameTheme.colors.panelRaised, 1);
       glow.setAlpha(0.18);
-      button.setScale(1.02);
     });
-    button.on("pointerout", () => {
+    body.on("pointerout", () => {
       body.setFillStyle(gameTheme.colors.panelDeep, 0.98);
       glow.setAlpha(0.08);
-      button.setScale(1);
     });
-    button.on("pointerdown", () => {
+    body.on("pointerdown", () => {
       options.onTrigger?.();
     });
 

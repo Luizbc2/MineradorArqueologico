@@ -21,10 +21,12 @@ export class UpgradeOverlay {
   private readonly costGoldText: Phaser.GameObjects.Text;
   private readonly costDiamondText: Phaser.GameObjects.Text;
   private readonly upgradeButton: Phaser.GameObjects.Container;
+  private readonly upgradeButtonHitArea: Phaser.GameObjects.Rectangle;
   private readonly upgradeButtonBody: Phaser.GameObjects.Rectangle;
   private readonly upgradeButtonGlow: Phaser.GameObjects.Rectangle;
   private readonly upgradeButtonLabel: Phaser.GameObjects.Text;
   private readonly closeButton: Phaser.GameObjects.Container;
+  private readonly closeButtonHitArea: Phaser.GameObjects.Rectangle;
   private readonly closeButtonBody: Phaser.GameObjects.Rectangle;
   private readonly closeButtonLabel: Phaser.GameObjects.Text;
   private readonly scene: Phaser.Scene;
@@ -214,11 +216,8 @@ export class UpgradeOverlay {
       this.upgradeButtonBody,
       this.upgradeButtonLabel,
     ]);
-    this.upgradeButton.setSize(164, 46);
-    this.upgradeButton.setInteractive(
-      new Phaser.Geom.Rectangle(-82, -23, 164, 46),
-      Phaser.Geom.Rectangle.Contains,
-    );
+    this.upgradeButtonHitArea = this.upgradeButtonBody;
+    this.upgradeButtonHitArea.setInteractive({ useHandCursor: true });
 
     this.closeButtonBody = scene.add.rectangle(0, 0, 140, 46, gameTheme.colors.panelRaised, 1);
     this.closeButtonBody.setStrokeStyle(2, gameTheme.colors.border, 0.9);
@@ -239,11 +238,8 @@ export class UpgradeOverlay {
       this.closeButtonBody,
       this.closeButtonLabel,
     ]);
-    this.closeButton.setSize(140, 46);
-    this.closeButton.setInteractive(
-      new Phaser.Geom.Rectangle(-70, -23, 140, 46),
-      Phaser.Geom.Rectangle.Contains,
-    );
+    this.closeButtonHitArea = this.closeButtonBody;
+    this.closeButtonHitArea.setInteractive({ useHandCursor: true });
 
     const hint = scene.add.text(
       centerX,
@@ -285,10 +281,10 @@ export class UpgradeOverlay {
     this.container.setVisible(false);
     this.container.setAlpha(0);
 
-    this.upgradeButton.on("pointerover", () => this.setUpgradeButtonState(true, true));
-    this.upgradeButton.on("pointerout", () => this.setUpgradeButtonState(false, true));
-    this.closeButton.on("pointerover", () => this.setCloseButtonState(true));
-    this.closeButton.on("pointerout", () => this.setCloseButtonState(false));
+    this.upgradeButtonHitArea.on("pointerover", () => this.setUpgradeButtonState(true, true));
+    this.upgradeButtonHitArea.on("pointerout", () => this.setUpgradeButtonState(false, true));
+    this.closeButtonHitArea.on("pointerover", () => this.setCloseButtonState(true));
+    this.closeButtonHitArea.on("pointerout", () => this.setCloseButtonState(false));
   }
 
   getRoot() {
@@ -306,38 +302,27 @@ export class UpgradeOverlay {
     this.costGoldText.setText(`OURO ${snapshot.cost.gold}`);
     this.costDiamondText.setText(`DIA ${snapshot.cost.diamond}`);
 
-    this.upgradeButton.removeAllListeners("pointerup");
-    this.closeButton.removeAllListeners("pointerup");
-    this.upgradeButton.on("pointerup", snapshot.onUpgrade);
-    this.closeButton.on("pointerup", snapshot.onClose);
+    this.upgradeButtonHitArea.removeAllListeners("pointerup");
+    this.closeButtonHitArea.removeAllListeners("pointerup");
+    this.upgradeButtonHitArea.on("pointerup", snapshot.onUpgrade);
+    this.closeButtonHitArea.on("pointerup", snapshot.onClose);
 
-    this.upgradeButton.disableInteractive();
+    this.upgradeButtonHitArea.disableInteractive();
     if (snapshot.canUpgrade) {
-      this.upgradeButton.setInteractive(
-        new Phaser.Geom.Rectangle(-82, -23, 164, 46),
-        Phaser.Geom.Rectangle.Contains,
-      );
+      this.upgradeButtonHitArea.setInteractive({ useHandCursor: true });
     }
 
     this.setUpgradeButtonState(false, snapshot.canUpgrade);
     this.setCloseButtonState(false);
     this.container.setVisible(true);
     this.container.setAlpha(0);
-    this.panelRoot.setScale(0.94);
 
-    this.scene.tweens.killTweensOf([this.container, this.panelRoot]);
+    this.scene.tweens.killTweensOf(this.container);
     this.scene.tweens.add({
       targets: this.container,
       alpha: 1,
       duration: 140,
       ease: "quad.out",
-    });
-    this.scene.tweens.add({
-      targets: this.panelRoot,
-      scaleX: 1,
-      scaleY: 1,
-      duration: 220,
-      ease: "back.out",
     });
   }
 
@@ -355,7 +340,6 @@ export class UpgradeOverlay {
     this.upgradeButtonBody.setFillStyle(fill, 1);
     this.upgradeButtonGlow.setAlpha(enabled ? (hovered ? 0.18 : 0.08) : 0.02);
     this.upgradeButtonLabel.setColor(label);
-    this.upgradeButton.setScale(enabled && hovered ? 1.03 : 1);
     this.upgradeButton.setAlpha(enabled ? 1 : 0.62);
   }
 

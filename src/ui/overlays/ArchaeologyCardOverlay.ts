@@ -16,6 +16,7 @@ export class ArchaeologyCardOverlay {
   private readonly progressFill: Phaser.GameObjects.Rectangle;
   private readonly chapterText: Phaser.GameObjects.Text;
   private readonly closeButton: Phaser.GameObjects.Container;
+  private readonly closeButtonHitArea: Phaser.GameObjects.Rectangle;
   private readonly closeButtonBody: Phaser.GameObjects.Rectangle;
   private readonly closeButtonGlow: Phaser.GameObjects.Rectangle;
   private readonly closeButtonLabel: Phaser.GameObjects.Text;
@@ -159,13 +160,10 @@ export class ArchaeologyCardOverlay {
       this.closeButtonBody,
       this.closeButtonLabel,
     ]);
-    this.closeButton.setSize(180, 44);
-    this.closeButton.setInteractive(
-      new Phaser.Geom.Rectangle(-90, -22, 180, 44),
-      Phaser.Geom.Rectangle.Contains,
-    );
-    this.closeButton.on("pointerover", () => this.setButtonState(true));
-    this.closeButton.on("pointerout", () => this.setButtonState(false));
+    this.closeButtonHitArea = this.closeButtonBody;
+    this.closeButtonHitArea.setInteractive({ useHandCursor: true });
+    this.closeButtonHitArea.on("pointerover", () => this.setButtonState(true));
+    this.closeButtonHitArea.on("pointerout", () => this.setButtonState(false));
 
     const hint = scene.add.text(
       centerX,
@@ -218,25 +216,17 @@ export class ArchaeologyCardOverlay {
     );
     this.container.setVisible(true);
     this.container.setAlpha(0);
-    this.cardRoot.setScale(0.94);
     this.setButtonState(false);
-    this.closeButton.removeListener("pointerup", snapshot.onClose);
-    this.closeButton.removeAllListeners("pointerup");
-    this.closeButton.on("pointerup", snapshot.onClose);
+    this.closeButtonHitArea.removeListener("pointerup", snapshot.onClose);
+    this.closeButtonHitArea.removeAllListeners("pointerup");
+    this.closeButtonHitArea.on("pointerup", snapshot.onClose);
 
-    this.scene.tweens.killTweensOf([this.container, this.cardRoot]);
+    this.scene.tweens.killTweensOf(this.container);
     this.scene.tweens.add({
       targets: this.container,
       alpha: 1,
       duration: 140,
       ease: "quad.out",
-    });
-    this.scene.tweens.add({
-      targets: this.cardRoot,
-      scaleX: 1,
-      scaleY: 1,
-      duration: 220,
-      ease: "back.out",
     });
   }
 
@@ -251,6 +241,5 @@ export class ArchaeologyCardOverlay {
   private setButtonState(hovered: boolean) {
     this.closeButtonBody.setFillStyle(hovered ? 0xf6dd95 : 0xe8cb79, 1);
     this.closeButtonGlow.setAlpha(hovered ? 0.18 : 0.08);
-    this.closeButton.setScale(hovered ? 1.03 : 1);
   }
 }

@@ -9,6 +9,7 @@ export class PauseOverlay {
   private readonly container: Phaser.GameObjects.Container;
   private readonly panelRoot: Phaser.GameObjects.Container;
   private readonly resumeButton: Phaser.GameObjects.Container;
+  private readonly resumeButtonHitArea: Phaser.GameObjects.Rectangle;
   private readonly resumeButtonBody: Phaser.GameObjects.Rectangle;
   private readonly resumeButtonGlow: Phaser.GameObjects.Rectangle;
   private readonly menuButton: Phaser.GameObjects.Container;
@@ -140,11 +141,8 @@ export class PauseOverlay {
       this.resumeButtonBody,
       resumeButtonLabel,
     ]);
-    this.resumeButton.setSize(172, 44);
-    this.resumeButton.setInteractive(
-      new Phaser.Geom.Rectangle(-86, -22, 172, 44),
-      Phaser.Geom.Rectangle.Contains,
-    );
+    this.resumeButtonHitArea = this.resumeButtonBody;
+    this.resumeButtonHitArea.setInteractive({ useHandCursor: true });
 
     this.menuButtonBody = scene.add.rectangle(0, 0, 182, 44, gameTheme.colors.panelRaised, 1);
     this.menuButtonBody.setStrokeStyle(2, gameTheme.colors.border, 0.9);
@@ -202,8 +200,8 @@ export class PauseOverlay {
     this.container.setVisible(false);
     this.container.setAlpha(0);
 
-    this.resumeButton.on("pointerover", () => this.setResumeButtonState(true));
-    this.resumeButton.on("pointerout", () => this.setResumeButtonState(false));
+    this.resumeButtonHitArea.on("pointerover", () => this.setResumeButtonState(true));
+    this.resumeButtonHitArea.on("pointerout", () => this.setResumeButtonState(false));
   }
 
   getRoot() {
@@ -211,26 +209,18 @@ export class PauseOverlay {
   }
 
   show(snapshot: PauseOverlaySnapshot) {
-    this.resumeButton.removeAllListeners("pointerup");
-    this.resumeButton.on("pointerup", snapshot.onResume);
+    this.resumeButtonHitArea.removeAllListeners("pointerup");
+    this.resumeButtonHitArea.on("pointerup", snapshot.onResume);
     this.setResumeButtonState(false);
     this.container.setVisible(true);
     this.container.setAlpha(0);
-    this.panelRoot.setScale(0.96);
 
-    this.scene.tweens.killTweensOf([this.container, this.panelRoot]);
+    this.scene.tweens.killTweensOf(this.container);
     this.scene.tweens.add({
       targets: this.container,
       alpha: 1,
       duration: 120,
       ease: "quad.out",
-    });
-    this.scene.tweens.add({
-      targets: this.panelRoot,
-      scaleX: 1,
-      scaleY: 1,
-      duration: 180,
-      ease: "back.out",
     });
   }
 
@@ -245,6 +235,5 @@ export class PauseOverlay {
   private setResumeButtonState(hovered: boolean) {
     this.resumeButtonBody.setFillStyle(hovered ? 0xf6dd95 : 0xe8cb79, 1);
     this.resumeButtonGlow.setAlpha(hovered ? 0.18 : 0.08);
-    this.resumeButton.setScale(hovered ? 1.03 : 1);
   }
 }
