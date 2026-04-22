@@ -101,25 +101,6 @@ export class PlayerMiner {
       this.rig,
     ]);
     this.sprite.setSize(30, 34);
-
-    scene.tweens.add({
-      targets: this.lamp,
-      alpha: 0.45,
-      duration: 320,
-      yoyo: true,
-      repeat: -1,
-      ease: "sine.inOut",
-    });
-    scene.tweens.add({
-      targets: this.aura,
-      alpha: 0.09,
-      scaleX: 1.2,
-      scaleY: 1.16,
-      duration: 620,
-      yoyo: true,
-      repeat: -1,
-      ease: "sine.inOut",
-    });
   }
 
   setMining(active: boolean) {
@@ -155,6 +136,9 @@ export class PlayerMiner {
     this.dustShadow.scaleY = 1 - locomotion * 0.08;
     this.dustShadow.alpha = 0.36 + locomotion * 0.12;
     this.aura.y = -2 + Math.sin(this.animationTime * 3.2) * 1.2;
+    this.aura.alpha = 0.1 + Math.sin(this.animationTime * 2.8) * 0.03;
+    this.aura.scaleX = 1.06 + Math.sin(this.animationTime * 2.1) * 0.06;
+    this.aura.scaleY = 1.04 + Math.cos(this.animationTime * 2.1) * 0.04;
 
     this.leftLeg.rotation = Phaser.Math.DegToRad(walkSwing * 1.2);
     this.rightLeg.rotation = Phaser.Math.DegToRad(-walkSwing * 1.2);
@@ -173,6 +157,7 @@ export class PlayerMiner {
     this.helmet.y = -7 + idleBob * 0.12;
     this.visor.y = -5 + idleBob * 0.12;
     this.lamp.y = -9 + idleBob * 0.18;
+    this.lamp.alpha = 0.78 + Math.sin(this.animationTime * 8) * 0.16;
   }
 
   snapToTile(nextPosition: PlayerTilePosition) {

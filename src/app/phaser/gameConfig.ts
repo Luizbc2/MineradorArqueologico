@@ -11,6 +11,7 @@ export const phaserGameConfig: Phaser.Types.Core.GameConfig = {
   parent: PHASER_ROOT_ID,
   width: VIEWPORT_WIDTH,
   height: VIEWPORT_HEIGHT,
+  autoRound: true,
   backgroundColor: "#05070d",
   pixelArt: true,
   transparent: true,
@@ -18,6 +19,11 @@ export const phaserGameConfig: Phaser.Types.Core.GameConfig = {
     antialias: false,
     pixelArt: true,
     roundPixels: true,
+    powerPreference: "high-performance",
+  },
+  fps: {
+    target: 60,
+    smoothStep: false,
   },
   scale: {
     mode: Phaser.Scale.FIT,

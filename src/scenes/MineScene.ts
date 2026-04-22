@@ -110,6 +110,7 @@ export class MineScene extends Phaser.Scene {
   private rewardLabel = "Mina fria";
   private rewardColor: string = gameTheme.colors.textSoft;
   private surfaceReturnLocked = false;
+  private lastAppliedDepth = -1;
 
   constructor() {
     super("mine");
@@ -271,7 +272,12 @@ export class MineScene extends Phaser.Scene {
     this.player.setMining(Boolean(state?.mining));
     this.player.setFalling(Boolean(state?.falling));
     this.player.update(deltaSeconds);
-    this.syncExpeditionProgress(this.expeditionProgression.applyDepth(this.player.position.y));
+
+    if (this.player.position.y !== this.lastAppliedDepth) {
+      this.lastAppliedDepth = this.player.position.y;
+      this.syncExpeditionProgress(this.expeditionProgression.applyDepth(this.player.position.y));
+    }
+
     this.updateRewardLoop(deltaSeconds);
     this.audioDirector?.update(deltaSeconds, {
       depthRatio: this.player.position.y / WORLD_HEIGHT_TILES,
@@ -331,10 +337,10 @@ export class MineScene extends Phaser.Scene {
 
     const view = this.cameras.main.worldView;
     const nextWindow = {
-      startX: Math.max(0, Math.floor(view.x / TILE_SIZE) - 2),
-      endX: Math.min(this.worldGrid[0].length - 1, Math.ceil((view.x + view.width) / TILE_SIZE) + 2),
-      startY: Math.max(0, Math.floor(view.y / TILE_SIZE) - 2),
-      endY: Math.min(this.worldGrid.length - 1, Math.ceil((view.y + view.height) / TILE_SIZE) + 2),
+      startX: Math.max(0, Math.floor(view.x / TILE_SIZE) - 1),
+      endX: Math.min(this.worldGrid[0].length - 1, Math.ceil((view.x + view.width) / TILE_SIZE) + 1),
+      startY: Math.max(0, Math.floor(view.y / TILE_SIZE) - 1),
+      endY: Math.min(this.worldGrid.length - 1, Math.ceil((view.y + view.height) / TILE_SIZE) + 1),
     };
 
     if (
@@ -379,37 +385,17 @@ export class MineScene extends Phaser.Scene {
     this.atmosphereLayer.clear();
     const layer = this.atmosphereLayer;
 
-    for (let row = SURFACE_ROW + 6; row < WORLD_HEIGHT_TILES; row += 12) {
+    for (let row = SURFACE_ROW + 10; row < WORLD_HEIGHT_TILES; row += 24) {
       const y = row * TILE_SIZE + 16;
       const ratio = row / WORLD_HEIGHT_TILES;
 
-      layer.fillStyle(gameTheme.colors.caveGlow, 0.03 + ratio * 0.04);
-      layer.fillEllipse(104, y, 220, 96);
-      layer.fillEllipse(WORLD_WIDTH_PX - 104, y + 18, 240, 108);
+      layer.fillStyle(gameTheme.colors.caveGlow, 0.02 + ratio * 0.03);
+      layer.fillRect(44, y, WORLD_WIDTH_PX - 88, 40);
 
-      if (row % 24 === 0) {
-        layer.fillStyle(gameTheme.colors.ember, 0.02 + ratio * 0.03);
-        layer.fillEllipse(WORLD_WIDTH_PX / 2, y + 26, 180, 72);
+      if (row % 48 === 0) {
+        layer.fillStyle(gameTheme.colors.ember, 0.015 + ratio * 0.02);
+        layer.fillRect(88, y + 12, WORLD_WIDTH_PX - 176, 20);
       }
-    }
-
-    for (let index = 0; index < 8; index += 1) {
-      const x = 48 + ((index * 41) % (WORLD_WIDTH_PX - 96));
-      const y = SURFACE_ROW * TILE_SIZE + 80 + ((index * 137) % (WORLD_HEIGHT_PX - SURFACE_ROW * TILE_SIZE - 140));
-      const mote = this.add.circle(x, y, 2 + (index % 3), gameTheme.colors.accentCool, 0.08 + (index % 4) * 0.02);
-
-      mote.setBlendMode(Phaser.BlendModes.ADD);
-
-      this.tweens.add({
-        targets: mote,
-        x: x + Phaser.Math.Between(-24, 24),
-        y: y + Phaser.Math.Between(-54, 36),
-        alpha: 0.02,
-        duration: 2400 + index * 220,
-        yoyo: true,
-        repeat: -1,
-        ease: "sine.inOut",
-      });
     }
 
     this.darknessLayer = this.add.graphics();
@@ -475,59 +461,49 @@ export class MineScene extends Phaser.Scene {
   ) {
     const material = tilePalette[kind];
     const variant = this.sampleTileVariant(gridX, gridY);
-    const inset = kind === "chest" ? 2 : 1;
+    const inset = kind === "chest" ? 3 : 1;
     const width = TILE_SIZE - inset * 2;
 
     ground.fillStyle(material.base, depthTint);
-    ground.fillRoundedRect(tileX + inset, tileY + inset, width, width, 5);
+    ground.fillRect(tileX + inset, tileY + inset, width, width);
 
-    ground.fillStyle(material.top, depthTint * 0.92);
-    ground.fillRect(tileX + inset + 1, tileY + inset + 1, width - 2, 5);
+    ground.fillStyle(material.top, depthTint * 0.86);
+    ground.fillRect(tileX + inset, tileY + inset, width, 4);
 
-    ground.fillStyle(material.edge, depthTint * 0.9);
-    ground.fillRect(tileX + inset, tileY + TILE_SIZE - 7, width, 5);
-    ground.fillRect(tileX + TILE_SIZE - 7, tileY + inset + 3, 4, width - 7);
-
-    ground.lineStyle(1, material.edge, 0.45);
-    ground.strokeRoundedRect(tileX + inset, tileY + inset, width, width, 5);
+    ground.fillStyle(material.edge, depthTint * 0.84);
+    ground.fillRect(tileX + inset, tileY + TILE_SIZE - 5, width, 4);
 
     if (kind === "dirt" || kind === "stone" || kind === "bedrock") {
-      for (let dot = 0; dot < 5; dot += 1) {
-        const px = tileX + 5 + ((variant + dot * 7) % 20);
-        const py = tileY + 6 + ((variant * 3 + dot * 5) % 18);
-        ground.fillStyle(material.detail, 0.12 + dot * 0.03);
+      for (let dot = 0; dot < 3; dot += 1) {
+        const px = tileX + 5 + ((variant + dot * 9) % 18);
+        const py = tileY + 6 + ((variant * 3 + dot * 7) % 16);
+        ground.fillStyle(material.detail, 0.12 + dot * 0.04);
         ground.fillRect(px, py, dot % 2 === 0 ? 2 : 1, 1);
       }
     }
 
     if (kind === "coal" || kind === "iron" || kind === "gold" || kind === "diamond") {
-      for (let cluster = 0; cluster < 4; cluster += 1) {
-        const px = tileX + 6 + ((variant + cluster * 5) % 16);
-        const py = tileY + 7 + ((variant * 2 + cluster * 7) % 14);
+      for (let cluster = 0; cluster < 2; cluster += 1) {
+        const px = tileX + 7 + ((variant + cluster * 7) % 14);
+        const py = tileY + 8 + ((variant * 2 + cluster * 9) % 12);
         ground.fillStyle(material.detail, 0.85);
-        ground.fillRect(px, py, 3, 2);
-        ground.fillStyle(material.top, 0.4);
-        ground.fillRect(px + 1, py, 1, 1);
+        ground.fillRect(px, py, 4, 3);
       }
     }
 
     if (kind === "gold" || kind === "diamond") {
-      ground.fillStyle(material.glow ?? material.detail, 0.12 + ((variant % 5) * 0.02));
-      ground.fillCircle(tileX + 16, tileY + 16, 10);
-      ground.fillStyle(0xffffff, 0.18);
-      ground.fillRect(tileX + 8, tileY + 8, 3, 3);
+      ground.fillStyle(material.top, 0.22);
+      ground.fillRect(tileX + 6, tileY + 6, 20, 20);
     }
 
     if (kind === "chest") {
       ground.fillStyle(material.top, 1);
-      ground.fillRoundedRect(tileX + 4, tileY + 6, 24, 16, 4);
+      ground.fillRect(tileX + 4, tileY + 6, 24, 16);
       ground.fillStyle(material.edge, 1);
       ground.fillRect(tileX + 4, tileY + 14, 24, 3);
       ground.fillRect(tileX + 14, tileY + 8, 4, 12);
       ground.fillStyle(material.detail, 1);
       ground.fillRect(tileX + 14, tileY + 14, 4, 4);
-      ground.fillStyle(material.glow ?? material.detail, 0.16);
-      ground.fillCircle(tileX + 16, tileY + 16, 11);
     }
   }
 
@@ -539,36 +515,11 @@ export class MineScene extends Phaser.Scene {
   private drawDepthGuides() {
     const guides = this.add.graphics();
 
-    for (let row = SURFACE_ROW; row < WORLD_HEIGHT_TILES; row += 10) {
+    for (let row = SURFACE_ROW + 20; row < WORLD_HEIGHT_TILES; row += 40) {
       const y = row * TILE_SIZE;
-      guides.lineStyle(2, gameTheme.colors.accent, 0.09);
+      guides.lineStyle(1, gameTheme.colors.accent, 0.06);
       guides.lineBetween(0, y, WORLD_WIDTH_PX, y);
-
-      const label = this.add.text(
-        12,
-        y + 6,
-        `${row}m`,
-        makeGameTextStyle({
-          family: "display",
-          color: "#e7c98b",
-          fontSize: "16px",
-          fontStyle: "700",
-          strokeThickness: 3,
-        }),
-      );
-
-      label.setAlpha(0.55);
-      label.setScrollFactor(1);
     }
-
-    const frame = this.add.rectangle(
-      VIEWPORT_WIDTH / 2,
-      VIEWPORT_HEIGHT / 2,
-      VIEWPORT_WIDTH - 8,
-      VIEWPORT_HEIGHT - 8,
-    );
-    frame.setStrokeStyle(1, gameTheme.colors.accentSoft, 0.07);
-    frame.setScrollFactor(0);
   }
 
   private createPlayer() {
@@ -817,13 +768,8 @@ export class MineScene extends Phaser.Scene {
     this.effectLayer.lineStyle(2, material.detail, pulse + completion * 0.18);
     this.effectLayer.strokeRect(tileX + 2, tileY + 2, TILE_SIZE - 4, TILE_SIZE - 4);
 
-    this.effectLayer.fillStyle(material.glow ?? material.detail, 0.1 + completion * 0.08);
-    this.effectLayer.fillRoundedRect(tileX + 4, tileY + 4, TILE_SIZE - 8, TILE_SIZE - 8, 5);
-
-    this.effectLayer.lineStyle(2, material.edge, 0.5);
-    this.effectLayer.lineBetween(tileX + 6, tileY + 8, tileX + 16, tileY + 18);
-    this.effectLayer.lineBetween(tileX + 14, tileY + 18, tileX + 24, tileY + 10);
-    this.effectLayer.lineBetween(tileX + 10, tileY + 22, tileX + 20, tileY + 24);
+    this.effectLayer.fillStyle(material.glow ?? material.detail, 0.08 + completion * 0.06);
+    this.effectLayer.fillRect(tileX + 4, tileY + 4, TILE_SIZE - 8, TILE_SIZE - 8);
 
     this.effectLayer.fillStyle(0x0d1118, 0.75);
     this.effectLayer.fillRect(tileX + 4, tileY - 10, TILE_SIZE - 8, 6);
@@ -1157,7 +1103,7 @@ export class MineScene extends Phaser.Scene {
       this.lastLightingState.facing !== nextLightingState.facing ||
       this.lastLightingState.mining !== nextLightingState.mining;
 
-    if (!lightingStateChanged && this.lightingTick < 1 / 18) {
+    if (!lightingStateChanged && this.lightingTick < 1 / 10) {
       return;
     }
 
@@ -1172,43 +1118,32 @@ export class MineScene extends Phaser.Scene {
     const darknessAlpha = 0.12 + depthRatio * 0.4;
     const lampX = playerX + this.player.facing * 8;
     const lampY = playerY - 12;
-    const outerRadius = 82 - depthRatio * 8;
-    const coneWidth = 146 - depthRatio * 18;
+    const outerRadius = 72 - depthRatio * 8;
+    const coneWidth = 108 - depthRatio * 10;
 
     this.darknessLayer.clear();
     this.darknessLayer.fillStyle(0x02050a, darknessAlpha);
     this.darknessLayer.fillRect(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
-    this.darknessLayer.fillStyle(0x08111b, 0.14 + depthRatio * 0.12);
-    this.darknessLayer.fillEllipse(VIEWPORT_WIDTH / 2, VIEWPORT_HEIGHT / 2, VIEWPORT_WIDTH + 120, VIEWPORT_HEIGHT + 90);
-    this.darknessLayer.fillStyle(0x02050a, 0.18 + depthRatio * 0.08);
-    this.darknessLayer.fillRect(0, 0, VIEWPORT_WIDTH, 38);
-    this.darknessLayer.fillRect(0, VIEWPORT_HEIGHT - 44, VIEWPORT_WIDTH, 44);
 
     this.lightLayer.clear();
-    this.lightLayer.fillStyle(gameTheme.colors.accentCool, 0.12 + depthRatio * 0.03);
-    this.lightLayer.fillCircle(lampX, lampY, outerRadius + 28);
-    this.lightLayer.fillStyle(gameTheme.colors.accentSoft, 0.11);
+    this.lightLayer.fillStyle(gameTheme.colors.accentCool, 0.1 + depthRatio * 0.03);
     this.lightLayer.fillCircle(lampX, lampY, outerRadius);
-    this.lightLayer.fillStyle(0xffffff, 0.12);
-    this.lightLayer.fillCircle(lampX, lampY, 24);
-    this.lightLayer.fillStyle(gameTheme.colors.warning, 0.07 + depthRatio * 0.02);
-    this.lightLayer.fillEllipse(
+    this.lightLayer.fillStyle(gameTheme.colors.warning, 0.05 + depthRatio * 0.02);
+    this.lightLayer.fillRect(
       lampX + this.player.facing * (36 + depthRatio * 8),
-      lampY + 4,
+      lampY - 18,
       coneWidth,
-      82 - depthRatio * 10,
+      36 - depthRatio * 4,
     );
 
     if (this.miningTarget) {
       const miningX = this.miningTarget.x * TILE_SIZE + TILE_SIZE / 2 - viewport.x;
       const miningY = this.miningTarget.y * TILE_SIZE + TILE_SIZE / 2 - viewport.y;
-      const pulse = 0.08 + Math.sin(this.time.now / 80) * 0.025;
+      const pulse = 0.06 + Math.sin(this.time.now / 90) * 0.02;
 
       this.lightLayer.fillStyle(gameTheme.colors.accent, pulse);
-      this.lightLayer.fillCircle(miningX, miningY, 22);
+      this.lightLayer.fillRect(miningX - 12, miningY - 12, 24, 24);
     }
-
-    this.drawVisibleOreGlows(viewport);
   }
 
   private updateSurfaceUi() {
@@ -1230,43 +1165,6 @@ export class MineScene extends Phaser.Scene {
           ? "abrigo"
           : `${Math.max(0, this.player?.position.y ?? 0)}m`,
     );
-  }
-
-  private drawVisibleOreGlows(viewport: Phaser.Geom.Rectangle) {
-    if (!this.lightLayer) {
-      return;
-    }
-
-    const startX = Math.max(0, Math.floor(viewport.x / TILE_SIZE) - 1);
-    const endX = Math.min(this.worldGrid[0].length - 1, Math.ceil((viewport.x + viewport.width) / TILE_SIZE) + 1);
-    const startY = Math.max(0, Math.floor(viewport.y / TILE_SIZE) - 1);
-    const endY = Math.min(this.worldGrid.length - 1, Math.ceil((viewport.y + viewport.height) / TILE_SIZE) + 1);
-    const rareGlowBonus = this.progressionSnapshot.perks.rareGlowBonus;
-    const shimmerPulse = 0.038 + Math.sin(this.time.now / 210) * 0.01;
-
-    for (let y = startY; y <= endY; y += 1) {
-      for (let x = startX; x <= endX; x += 1) {
-        const tile = this.worldGrid[y]?.[x];
-
-        if (!tile || tile.kind === "empty") {
-          continue;
-        }
-
-        const material = tilePalette[tile.kind];
-
-        if (!material.glow) {
-          continue;
-        }
-
-        const screenX = x * TILE_SIZE + TILE_SIZE / 2 - viewport.x;
-        const screenY = y * TILE_SIZE + TILE_SIZE / 2 - viewport.y;
-        const shimmer = (shimmerPulse + ((x + y) % 3) * 0.012) * (1 + rareGlowBonus);
-        const radius = tile.kind === "chest" ? 18 : tile.kind === "diamond" ? 16 : 14;
-
-        this.lightLayer.fillStyle(material.glow, shimmer);
-        this.lightLayer.fillCircle(screenX, screenY, radius);
-      }
-    }
   }
 
   private canOccupy(tileX: number, tileY: number) {
