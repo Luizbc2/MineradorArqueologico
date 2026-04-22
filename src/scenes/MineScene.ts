@@ -87,6 +87,7 @@ export class MineScene extends Phaser.Scene {
   private archaeologyOverlay?: ArchaeologyCardOverlay;
   private pauseOverlay?: PauseOverlay;
   private upgradeOverlay?: UpgradeOverlay;
+  private uiCamera?: Phaser.Cameras.Scene2D.Camera;
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   private moveKeys?: {
     left: Phaser.Input.Keyboard.Key;
@@ -172,6 +173,7 @@ export class MineScene extends Phaser.Scene {
     this.drawSurfaceSafeZone();
     this.drawDepthGuides();
     this.createPlayer();
+    this.createUiCamera();
     this.createScreenFlash();
     this.createSurfaceReturnUi();
     this.createHud();
@@ -214,6 +216,7 @@ export class MineScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.scale.off(Phaser.Scale.Events.RESIZE, this.handleResize, this);
       this.input.keyboard?.off("keydown", this.handleSceneKeyDown, this);
+      this.sys.displayList.events.off(Phaser.Scenes.Events.ADDED_TO_SCENE, this.handleDisplayListObjectAdded, this);
     });
     this.handleResize(this.scale.gameSize);
 
@@ -591,6 +594,25 @@ export class MineScene extends Phaser.Scene {
     this.player = new PlayerMiner(this, PLAYER_SPAWN_TILE);
   }
 
+  private createUiCamera() {
+    this.uiCamera?.destroy();
+    this.uiCamera = this.cameras.add(0, 0, this.viewportWidth, this.viewportHeight, false, "ui");
+    this.uiCamera.setScroll(0, 0);
+    this.uiCamera.setZoom(1);
+    this.uiCamera.setRoundPixels(true);
+    this.uiCamera.ignore(this.children.list);
+    this.sys.displayList.events.off(Phaser.Scenes.Events.ADDED_TO_SCENE, this.handleDisplayListObjectAdded, this);
+    this.sys.displayList.events.on(Phaser.Scenes.Events.ADDED_TO_SCENE, this.handleDisplayListObjectAdded, this);
+  }
+
+  private handleDisplayListObjectAdded(gameObject: Phaser.GameObjects.GameObject) {
+    if (!this.uiCamera) {
+      return;
+    }
+
+    gameObject.cameraFilter |= this.uiCamera.id;
+  }
+
   private createHud() {
     this.hud?.destroy();
     this.hud = new MineHud(this, {
@@ -697,7 +719,6 @@ export class MineScene extends Phaser.Scene {
       if (this.player) {
         camera.centerOn(this.player.sprite.x, this.player.sprite.y - 52);
       }
-      this.applyFixedUiZoomCompensation();
       return;
     }
 
@@ -710,7 +731,6 @@ export class MineScene extends Phaser.Scene {
         if (this.player) {
           camera.centerOn(this.player.sprite.x, this.player.sprite.y - 52);
         }
-        this.applyFixedUiZoomCompensation();
       }
       return;
     }
@@ -719,7 +739,6 @@ export class MineScene extends Phaser.Scene {
     if (this.player) {
       camera.centerOn(this.player.sprite.x, this.player.sprite.y - 52);
     }
-    this.applyFixedUiZoomCompensation();
   }
 
   private adjustManualZoom(step: number) {
@@ -1278,6 +1297,7 @@ export class MineScene extends Phaser.Scene {
       return;
     }
 
+    this.uiCamera?.setViewport(0, 0, width, height);
     this.screenFlash?.setPosition(width / 2, height / 2);
     this.screenFlash?.setSize(width, height);
     this.updateFixedUiElementLayout(this.screenFlash);
@@ -1720,49 +1740,52 @@ export class MineScene extends Phaser.Scene {
     element.once(Phaser.GameObjects.Events.DESTROY, () => {
       this.fixedUiElements.delete(element);
     });
-    this.applyFixedUiElementZoomCompensation(element);
+    this.applyUiCameraFilters(element);
     return element;
   }
 
-  private applyFixedUiZoomCompensation() {
-    for (const element of this.fixedUiElements.keys()) {
-      this.applyFixedUiElementZoomCompensation(element);
-    }
-  }
+  private applyUiCameraFilters(element: FixedUiElement) {
+    const mainCamera = this.cameras.main;
+    const uiCamera = this.uiCamera;
 
-  private updateFixedUiElementLayout(element?: FixedUiElement) {
-    if (!element || !this.fixedUiElements.has(element)) {
-      return;
-    }
+    this.forEachGameObjectInTree(element, (gameObject) => {
+      gameObject.cameraFilter |= mainCamera.id;
 
-    this.fixedUiElements.set(element, {
-      x: element.x,
-      y: element.y,
-      scaleX: element.scaleX,
-      scaleY: element.scaleY,
+      if (uiCamera) {
+        gameObject.cameraFilter &= ~uiCamera.id;
+      }
     });
   }
 
-  private applyFixedUiElementZoomCompensation(element: FixedUiElement) {
-    const layout = this.fixedUiElements.get(element);
+  private forEachGameObjectInTree(
+    element: Phaser.GameObjects.GameObject,
+    callback: (gameObject: Phaser.GameObjects.GameObject) => void,
+  ) {
+    callback(element);
 
-    if (!layout || !element.scene) {
-      return;
+    if (element instanceof Phaser.GameObjects.Container) {
+      for (const child of element.list) {
+        this.forEachGameObjectInTree(child, callback);
+      }
     }
+  }
 
-    const position = this.getFixedUiPosition(layout.x, layout.y);
-    element.setPosition(position.x, position.y);
+  private applyFixedUiZoomCompensation() {
+    return;
+  }
+
+  private updateFixedUiElementLayout(element?: FixedUiElement) {
+    return;
+  }
+
+  private applyFixedUiElementZoomCompensation(element: FixedUiElement) {
+    return;
   }
 
   private getFixedUiPosition(screenX: number, screenY: number) {
-    const camera = this.cameras.main;
-    const zoom = camera.zoom || 1;
-    const centerX = camera.width / 2;
-    const centerY = camera.height / 2;
-
     return {
-      x: centerX + (screenX - centerX) / zoom,
-      y: centerY + (screenY - centerY) / zoom,
+      x: screenX,
+      y: screenY,
     };
   }
 
