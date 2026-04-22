@@ -20,8 +20,9 @@ export const phaserGameConfig: Phaser.Types.Core.GameConfig = {
     roundPixels: true,
   },
   scale: {
-    mode: Phaser.Scale.NONE,
+    mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
+    expandParent: true,
   },
   physics: {
     default: "arcade",
