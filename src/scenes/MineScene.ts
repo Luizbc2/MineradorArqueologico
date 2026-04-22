@@ -145,11 +145,11 @@ export class MineScene extends Phaser.Scene {
     this.progressionSnapshot = this.expeditionProgression.getSnapshot();
 
     if (this.player) {
-      const fillWidthZoom = Math.max(1, this.viewportWidth / WORLD_WIDTH_PX);
+      const fillWidthZoom = Math.max(1.14, this.viewportWidth / WORLD_WIDTH_PX);
 
       this.cameras.main.setZoom(fillWidthZoom);
       this.cameras.main.startFollow(this.player.sprite, true, 0.14, 0.18);
-      this.cameras.main.setDeadzone(this.viewportWidth * 0.18, this.viewportHeight * 0.18);
+      this.cameras.main.setDeadzone(this.viewportWidth * 0.16, this.viewportHeight * 0.16);
       this.cameras.main.centerOn(this.player.sprite.x, this.player.sprite.y);
     }
 
