@@ -593,7 +593,9 @@ export class MineScene extends Phaser.Scene {
 
   private createHud() {
     this.hud?.destroy();
-    this.hud = new MineHud(this);
+    this.hud = new MineHud(this, {
+      onPauseToggle: () => this.togglePauseOverlay(),
+    });
     this.registerFixedUiElement(this.hud.getRoot());
     this.updateHud();
   }
@@ -1639,6 +1641,10 @@ export class MineScene extends Phaser.Scene {
   }
 
   private togglePauseOverlay() {
+    if (this.archaeologyOverlay?.isVisible || this.upgradeOverlay?.isVisible || this.surfaceReturnLocked) {
+      return;
+    }
+
     if (this.pauseOverlay?.isVisible) {
       this.closePauseOverlay();
       return;

@@ -20,6 +20,10 @@ type ResourceChip = {
   nodes: Phaser.GameObjects.GameObject[];
 };
 
+type MineHudOptions = {
+  onPauseToggle?: () => void;
+};
+
 export class MineHud {
   private readonly container: Phaser.GameObjects.Container;
   private readonly depthText: Phaser.GameObjects.Text;
@@ -41,7 +45,7 @@ export class MineHud {
   private lastComboWidth = -1;
   private lastComboColor = "";
 
-  constructor(scene: Phaser.Scene) {
+  constructor(scene: Phaser.Scene, options: MineHudOptions = {}) {
     const viewportWidth = scene.scale.width || scene.cameras.main.width || 980;
     const compactLayout = viewportWidth < 1280;
     const narrowLayout = viewportWidth < 960;
@@ -66,6 +70,10 @@ export class MineHud {
     const chipGap = 10;
     const chipWidth = Math.floor((resourcesWidth - 32 - chipGap) / 2);
     const chipHeight = 26;
+    const actionButtonWidth = narrowLayout ? 110 : 124;
+    const actionButtonHeight = 28;
+    const actionButtonX = leftX + mainWidth - actionButtonWidth - 16;
+    const actionButtonY = topY + mainHeight - actionButtonHeight - 14;
 
     this.energyBarX = energySectionX;
     this.energyBarWidth = energySectionWidth - 4;
@@ -297,6 +305,89 @@ export class MineHud {
     );
     resourcesHint.setOrigin(1, 0);
 
+    const actionButtonBody = scene.add.rectangle(
+      actionButtonX,
+      actionButtonY,
+      actionButtonWidth,
+      actionButtonHeight,
+      gameTheme.colors.panelDeep,
+      0.98,
+    );
+    actionButtonBody.setOrigin(0);
+    actionButtonBody.setStrokeStyle(1, gameTheme.colors.border, 0.9);
+
+    const actionButtonGlow = scene.add.rectangle(
+      actionButtonX + 8,
+      actionButtonY + 6,
+      actionButtonWidth - 16,
+      8,
+      gameTheme.colors.accentCool,
+      0.08,
+    );
+    actionButtonGlow.setOrigin(0);
+
+    const actionButtonAccent = scene.add.rectangle(
+      actionButtonX + 8,
+      actionButtonY + 7,
+      4,
+      actionButtonHeight - 14,
+      gameTheme.colors.accentCool,
+      0.95,
+    );
+    actionButtonAccent.setOrigin(0);
+
+    const actionButtonLabel = scene.add.text(
+      actionButtonX + 18,
+      actionButtonY + 5,
+      "PAUSA",
+      makeGameTextStyle({
+        family: "display",
+        color: "#effcff",
+        fontSize: narrowLayout ? "12px" : "13px",
+        fontStyle: "800",
+        strokeThickness: 1,
+      }),
+    );
+
+    const actionButtonHint = scene.add.text(
+      actionButtonX + actionButtonWidth - 8,
+      actionButtonY + 6,
+      "ESC",
+      makeGameTextStyle({
+        color: gameTheme.colors.textSoft,
+        fontSize: "10px",
+        fontStyle: "800",
+        strokeThickness: 1,
+      }),
+    );
+    actionButtonHint.setOrigin(1, 0);
+
+    const actionButton = scene.add.container(0, 0, [
+      actionButtonBody,
+      actionButtonGlow,
+      actionButtonAccent,
+      actionButtonLabel,
+      actionButtonHint,
+    ]);
+    actionButton.setSize(actionButtonWidth, actionButtonHeight);
+    actionButton.setInteractive(
+      new Phaser.Geom.Rectangle(actionButtonX, actionButtonY, actionButtonWidth, actionButtonHeight),
+      Phaser.Geom.Rectangle.Contains,
+    );
+    actionButton.on("pointerover", () => {
+      actionButtonBody.setFillStyle(gameTheme.colors.panelRaised, 1);
+      actionButtonGlow.setAlpha(0.18);
+      actionButton.setScale(1.02);
+    });
+    actionButton.on("pointerout", () => {
+      actionButtonBody.setFillStyle(gameTheme.colors.panelDeep, 0.98);
+      actionButtonGlow.setAlpha(0.08);
+      actionButton.setScale(1);
+    });
+    actionButton.on("pointerdown", () => {
+      options.onPauseToggle?.();
+    });
+
     this.resourceChips = {
       coal: this.createResourceChip(scene, {
         x: resourcesX + 16,
@@ -353,6 +444,7 @@ export class MineHud {
       this.comboFill,
       resourcesTitle,
       resourcesHint,
+      actionButton,
       ...this.resourceChips.coal.nodes,
       ...this.resourceChips.iron.nodes,
       ...this.resourceChips.gold.nodes,
