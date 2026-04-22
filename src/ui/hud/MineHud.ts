@@ -32,7 +32,8 @@ export class MineHud {
   private readonly comboFill: Phaser.GameObjects.Rectangle;
   private readonly resourceChips: Record<keyof ResourceInventory, ResourceChip>;
   private readonly energyBarX: number;
-  private readonly energyBarWidth = 154;
+  private readonly energyBarWidth: number;
+  private readonly comboBarWidth = 74;
 
   private lastInfoKey = "";
   private lastEnergyWidth = -1;
@@ -41,13 +42,22 @@ export class MineHud {
   private lastComboColor = "";
 
   constructor(scene: Phaser.Scene) {
-    const viewportWidth = Math.max(scene.scale.width || 0, scene.cameras.main.width || 0, 1280);
+    const viewportWidth = Math.max(scene.scale.width || 0, scene.cameras.main.width || 0, 960);
+    const compactLayout = viewportWidth < 1180;
     const leftX = 16;
     const topY = 16;
-    const mainWidth = 380;
-    const mainHeight = 84;
-    const resourcesWidth = 262;
-    const resourcesX = viewportWidth - resourcesWidth - 16;
+    const mainWidth = compactLayout ? Math.min(viewportWidth - 32, 452) : 448;
+    const mainHeight = 118;
+    const resourcesWidth = compactLayout ? mainWidth : 316;
+    const resourcesHeight = 90;
+    const resourcesX = compactLayout ? leftX : viewportWidth - resourcesWidth - 16;
+    const resourcesY = compactLayout ? topY + mainHeight + 10 : topY;
+    const energySectionX = leftX + 156;
+    const statsY = topY + 80;
+    const statWidth = 86;
+
+    this.energyBarX = energySectionX;
+    this.energyBarWidth = mainWidth - (energySectionX - leftX) - 22;
 
     const mainChrome = createPanelChrome(scene, {
       x: leftX,
@@ -60,21 +70,21 @@ export class MineHud {
 
     const resourcesChrome = createPanelChrome(scene, {
       x: resourcesX,
-      y: topY,
+      y: resourcesY,
       width: resourcesWidth,
-      height: 60,
+      height: resourcesHeight,
       accentColor: gameTheme.colors.accent,
       alpha: 0.98,
     });
 
-    const title = scene.add.text(
+    const eyebrow = scene.add.text(
       leftX + 16,
       topY + 10,
-      "MINERADOR ARQUEOLOGICO",
+      "STATUS DE CAMPO",
       makeGameTextStyle({
         family: "display",
-        color: "#f4fbff",
-        fontSize: "14px",
+        color: "#d9fff6",
+        fontSize: "12px",
         fontStyle: "800",
         strokeThickness: 1,
       }),
@@ -82,11 +92,11 @@ export class MineHud {
 
     const depthLabel = scene.add.text(
       leftX + 16,
-      topY + 29,
-      "PROFUNDIDADE",
+      topY + 32,
+      "Profundidade",
       makeGameTextStyle({
         color: gameTheme.colors.textSoft,
-        fontSize: "10px",
+        fontSize: "11px",
         fontStyle: "700",
         strokeThickness: 1,
       }),
@@ -99,31 +109,43 @@ export class MineHud {
       makeGameTextStyle({
         family: "display",
         color: "#ffffff",
-        fontSize: "22px",
+        fontSize: "30px",
         fontStyle: "800",
         strokeThickness: 1,
       }),
     );
 
-    this.energyBarX = leftX + 144;
-
-    this.energyText = scene.add.text(
-      this.energyBarX,
-      topY + 12,
-      "ENERGIA 100%",
+    const energyLabel = scene.add.text(
+      energySectionX,
+      topY + 18,
+      "Energia",
       makeGameTextStyle({
-        color: "#d6efec",
+        color: gameTheme.colors.textSoft,
         fontSize: "11px",
         fontStyle: "700",
         strokeThickness: 1,
       }),
     );
 
+    this.energyText = scene.add.text(
+      leftX + mainWidth - 18,
+      topY + 15,
+      "100%",
+      makeGameTextStyle({
+        family: "display",
+        color: "#f2fff7",
+        fontSize: "17px",
+        fontStyle: "800",
+        strokeThickness: 1,
+      }),
+    );
+    this.energyText.setOrigin(1, 0);
+
     const energyTrack = scene.add.rectangle(
       this.energyBarX,
-      topY + 36,
+      topY + 42,
       this.energyBarWidth,
-      12,
+      14,
       gameTheme.colors.panelDeep,
       1,
     );
@@ -132,129 +154,159 @@ export class MineHud {
 
     this.energyFill = scene.add.rectangle(
       this.energyBarX,
-      topY + 36,
+      topY + 42,
       this.energyBarWidth,
-      8,
+      10,
       gameTheme.colors.success,
       1,
     );
     this.energyFill.setOrigin(0, 0.5);
 
     this.energyGlow = scene.add.rectangle(
-      this.energyBarX + this.energyBarWidth - 18,
-      topY + 36,
-      18,
-      8,
+      this.energyBarX + this.energyBarWidth - 22,
+      topY + 42,
+      22,
+      10,
       0xffffff,
       0.16,
     );
     this.energyGlow.setOrigin(0, 0.5);
 
-    const pickaxePill = this.createPill(scene, { x: leftX + 144, y: topY + 54, width: 72 });
-    const cardsPill = this.createPill(scene, { x: leftX + 224, y: topY + 54, width: 74 });
-    const comboPill = this.createPill(scene, { x: leftX + 306, y: topY + 54, width: 58 });
-
-    this.pickaxeText = scene.add.text(
-      leftX + 180,
-      topY + 65,
-      "Lv1",
+    const energyHint = scene.add.text(
+      energySectionX,
+      topY + 54,
+      "Sua reserva de escavacao e retorno",
       makeGameTextStyle({
-        family: "display",
-        color: "#ffe8ab",
-        fontSize: "11px",
-        fontStyle: "800",
+        color: gameTheme.colors.textMuted,
+        fontSize: "10px",
+        fontStyle: "600",
         strokeThickness: 1,
       }),
     );
-    this.pickaxeText.setOrigin(0.5, 0.5);
 
-    this.cardsText = scene.add.text(
-      leftX + 261,
-      topY + 65,
-      "0/0",
-      makeGameTextStyle({
-        family: "display",
-        color: "#d6f7ff",
-        fontSize: "11px",
-        fontStyle: "800",
-        strokeThickness: 1,
-      }),
-    );
-    this.cardsText.setOrigin(0.5, 0.5);
+    const pickaxeCard = this.createStatCard(scene, {
+      x: leftX + 156,
+      y: statsY,
+      width: statWidth,
+      label: "Picareta",
+      accentColor: gameTheme.colors.warning,
+    });
+    this.pickaxeText = pickaxeCard.valueText;
 
-    this.comboText = scene.add.text(
-      leftX + 335,
-      topY + 65,
-      "x0",
-      makeGameTextStyle({
-        family: "display",
-        color: gameTheme.colors.textSoft,
-        fontSize: "11px",
-        fontStyle: "800",
-        strokeThickness: 1,
-      }),
-    );
-    this.comboText.setOrigin(0.5, 0.5);
+    const cardsCard = this.createStatCard(scene, {
+      x: leftX + 252,
+      y: statsY,
+      width: statWidth,
+      label: "Arquivos",
+      accentColor: gameTheme.colors.accentCool,
+    });
+    this.cardsText = cardsCard.valueText;
+
+    const comboCard = this.createStatCard(scene, {
+      x: leftX + 348,
+      y: statsY,
+      width: 92,
+      label: "Combo",
+      accentColor: gameTheme.colors.accent,
+    });
+    this.comboText = comboCard.valueText;
 
     const comboTrack = scene.add.rectangle(
-      leftX + 310,
-      topY + 78,
-      48,
-      4,
+      leftX + 357,
+      topY + 104,
+      this.comboBarWidth,
+      5,
       gameTheme.colors.panelDeep,
       1,
     );
     comboTrack.setOrigin(0, 0.5);
 
     this.comboFill = scene.add.rectangle(
-      leftX + 310,
-      topY + 78,
-      48,
-      2,
+      leftX + 357,
+      topY + 104,
+      this.comboBarWidth,
+      3,
       gameTheme.colors.accent,
       1,
     );
     this.comboFill.setOrigin(0, 0.5);
 
-    const resourceTitle = scene.add.text(
+    const resourcesTitle = scene.add.text(
       resourcesX + 16,
-      topY + 10,
-      "COLETA",
+      resourcesY + 10,
+      "RECURSOS",
       makeGameTextStyle({
         family: "display",
-        color: "#f7f3e6",
+        color: "#fff0ca",
         fontSize: "12px",
         fontStyle: "800",
         strokeThickness: 1,
       }),
     );
 
+    const resourcesHint = scene.add.text(
+      resourcesX + resourcesWidth - 16,
+      resourcesY + 10,
+      "Coleta atual",
+      makeGameTextStyle({
+        color: gameTheme.colors.textSoft,
+        fontSize: "10px",
+        fontStyle: "700",
+        strokeThickness: 1,
+      }),
+    );
+    resourcesHint.setOrigin(1, 0);
+
     this.resourceChips = {
-      coal: this.createResourceChip(scene, { x: resourcesX + 16, y: topY + 30, label: "C", color: gameTheme.colors.coal }),
-      iron: this.createResourceChip(scene, { x: resourcesX + 76, y: topY + 30, label: "F", color: gameTheme.colors.iron }),
-      gold: this.createResourceChip(scene, { x: resourcesX + 136, y: topY + 30, label: "O", color: gameTheme.colors.gold }),
-      diamond: this.createResourceChip(scene, { x: resourcesX + 196, y: topY + 30, label: "D", color: gameTheme.colors.diamond }),
+      coal: this.createResourceChip(scene, {
+        x: resourcesX + 16,
+        y: resourcesY + 34,
+        width: 136,
+        label: "Carvao",
+        color: gameTheme.colors.coal,
+      }),
+      iron: this.createResourceChip(scene, {
+        x: resourcesX + 164,
+        y: resourcesY + 34,
+        width: 136,
+        label: "Ferro",
+        color: gameTheme.colors.iron,
+      }),
+      gold: this.createResourceChip(scene, {
+        x: resourcesX + 16,
+        y: resourcesY + 61,
+        width: 136,
+        label: "Ouro",
+        color: gameTheme.colors.gold,
+      }),
+      diamond: this.createResourceChip(scene, {
+        x: resourcesX + 164,
+        y: resourcesY + 61,
+        width: 136,
+        label: "Diamante",
+        color: gameTheme.colors.diamond,
+      }),
     };
 
     this.container = scene.add.container(0, 0, [
       ...mainChrome,
       ...resourcesChrome,
-      title,
+      eyebrow,
       depthLabel,
       this.depthText,
+      energyLabel,
       this.energyText,
       energyTrack,
       this.energyFill,
       this.energyGlow,
-      ...pickaxePill,
-      ...cardsPill,
-      ...comboPill,
-      this.pickaxeText,
-      this.cardsText,
-      this.comboText,
+      energyHint,
+      ...pickaxeCard.nodes,
+      ...cardsCard.nodes,
+      ...comboCard.nodes,
       comboTrack,
       this.comboFill,
-      resourceTitle,
+      resourcesTitle,
+      resourcesHint,
       ...this.resourceChips.coal.nodes,
       ...this.resourceChips.iron.nodes,
       ...this.resourceChips.gold.nodes,
@@ -263,6 +315,10 @@ export class MineHud {
 
     this.container.setScrollFactor(0);
     this.container.setDepth(3200);
+  }
+
+  getRoot() {
+    return this.container;
   }
 
   update(snapshot: HudSnapshot) {
@@ -283,8 +339,8 @@ export class MineHud {
     if (infoKey !== this.lastInfoKey) {
       this.lastInfoKey = infoKey;
       this.depthText.setText(`${snapshot.depth}m`);
-      this.energyText.setText(`ENERGIA ${snapshot.energy}%`);
-      this.pickaxeText.setText(`Lv${snapshot.pickaxeLevel}`);
+      this.energyText.setText(`${snapshot.energy}%`);
+      this.pickaxeText.setText(`Lv ${snapshot.pickaxeLevel}`);
       this.cardsText.setText(`${snapshot.cardsFound}/${snapshot.cardsTotal}`);
       this.comboText.setText(snapshot.comboCount > 0 ? `x${snapshot.comboCount}` : "x0");
       this.comboText.setColor(snapshot.comboCount > 0 ? snapshot.comboColor : gameTheme.colors.textSoft);
@@ -295,7 +351,7 @@ export class MineHud {
     }
 
     const normalizedEnergy = Phaser.Math.Clamp(snapshot.energy / 100, 0, 1);
-    const energyWidth = Math.max(10, Math.round(this.energyBarWidth * normalizedEnergy));
+    const energyWidth = Math.max(12, Math.round(this.energyBarWidth * normalizedEnergy));
     const energyColor =
       normalizedEnergy > 0.6
         ? gameTheme.colors.success
@@ -306,8 +362,8 @@ export class MineHud {
     if (energyWidth !== this.lastEnergyWidth) {
       this.lastEnergyWidth = energyWidth;
       this.energyFill.width = energyWidth;
-      this.energyGlow.x = this.energyBarX + Math.max(8, energyWidth - 16);
-      this.energyGlow.visible = energyWidth > 18;
+      this.energyGlow.x = this.energyBarX + Math.max(8, energyWidth - 20);
+      this.energyGlow.visible = energyWidth > 20;
     }
 
     if (energyColor !== this.lastEnergyColor) {
@@ -315,7 +371,7 @@ export class MineHud {
       this.energyFill.fillColor = energyColor;
     }
 
-    const comboWidth = Math.max(8, Math.round(48 * Phaser.Math.Clamp(snapshot.comboWindowRatio, 0, 1)));
+    const comboWidth = Math.max(10, Math.round(this.comboBarWidth * Phaser.Math.Clamp(snapshot.comboWindowRatio, 0, 1)));
 
     if (comboWidth !== this.lastComboWidth) {
       this.lastComboWidth = comboWidth;
@@ -332,53 +388,95 @@ export class MineHud {
     this.container.destroy(true);
   }
 
-  private createPill(scene: Phaser.Scene, options: { x: number; y: number; width: number }) {
-    const bg = scene.add.rectangle(options.x, options.y, options.width, 22, gameTheme.colors.panelDeep, 0.92);
-    bg.setOrigin(0);
-    bg.setStrokeStyle(1, gameTheme.colors.borderSoft, 0.88);
-
-    return [bg];
-  }
-
-  private createResourceChip(
+  private createStatCard(
     scene: Phaser.Scene,
-    options: { x: number; y: number; label: string; color: number },
-  ): ResourceChip {
-    const bg = scene.add.rectangle(options.x, options.y, 52, 18, gameTheme.colors.panelDeep, 0.94);
+    options: {
+      x: number;
+      y: number;
+      width: number;
+      label: string;
+      accentColor: number;
+    },
+  ) {
+    const bg = scene.add.rectangle(options.x, options.y, options.width, 28, gameTheme.colors.panelDeep, 0.96);
     bg.setOrigin(0);
-    bg.setStrokeStyle(1, gameTheme.colors.borderSoft, 0.78);
+    bg.setStrokeStyle(1, gameTheme.colors.borderSoft, 0.82);
 
-    const icon = scene.add.circle(options.x + 8, options.y + 9, 3, options.color, 1);
+    const accent = scene.add.rectangle(options.x, options.y + 5, 4, 18, options.accentColor, 0.95);
+    accent.setOrigin(0);
 
-    const prefix = scene.add.text(
-      options.x + 14,
-      options.y + 3,
+    const label = scene.add.text(
+      options.x + 12,
+      options.y + 4,
       options.label,
       makeGameTextStyle({
-        family: "display",
         color: gameTheme.colors.textSoft,
         fontSize: "9px",
-        fontStyle: "800",
+        fontStyle: "700",
         strokeThickness: 1,
       }),
     );
 
     const valueText = scene.add.text(
-      options.x + 25,
+      options.x + options.width - 10,
+      options.y + 8,
+      "0",
+      makeGameTextStyle({
+        family: "display",
+        color: gameTheme.colors.text,
+        fontSize: "13px",
+        fontStyle: "800",
+        strokeThickness: 1,
+      }),
+    );
+    valueText.setOrigin(1, 0);
+
+    return {
+      valueText,
+      nodes: [bg, accent, label, valueText],
+    };
+  }
+
+  private createResourceChip(
+    scene: Phaser.Scene,
+    options: { x: number; y: number; width: number; label: string; color: number },
+  ): ResourceChip {
+    const bg = scene.add.rectangle(options.x, options.y, options.width, 22, gameTheme.colors.panelDeep, 0.94);
+    bg.setOrigin(0);
+    bg.setStrokeStyle(1, gameTheme.colors.borderSoft, 0.78);
+
+    const accent = scene.add.rectangle(options.x, options.y + 4, 3, 14, options.color, 1);
+    accent.setOrigin(0);
+
+    const label = scene.add.text(
+      options.x + 12,
+      options.y + 4,
+      options.label,
+      makeGameTextStyle({
+        color: gameTheme.colors.textMuted,
+        fontSize: "10px",
+        fontStyle: "700",
+        strokeThickness: 1,
+      }),
+    );
+
+    const valueText = scene.add.text(
+      options.x + options.width - 8,
       options.y + 3,
       "0",
       makeGameTextStyle({
         family: "display",
         color: gameTheme.colors.text,
-        fontSize: "9px",
+        fontSize: "11px",
         fontStyle: "800",
         strokeThickness: 1,
       }),
     );
+    valueText.setOrigin(1, 0);
 
     return {
       valueText,
-      nodes: [bg, icon, prefix, valueText],
+      nodes: [bg, accent, label, valueText],
     };
   }
 }

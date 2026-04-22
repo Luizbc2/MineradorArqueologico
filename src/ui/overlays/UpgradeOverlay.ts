@@ -291,6 +291,10 @@ export class UpgradeOverlay {
     this.closeButton.on("pointerout", () => this.setCloseButtonState(false));
   }
 
+  getRoot() {
+    return this.container;
+  }
+
   show(snapshot: OverlaySnapshot) {
     const currentSpeed = Math.round((1 + (snapshot.level - 1) * 0.25) * 100);
     const nextSpeed = Math.round((1 + snapshot.level * 0.25) * 100);

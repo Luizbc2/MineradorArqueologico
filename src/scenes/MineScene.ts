@@ -47,6 +47,11 @@ type MiningTarget = {
   impacts: number;
 };
 
+type FixedUiElement =
+  | Phaser.GameObjects.Container
+  | Phaser.GameObjects.Rectangle
+  | Phaser.GameObjects.Text;
+
 const SURFACE_RETURN_TILE = {
   x: PLAYER_SPAWN_TILE.x,
   y: SURFACE_ROW - 1,
@@ -70,15 +75,6 @@ export class MineScene extends Phaser.Scene {
   };
   private atmosphereLayer?: Phaser.GameObjects.Graphics;
   private effectLayer?: Phaser.GameObjects.Graphics;
-  private darknessLayer?: Phaser.GameObjects.Graphics;
-  private lightLayer?: Phaser.GameObjects.Graphics;
-  private lightingTick = 0;
-  private lastLightingState?: {
-    tileX: number;
-    tileY: number;
-    facing: -1 | 1;
-    mining: boolean;
-  };
   private screenFlash?: Phaser.GameObjects.Rectangle;
   private surfacePadLayer?: Phaser.GameObjects.Graphics;
   private surfaceButton?: Phaser.GameObjects.Rectangle;
@@ -109,35 +105,56 @@ export class MineScene extends Phaser.Scene {
   private rewardComboWindow = 2.6;
   private rewardLabel = "Mina fria";
   private rewardColor: string = gameTheme.colors.textSoft;
+  private manualZoomOffset = 0;
+  private readonly zoomStep = 0.04;
+  private readonly minCameraZoom = 1.05;
+  private readonly maxCameraZoom = 1.38;
+  private readonly zoomSmoothing = 10;
   private surfaceReturnLocked = false;
   private lastAppliedDepth = -1;
+  private readonly fixedUiElements = new Map<
+    FixedUiElement,
+    {
+      x: number;
+      y: number;
+      scaleX: number;
+      scaleY: number;
+    }
+  >();
 
   constructor() {
     super("mine");
   }
 
   private get viewportWidth() {
-    return Math.max(this.scale.width || 0, this.cameras.main.width || 0, VIEWPORT_WIDTH);
+    return this.scale.width || this.cameras.main.width || VIEWPORT_WIDTH;
   }
 
   private get viewportHeight() {
-    return Math.max(this.scale.height || 0, this.cameras.main.height || 0, VIEWPORT_HEIGHT);
+    return this.scale.height || this.cameras.main.height || VIEWPORT_HEIGHT;
   }
 
   private getGameplayZoom() {
-    if (this.viewportWidth >= 1600) {
-      return 1.42;
-    }
+    const widthProgress = Phaser.Math.Clamp((this.viewportWidth - VIEWPORT_WIDTH) / 1280, 0, 1);
+    const heightProgress = Phaser.Math.Clamp((this.viewportHeight - VIEWPORT_HEIGHT) / 720, 0, 1);
+    const zoomProgress = Math.max(widthProgress, heightProgress);
 
-    if (this.viewportWidth >= 1200) {
-      return 1.32;
-    }
+    return Phaser.Math.Linear(1, 1.05, zoomProgress);
+  }
 
-    if (this.viewportWidth >= 900) {
-      return 1.22;
-    }
+  private getTargetCameraZoom() {
+    return Phaser.Math.Clamp(
+      this.getGameplayZoom() + this.manualZoomOffset,
+      this.getMinimumCameraZoom(),
+      this.maxCameraZoom,
+    );
+  }
 
-    return 1.12;
+  private getMinimumCameraZoom() {
+    const widthBoundZoom = this.viewportWidth / WORLD_WIDTH_PX;
+    const heightBoundZoom = this.viewportHeight / WORLD_HEIGHT_PX;
+
+    return Math.max(this.minCameraZoom, widthBoundZoom, heightBoundZoom);
   }
 
   create() {
@@ -180,10 +197,20 @@ export class MineScene extends Phaser.Scene {
     this.escapeKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
     this.upgradeKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.U);
     this.surfaceKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+    this.input.keyboard?.addCapture([
+      Phaser.Input.Keyboard.KeyCodes.PLUS,
+      Phaser.Input.Keyboard.KeyCodes.MINUS,
+      Phaser.Input.Keyboard.KeyCodes.ZERO,
+      Phaser.Input.Keyboard.KeyCodes.NUMPAD_ADD,
+      Phaser.Input.Keyboard.KeyCodes.NUMPAD_SUBTRACT,
+      Phaser.Input.Keyboard.KeyCodes.NUMPAD_ZERO,
+    ]);
+    this.input.keyboard?.on("keydown", this.handleSceneKeyDown, this);
 
     this.scale.on(Phaser.Scale.Events.RESIZE, this.handleResize, this);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.scale.off(Phaser.Scale.Events.RESIZE, this.handleResize, this);
+      this.input.keyboard?.off("keydown", this.handleSceneKeyDown, this);
     });
     this.handleResize(this.scale.gameSize);
 
@@ -301,6 +328,7 @@ export class MineScene extends Phaser.Scene {
     this.player.setMining(Boolean(state?.mining));
     this.player.setFalling(Boolean(state?.falling));
     this.player.update(deltaSeconds);
+    this.updateCameraZoom(deltaSeconds);
 
     if (this.player.position.y !== this.lastAppliedDepth) {
       this.lastAppliedDepth = this.player.position.y;
@@ -314,7 +342,6 @@ export class MineScene extends Phaser.Scene {
       comboCount: this.rewardComboCount,
     });
     this.drawWorldGrid();
-    this.updateLighting(deltaSeconds);
     this.updateSurfaceUi();
     this.updateHud();
   }
@@ -430,14 +457,6 @@ export class MineScene extends Phaser.Scene {
       }
     }
 
-    this.darknessLayer = this.add.graphics();
-    this.darknessLayer.setScrollFactor(0);
-    this.darknessLayer.setDepth(900);
-
-    this.lightLayer = this.add.graphics();
-    this.lightLayer.setScrollFactor(0);
-    this.lightLayer.setDepth(910);
-    this.lightLayer.setBlendMode(Phaser.BlendModes.ADD);
   }
 
   private drawSurfaceSafeZone() {
@@ -561,12 +580,14 @@ export class MineScene extends Phaser.Scene {
   private createHud() {
     this.hud?.destroy();
     this.hud = new MineHud(this);
+    this.registerFixedUiElement(this.hud.getRoot());
     this.updateHud();
   }
 
   private createGoalsPanel() {
     this.goalsPanel?.destroy();
     this.goalsPanel = new ExpeditionGoalsPanel(this);
+    this.registerFixedUiElement(this.goalsPanel.getRoot());
     this.updateGoalsPanel();
   }
 
@@ -579,6 +600,7 @@ export class MineScene extends Phaser.Scene {
     this.surfaceButton.setStrokeStyle(2, gameTheme.colors.border, 0.95);
     this.surfaceButton.setDepth(1100);
     this.surfaceButton.setInteractive({ useHandCursor: true });
+    this.registerFixedUiElement(this.surfaceButton);
     this.surfaceButton.on("pointerdown", () => {
       this.tryReturnToSurface();
     });
@@ -604,6 +626,7 @@ export class MineScene extends Phaser.Scene {
     this.surfaceButtonLabel.setOrigin(0.5, 0);
     this.surfaceButtonLabel.setScrollFactor(0);
     this.surfaceButtonLabel.setDepth(1110);
+    this.registerFixedUiElement(this.surfaceButtonLabel);
 
     this.surfaceStatusText = this.add.text(
       buttonX,
@@ -619,6 +642,7 @@ export class MineScene extends Phaser.Scene {
     this.surfaceStatusText.setOrigin(0.5, 0);
     this.surfaceStatusText.setScrollFactor(0);
     this.surfaceStatusText.setDepth(1110);
+    this.registerFixedUiElement(this.surfaceStatusText);
 
     this.updateSurfaceUi();
   }
@@ -638,24 +662,102 @@ export class MineScene extends Phaser.Scene {
     }
 
     const camera = this.cameras.main;
-    const gameplayZoom = this.getGameplayZoom();
-
-    camera.setZoom(gameplayZoom);
     camera.setDeadzone(
       Math.min(this.viewportWidth * 0.12, 160),
       Math.min(this.viewportHeight * 0.1, 96),
     );
-    camera.setFollowOffset(0, -56);
-    camera.centerOn(this.player.sprite.x, this.player.sprite.y - 56);
+    camera.setFollowOffset(0, -52);
+    this.updateCameraZoom(0, true);
+    camera.centerOn(this.player.sprite.x, this.player.sprite.y - 52);
+  }
+
+  private updateCameraZoom(deltaSeconds: number, snap = false) {
+    const camera = this.cameras.main;
+    const targetZoom = this.getTargetCameraZoom();
+    const currentZoom = camera.zoom || targetZoom;
+
+    if (snap) {
+      camera.setZoom(targetZoom);
+      if (this.player) {
+        camera.centerOn(this.player.sprite.x, this.player.sprite.y - 52);
+      }
+      this.applyFixedUiZoomCompensation();
+      return;
+    }
+
+    const blend = 1 - Math.exp(-this.zoomSmoothing * deltaSeconds);
+    const nextZoom = Phaser.Math.Linear(currentZoom, targetZoom, blend);
+
+    if (Math.abs(nextZoom - currentZoom) < 0.0005) {
+      if (Math.abs(targetZoom - currentZoom) >= 0.0005) {
+        camera.setZoom(targetZoom);
+        if (this.player) {
+          camera.centerOn(this.player.sprite.x, this.player.sprite.y - 52);
+        }
+        this.applyFixedUiZoomCompensation();
+      }
+      return;
+    }
+
+    camera.setZoom(nextZoom);
+    if (this.player) {
+      camera.centerOn(this.player.sprite.x, this.player.sprite.y - 52);
+    }
+    this.applyFixedUiZoomCompensation();
+  }
+
+  private adjustManualZoom(step: number) {
+    const baseZoom = this.getGameplayZoom();
+    const minOffset = this.getMinimumCameraZoom() - baseZoom;
+    const maxOffset = this.maxCameraZoom - baseZoom;
+
+    this.manualZoomOffset = Phaser.Math.Clamp(
+      this.manualZoomOffset + step,
+      minOffset,
+      maxOffset,
+    );
+  }
+
+  private resetManualZoom() {
+    this.manualZoomOffset = 0;
+  }
+
+  private handleSceneKeyDown(event: KeyboardEvent) {
+    this.audioDirector?.unlock();
+    this.handleZoomShortcut(event);
+  }
+
+  private handleZoomShortcut(event: KeyboardEvent) {
+    const modifierPressed = event.ctrlKey || event.metaKey;
+
+    if (!modifierPressed || event.altKey) {
+      return;
+    }
+
+    const key = event.key;
+
+    if (key === "+" || key === "=" || key === "Add") {
+      this.adjustManualZoom(this.zoomStep);
+      event.preventDefault();
+      return;
+    }
+
+    if (key === "-" || key === "_" || key === "Subtract") {
+      this.adjustManualZoom(-this.zoomStep);
+      event.preventDefault();
+      return;
+    }
+
+    if (key === "0") {
+      this.resetManualZoom();
+      event.preventDefault();
+    }
   }
 
   private createAudioDirector() {
     this.audioDirector = new MineAudioDirector(this);
 
     this.input.on("pointerdown", () => {
-      this.audioDirector?.unlock();
-    });
-    this.input.keyboard?.on("keydown", () => {
       this.audioDirector?.unlock();
     });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -676,14 +778,17 @@ export class MineScene extends Phaser.Scene {
     this.screenFlash.setDepth(2000);
     this.screenFlash.setBlendMode(Phaser.BlendModes.ADD);
     this.screenFlash.setAlpha(0);
+    this.registerFixedUiElement(this.screenFlash);
   }
 
   private createArchaeologyOverlay() {
     this.archaeologyOverlay = new ArchaeologyCardOverlay(this);
+    this.registerFixedUiElement(this.archaeologyOverlay.getRoot());
   }
 
   private createUpgradeOverlay() {
     this.upgradeOverlay = new UpgradeOverlay(this);
+    this.registerFixedUiElement(this.upgradeOverlay.getRoot());
   }
 
   private handleMining(deltaSeconds: number) {
@@ -1144,83 +1249,6 @@ export class MineScene extends Phaser.Scene {
     });
   }
 
-  private updateLighting(deltaSeconds: number) {
-    if (!this.player || !this.darknessLayer || !this.lightLayer) {
-      return;
-    }
-
-    this.lightingTick += deltaSeconds;
-    const nextLightingState = {
-      tileX: this.player.position.x,
-      tileY: this.player.position.y,
-      facing: this.player.facing,
-      mining: Boolean(this.miningTarget),
-    };
-    const lightingStateChanged =
-      !this.lastLightingState ||
-      this.lastLightingState.tileX !== nextLightingState.tileX ||
-      this.lastLightingState.tileY !== nextLightingState.tileY ||
-      this.lastLightingState.facing !== nextLightingState.facing ||
-      this.lastLightingState.mining !== nextLightingState.mining;
-
-    if (!lightingStateChanged && this.lightingTick < 1 / 12) {
-      return;
-    }
-
-    this.lastLightingState = nextLightingState;
-    this.lightingTick = 0;
-
-    const camera = this.cameras.main;
-    const viewport = camera.worldView;
-    const playerX = this.player.sprite.x - viewport.x;
-    const playerY = this.player.sprite.y - viewport.y;
-    const depthRatio = Phaser.Math.Clamp(this.player.position.y / WORLD_HEIGHT_TILES, 0, 1);
-    const darknessAlpha = 0.1 + depthRatio * 0.26;
-    const lampX = playerX + this.player.facing * 2;
-    const lampY = playerY - 4;
-    const coreRadius = 24 - depthRatio * 1.5;
-    const glowRadius = 46 - depthRatio * 3;
-    const beamOffset = 34 - depthRatio * 4;
-    const beamWidth = 78 - depthRatio * 10;
-    const beamHeight = 46 - depthRatio * 4;
-    const farBeamOffset = 58 - depthRatio * 6;
-    const farBeamWidth = 44 - depthRatio * 6;
-    const farBeamHeight = 24 - depthRatio * 3;
-
-    this.darknessLayer.clear();
-    this.darknessLayer.fillStyle(0x02050a, darknessAlpha);
-    this.darknessLayer.fillRect(0, 0, this.viewportWidth, this.viewportHeight);
-
-    this.lightLayer.clear();
-    this.lightLayer.fillStyle(gameTheme.colors.accentCool, 0.04 + depthRatio * 0.01);
-    this.lightLayer.fillCircle(lampX, lampY, glowRadius);
-    this.lightLayer.fillStyle(0xfff5d6, 0.1);
-    this.lightLayer.fillCircle(lampX, lampY, coreRadius);
-    this.lightLayer.fillStyle(gameTheme.colors.warning, 0.04 + depthRatio * 0.01);
-    this.lightLayer.fillEllipse(
-      lampX + this.player.facing * beamOffset,
-      lampY + 1,
-      beamWidth,
-      beamHeight,
-    );
-    this.lightLayer.fillStyle(0xffefba, 0.025 + depthRatio * 0.008);
-    this.lightLayer.fillEllipse(
-      lampX + this.player.facing * farBeamOffset,
-      lampY + 2,
-      farBeamWidth,
-      farBeamHeight,
-    );
-
-    if (this.miningTarget) {
-      const miningX = this.miningTarget.x * TILE_SIZE + TILE_SIZE / 2 - viewport.x;
-      const miningY = this.miningTarget.y * TILE_SIZE + TILE_SIZE / 2 - viewport.y;
-      const pulse = 0.035 + Math.sin(this.time.now / 100) * 0.015;
-
-      this.lightLayer.fillStyle(gameTheme.colors.accent, pulse);
-      this.lightLayer.fillCircle(miningX, miningY, 12);
-    }
-  }
-
   private handleResize(gameSize: Phaser.Structs.Size) {
     const width = gameSize.width || this.viewportWidth;
     const height = gameSize.height || this.viewportHeight;
@@ -1231,6 +1259,7 @@ export class MineScene extends Phaser.Scene {
 
     this.screenFlash?.setPosition(width / 2, height / 2);
     this.screenFlash?.setSize(width, height);
+    this.updateFixedUiElementLayout(this.screenFlash);
 
     this.destroySurfaceReturnUi();
     this.createSurfaceReturnUi();
@@ -1243,7 +1272,6 @@ export class MineScene extends Phaser.Scene {
 
     this.drawWorldGrid(true);
     this.updateSurfaceUi();
-    this.updateLighting(1);
   }
 
   private updateSurfaceUi() {
@@ -1429,9 +1457,13 @@ export class MineScene extends Phaser.Scene {
   }
 
   private showSurfaceToast(message: string) {
+    const startPoint = this.getFixedUiPosition(this.viewportWidth / 2, 180);
+    const midPoint = this.getFixedUiPosition(this.viewportWidth / 2, 168);
+    const endPoint = this.getFixedUiPosition(this.viewportWidth / 2, 152);
+    const baseScale = this.getFixedUiScale(1);
     const toast = this.add.text(
-      this.viewportWidth / 2,
-      180,
+      startPoint.x,
+      startPoint.y,
       message,
       makeGameTextStyle({
         family: "display",
@@ -1445,20 +1477,22 @@ export class MineScene extends Phaser.Scene {
     toast.setScrollFactor(0);
     toast.setDepth(1400);
     toast.setAlpha(0);
-    toast.setScale(0.82);
+    toast.setScale(this.getFixedUiScale(0.82));
 
     this.tweens.add({
       targets: toast,
-      y: 168,
+      x: midPoint.x,
+      y: midPoint.y,
       alpha: 1,
-      scale: 1,
+      scale: baseScale,
       duration: 180,
       ease: "back.out",
     });
 
     this.tweens.add({
       targets: toast,
-      y: 152,
+      x: endPoint.x,
+      y: endPoint.y,
       alpha: 0,
       delay: 300,
       duration: 260,
@@ -1468,9 +1502,13 @@ export class MineScene extends Phaser.Scene {
   }
 
   private showMissionToast(title: string, rewardLabel: string) {
+    const startPoint = this.getFixedUiPosition(this.viewportWidth / 2, 214);
+    const midPoint = this.getFixedUiPosition(this.viewportWidth / 2, 198);
+    const endPoint = this.getFixedUiPosition(this.viewportWidth / 2, 176);
+    const baseScale = this.getFixedUiScale(1);
     const toast = this.add.text(
-      this.viewportWidth / 2,
-      214,
+      startPoint.x,
+      startPoint.y,
       `META CONCLUIDA: ${title}\n${rewardLabel}`,
       makeGameTextStyle({
         family: "display",
@@ -1485,20 +1523,22 @@ export class MineScene extends Phaser.Scene {
     toast.setScrollFactor(0);
     toast.setDepth(1420);
     toast.setAlpha(0);
-    toast.setScale(0.82);
+    toast.setScale(this.getFixedUiScale(0.82));
 
     this.tweens.add({
       targets: toast,
-      y: 198,
+      x: midPoint.x,
+      y: midPoint.y,
       alpha: 1,
-      scale: 1,
+      scale: baseScale,
       duration: 200,
       ease: "back.out",
     });
 
     this.tweens.add({
       targets: toast,
-      y: 176,
+      x: endPoint.x,
+      y: endPoint.y,
       alpha: 0,
       delay: 700,
       duration: 320,
@@ -1637,5 +1677,67 @@ export class MineScene extends Phaser.Scene {
     upgradeOverlay?.setAttribute("hidden", "true");
     confetti?.setAttribute("hidden", "true");
     legacyFooter?.setAttribute("hidden", "true");
+  }
+
+  private registerFixedUiElement<T extends FixedUiElement>(element: T) {
+    this.fixedUiElements.set(element, {
+      x: element.x,
+      y: element.y,
+      scaleX: element.scaleX,
+      scaleY: element.scaleY,
+    });
+    element.once(Phaser.GameObjects.Events.DESTROY, () => {
+      this.fixedUiElements.delete(element);
+    });
+    this.applyFixedUiElementZoomCompensation(element);
+    return element;
+  }
+
+  private applyFixedUiZoomCompensation() {
+    for (const element of this.fixedUiElements.keys()) {
+      this.applyFixedUiElementZoomCompensation(element);
+    }
+  }
+
+  private updateFixedUiElementLayout(element?: FixedUiElement) {
+    if (!element || !this.fixedUiElements.has(element)) {
+      return;
+    }
+
+    this.fixedUiElements.set(element, {
+      x: element.x,
+      y: element.y,
+      scaleX: element.scaleX,
+      scaleY: element.scaleY,
+    });
+  }
+
+  private applyFixedUiElementZoomCompensation(element: FixedUiElement) {
+    const layout = this.fixedUiElements.get(element);
+
+    if (!layout || !element.scene) {
+      return;
+    }
+
+    const position = this.getFixedUiPosition(layout.x, layout.y);
+    element.setPosition(position.x, position.y);
+    element.setScale(this.getFixedUiScale(layout.scaleX), this.getFixedUiScale(layout.scaleY));
+  }
+
+  private getFixedUiPosition(screenX: number, screenY: number) {
+    const camera = this.cameras.main;
+    const zoom = camera.zoom || 1;
+    const centerX = camera.width / 2;
+    const centerY = camera.height / 2;
+
+    return {
+      x: centerX + (screenX - centerX) / zoom,
+      y: centerY + (screenY - centerY) / zoom,
+    };
+  }
+
+  private getFixedUiScale(scale: number) {
+    const zoom = this.cameras.main.zoom || 1;
+    return scale / zoom;
   }
 }

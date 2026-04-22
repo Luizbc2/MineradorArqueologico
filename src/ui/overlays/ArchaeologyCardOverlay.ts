@@ -204,6 +204,10 @@ export class ArchaeologyCardOverlay {
     this.container.setAlpha(0);
   }
 
+  getRoot() {
+    return this.container;
+  }
+
   show(snapshot: OverlaySnapshot) {
     this.bodyText.setText(snapshot.body);
     this.progressText.setText(`Cards encontrados: ${snapshot.collectedCount}/${snapshot.totalCount}`);

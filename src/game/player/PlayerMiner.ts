@@ -10,7 +10,6 @@ export type PlayerTilePosition = {
 export class PlayerMiner {
   readonly sprite: Phaser.GameObjects.Container;
 
-  private readonly aura: Phaser.GameObjects.Ellipse;
   private readonly dustShadow: Phaser.GameObjects.Ellipse;
   private readonly rig: Phaser.GameObjects.Container;
   private readonly helmet: Phaser.GameObjects.Rectangle;
@@ -42,7 +41,6 @@ export class PlayerMiner {
     this.targetX = this.toWorldX(startPosition.x);
     this.targetY = this.toWorldY(startPosition.y);
 
-    this.aura = scene.add.ellipse(0, 1, 24, 18, gameTheme.colors.accentCool, 0.08);
     this.dustShadow = scene.add.ellipse(0, 16, 22, 8, 0x03070d, 0.45);
 
     this.backpack = scene.add.rectangle(-7, 2, 9, 14, 0x4c3725, 1);
@@ -78,7 +76,7 @@ export class PlayerMiner {
     this.helmet.setStrokeStyle(2, 0x563a11, 0.95);
     this.visor = scene.add.rectangle(0, -5, 12, 6, 0x1a3046, 0.98);
     this.visor.setStrokeStyle(1, 0x84d4ff, 0.35);
-    this.lamp = scene.add.ellipse(8, -9, 7, 7, 0xdffffa, 1);
+    this.lamp = scene.add.ellipse(8, -9, 8, 8, 0xfff4d7, 1);
 
     this.rig = scene.add.container(0, 0, [
       this.backpack,
@@ -96,7 +94,6 @@ export class PlayerMiner {
     ]);
 
     this.sprite = scene.add.container(this.targetX, this.targetY, [
-      this.aura,
       this.dustShadow,
       this.rig,
     ]);
@@ -135,10 +132,6 @@ export class PlayerMiner {
     this.dustShadow.scaleX = 1 + locomotion * 0.14;
     this.dustShadow.scaleY = 1 - locomotion * 0.08;
     this.dustShadow.alpha = 0.36 + locomotion * 0.12;
-    this.aura.y = -1 + Math.sin(this.animationTime * 3) * 0.8;
-    this.aura.alpha = 0.05 + Math.sin(this.animationTime * 2.6) * 0.015;
-    this.aura.scaleX = 1.02 + Math.sin(this.animationTime * 2) * 0.03;
-    this.aura.scaleY = 1.01 + Math.cos(this.animationTime * 2) * 0.02;
 
     this.leftLeg.rotation = Phaser.Math.DegToRad(walkSwing * 1.2);
     this.rightLeg.rotation = Phaser.Math.DegToRad(-walkSwing * 1.2);
@@ -157,7 +150,9 @@ export class PlayerMiner {
     this.helmet.y = -7 + idleBob * 0.12;
     this.visor.y = -5 + idleBob * 0.12;
     this.lamp.y = -9 + idleBob * 0.18;
-    this.lamp.alpha = 0.78 + Math.sin(this.animationTime * 8) * 0.16;
+    this.lamp.alpha = 0.82 + Math.sin(this.animationTime * 10) * 0.12;
+    this.lamp.scaleX = 1 + Math.sin(this.animationTime * 8.5) * 0.06;
+    this.lamp.scaleY = 1 + Math.cos(this.animationTime * 8.5) * 0.06;
   }
 
   snapToTile(nextPosition: PlayerTilePosition) {
