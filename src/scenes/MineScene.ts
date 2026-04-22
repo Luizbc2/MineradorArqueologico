@@ -21,6 +21,7 @@ import { PlayerMiner } from "../game/player/PlayerMiner";
 import { ExpeditionGoalsPanel } from "../ui/hud/ExpeditionGoalsPanel";
 import { MineHud } from "../ui/hud/MineHud";
 import { ArchaeologyCardOverlay } from "../ui/overlays/ArchaeologyCardOverlay";
+import { PauseOverlay } from "../ui/overlays/PauseOverlay";
 import { UpgradeOverlay } from "../ui/overlays/UpgradeOverlay";
 import { generateWorld } from "../game/world/generateWorld";
 import {
@@ -84,6 +85,7 @@ export class MineScene extends Phaser.Scene {
   private goalsPanel?: ExpeditionGoalsPanel;
   private hud?: MineHud;
   private archaeologyOverlay?: ArchaeologyCardOverlay;
+  private pauseOverlay?: PauseOverlay;
   private upgradeOverlay?: UpgradeOverlay;
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   private moveKeys?: {
@@ -175,6 +177,7 @@ export class MineScene extends Phaser.Scene {
     this.createHud();
     this.createGoalsPanel();
     this.createArchaeologyOverlay();
+    this.createPauseOverlay();
     this.createUpgradeOverlay();
     this.createAudioDirector();
     this.progressionSnapshot = this.expeditionProgression.getSnapshot();
@@ -241,11 +244,23 @@ export class MineScene extends Phaser.Scene {
       return;
     }
 
+    if (this.pauseOverlay?.isVisible) {
+      if (Phaser.Input.Keyboard.JustDown(this.escapeKey!)) {
+        this.closePauseOverlay();
+      }
+      return;
+    }
+
     if (Phaser.Input.Keyboard.JustDown(this.surfaceKey!)) {
       if (this.tryReturnToSurface()) {
         this.finalizeFrame(deltaSeconds);
         return;
       }
+    }
+
+    if (Phaser.Input.Keyboard.JustDown(this.escapeKey!)) {
+      this.togglePauseOverlay();
+      return;
     }
 
     if (Phaser.Input.Keyboard.JustDown(this.upgradeKey!)) {
@@ -783,6 +798,11 @@ export class MineScene extends Phaser.Scene {
   private createArchaeologyOverlay() {
     this.archaeologyOverlay = new ArchaeologyCardOverlay(this);
     this.registerFixedUiElement(this.archaeologyOverlay.getRoot());
+  }
+
+  private createPauseOverlay() {
+    this.pauseOverlay = new PauseOverlay(this);
+    this.registerFixedUiElement(this.pauseOverlay.getRoot());
   }
 
   private createUpgradeOverlay() {
@@ -1362,7 +1382,13 @@ export class MineScene extends Phaser.Scene {
   }
 
   private tryReturnToSurface() {
-    if (!this.player || this.surfaceReturnLocked || this.archaeologyOverlay?.isVisible || this.upgradeOverlay?.isVisible) {
+    if (
+      !this.player ||
+      this.surfaceReturnLocked ||
+      this.archaeologyOverlay?.isVisible ||
+      this.pauseOverlay?.isVisible ||
+      this.upgradeOverlay?.isVisible
+    ) {
       return false;
     }
 
@@ -1612,7 +1638,27 @@ export class MineScene extends Phaser.Scene {
     this.archaeologyOverlay?.hide();
   }
 
+  private togglePauseOverlay() {
+    if (this.pauseOverlay?.isVisible) {
+      this.closePauseOverlay();
+      return;
+    }
+
+    this.clearMiningTarget();
+    this.pauseOverlay?.show({
+      onResume: () => this.closePauseOverlay(),
+    });
+  }
+
+  private closePauseOverlay() {
+    this.pauseOverlay?.hide();
+  }
+
   private toggleUpgradeOverlay() {
+    if (this.pauseOverlay?.isVisible) {
+      return;
+    }
+
     if (this.upgradeOverlay?.isVisible) {
       this.closeUpgradeOverlay();
       return;
