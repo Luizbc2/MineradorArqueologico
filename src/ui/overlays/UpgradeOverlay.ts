@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import type { PickaxeUpgradeCost } from "../../game/progression/pickaxeUpgrade";
+import { VIEWPORT_HEIGHT, VIEWPORT_WIDTH } from "../../game/world/constants";
 import { createPanelChrome, gameTheme, makeGameTextStyle } from "../theme/gameTheme";
 
 type OverlaySnapshot = {
@@ -32,28 +33,34 @@ export class UpgradeOverlay {
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
 
-    const scrim = scene.add.rectangle(0, 0, 640, 576, gameTheme.colors.bgTop, 0.9);
+    const panelWidth = 540;
+    const panelHeight = 320;
+    const panelX = (VIEWPORT_WIDTH - panelWidth) / 2;
+    const panelY = (VIEWPORT_HEIGHT - panelHeight) / 2 - 10;
+    const centerX = VIEWPORT_WIDTH / 2;
+
+    const scrim = scene.add.rectangle(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT, gameTheme.colors.bgTop, 0.9);
     scrim.setOrigin(0);
 
     const chrome = createPanelChrome(scene, {
-      x: 92,
-      y: 143,
-      width: 456,
-      height: 290,
+      x: panelX,
+      y: panelY,
+      width: panelWidth,
+      height: panelHeight,
       accentColor: gameTheme.colors.accent,
     });
 
-    const forgePanel = scene.add.rectangle(116, 183, 408, 90, gameTheme.colors.panelDeep, 0.96);
+    const forgePanel = scene.add.rectangle(panelX + 24, panelY + 40, panelWidth - 48, 96, gameTheme.colors.panelDeep, 0.96);
     forgePanel.setOrigin(0);
     forgePanel.setStrokeStyle(1, gameTheme.colors.borderSoft, 0.82);
 
-    const costPanel = scene.add.rectangle(116, 288, 408, 72, gameTheme.colors.panelDeep, 0.96);
+    const costPanel = scene.add.rectangle(panelX + 24, panelY + 152, panelWidth - 48, 76, gameTheme.colors.panelDeep, 0.96);
     costPanel.setOrigin(0);
     costPanel.setStrokeStyle(1, gameTheme.colors.borderSoft, 0.82);
 
     const title = scene.add.text(
-      320,
-      176,
+      centerX,
+      panelY + 32,
       "FORJA DA PICARETA",
       makeGameTextStyle({
         family: "display",
@@ -66,8 +73,8 @@ export class UpgradeOverlay {
     title.setOrigin(0.5);
 
     const subtitle = scene.add.text(
-      320,
-      202,
+      centerX,
+      panelY + 58,
       "Lapide a ferramenta para cavar mais rapido e mais fundo",
       makeGameTextStyle({
         color: "#d7e8f2",
@@ -79,8 +86,8 @@ export class UpgradeOverlay {
     subtitle.setOrigin(0.5);
 
     this.levelText = scene.add.text(
-      320,
-      220,
+      centerX,
+      panelY + 76,
       "",
       makeGameTextStyle({
         family: "display",
@@ -93,8 +100,8 @@ export class UpgradeOverlay {
     this.levelText.setOrigin(0.5);
 
     this.descriptionText = scene.add.text(
-      320,
-      248,
+      centerX,
+      panelY + 102,
       "Cada nivel reduz o tempo de escavacao e melhora o ritmo da expedicao.",
       makeGameTextStyle({
         color: gameTheme.colors.textMuted,
@@ -106,8 +113,8 @@ export class UpgradeOverlay {
     this.descriptionText.setOrigin(0.5, 0);
 
     this.currentPowerText = scene.add.text(
-      212,
-      294,
+      centerX - 108,
+      panelY + 158,
       "",
       makeGameTextStyle({
         family: "display",
@@ -120,8 +127,8 @@ export class UpgradeOverlay {
     this.currentPowerText.setOrigin(0.5, 0);
 
     this.nextPowerText = scene.add.text(
-      428,
-      294,
+      centerX + 108,
+      panelY + 158,
       "",
       makeGameTextStyle({
         family: "display",
@@ -133,19 +140,19 @@ export class UpgradeOverlay {
     );
     this.nextPowerText.setOrigin(0.5, 0);
 
-    const ironChip = scene.add.rectangle(164, 333, 96, 22, 0x251b13, 0.98);
+    const ironChip = scene.add.rectangle(centerX - 156, panelY + 197, 96, 22, 0x251b13, 0.98);
     ironChip.setOrigin(0);
     ironChip.setStrokeStyle(1, 0x6a4e36, 0.8);
-    const goldChip = scene.add.rectangle(272, 333, 96, 22, 0x31260d, 0.98);
+    const goldChip = scene.add.rectangle(centerX - 48, panelY + 197, 96, 22, 0x31260d, 0.98);
     goldChip.setOrigin(0);
     goldChip.setStrokeStyle(1, 0x7d6731, 0.8);
-    const diamondChip = scene.add.rectangle(380, 333, 96, 22, 0x102734, 0.98);
+    const diamondChip = scene.add.rectangle(centerX + 60, panelY + 197, 96, 22, 0x102734, 0.98);
     diamondChip.setOrigin(0);
     diamondChip.setStrokeStyle(1, 0x38657b, 0.8);
 
     this.costIronText = scene.add.text(
-      212,
-      335,
+      centerX - 108,
+      panelY + 199,
       "",
       makeGameTextStyle({
         family: "display",
@@ -158,8 +165,8 @@ export class UpgradeOverlay {
     this.costIronText.setOrigin(0.5, 0);
 
     this.costGoldText = scene.add.text(
-      320,
-      335,
+      centerX,
+      panelY + 199,
       "",
       makeGameTextStyle({
         family: "display",
@@ -172,8 +179,8 @@ export class UpgradeOverlay {
     this.costGoldText.setOrigin(0.5, 0);
 
     this.costDiamondText = scene.add.text(
-      428,
-      335,
+      centerX + 108,
+      panelY + 199,
       "",
       makeGameTextStyle({
         family: "display",
@@ -185,12 +192,12 @@ export class UpgradeOverlay {
     );
     this.costDiamondText.setOrigin(0.5, 0);
 
-    this.upgradeButtonBody = scene.add.rectangle(244, 394, 150, 44, 0xe8cb79, 1);
+    this.upgradeButtonBody = scene.add.rectangle(centerX - 82, panelY + 268, 164, 46, 0xe8cb79, 1);
     this.upgradeButtonBody.setStrokeStyle(2, 0x6f531c, 0.88);
-    this.upgradeButtonGlow = scene.add.rectangle(244, 394, 150, 44, 0xffefb6, 0.08);
+    this.upgradeButtonGlow = scene.add.rectangle(centerX - 82, panelY + 268, 164, 46, 0xffefb6, 0.08);
     this.upgradeButtonLabel = scene.add.text(
-      244,
-      382,
+      centerX - 82,
+      panelY + 255,
       "EVOLUIR",
       makeGameTextStyle({
         family: "display",
@@ -206,17 +213,17 @@ export class UpgradeOverlay {
       this.upgradeButtonBody,
       this.upgradeButtonLabel,
     ]);
-    this.upgradeButton.setSize(150, 44);
+    this.upgradeButton.setSize(164, 46);
     this.upgradeButton.setInteractive(
-      new Phaser.Geom.Rectangle(169, 372, 150, 44),
+      new Phaser.Geom.Rectangle(centerX - 164, panelY + 245, 164, 46),
       Phaser.Geom.Rectangle.Contains,
     );
 
-    this.closeButtonBody = scene.add.rectangle(398, 394, 124, 44, gameTheme.colors.panelRaised, 1);
+    this.closeButtonBody = scene.add.rectangle(centerX + 96, panelY + 268, 140, 46, gameTheme.colors.panelRaised, 1);
     this.closeButtonBody.setStrokeStyle(2, gameTheme.colors.border, 0.9);
     this.closeButtonLabel = scene.add.text(
-      398,
-      382,
+      centerX + 96,
+      panelY + 255,
       "FECHAR",
       makeGameTextStyle({
         family: "display",
@@ -231,15 +238,15 @@ export class UpgradeOverlay {
       this.closeButtonBody,
       this.closeButtonLabel,
     ]);
-    this.closeButton.setSize(124, 44);
+    this.closeButton.setSize(140, 46);
     this.closeButton.setInteractive(
-      new Phaser.Geom.Rectangle(336, 372, 124, 44),
+      new Phaser.Geom.Rectangle(centerX + 26, panelY + 245, 140, 46),
       Phaser.Geom.Rectangle.Contains,
     );
 
     const hint = scene.add.text(
-      320,
-      440,
+      centerX,
+      panelY + 304,
       "Use U ou ESC para sair da forja",
       makeGameTextStyle({
         color: gameTheme.colors.textSoft,

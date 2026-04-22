@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { VIEWPORT_HEIGHT, VIEWPORT_WIDTH } from "../../game/world/constants";
 import { createPanelChrome, gameTheme, makeGameTextStyle } from "../theme/gameTheme";
 
 type OverlaySnapshot = {
@@ -24,34 +25,40 @@ export class ArchaeologyCardOverlay {
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
 
-    const scrim = scene.add.rectangle(0, 0, 640, 576, gameTheme.colors.bgTop, 0.9);
+    const panelWidth = 560;
+    const panelHeight = 360;
+    const panelX = (VIEWPORT_WIDTH - panelWidth) / 2;
+    const panelY = (VIEWPORT_HEIGHT - panelHeight) / 2 - 6;
+    const centerX = VIEWPORT_WIDTH / 2;
+
+    const scrim = scene.add.rectangle(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT, gameTheme.colors.bgTop, 0.9);
     scrim.setOrigin(0);
 
     const chrome = createPanelChrome(scene, {
-      x: 76,
-      y: 126,
-      width: 488,
-      height: 320,
+      x: panelX,
+      y: panelY,
+      width: panelWidth,
+      height: panelHeight,
       accentColor: gameTheme.colors.accentCool,
     });
 
-    const cardPlate = scene.add.rectangle(95, 153, 450, 240, 0xead8b0, 0.98);
+    const cardPlate = scene.add.rectangle(panelX + 20, panelY + 28, panelWidth - 40, 260, 0xead8b0, 0.98);
     cardPlate.setOrigin(0);
     cardPlate.setStrokeStyle(2, 0x9b7d41, 0.88);
 
-    const cardInset = scene.add.rectangle(107, 165, 426, 216, 0xf5ebd1, 0.92);
+    const cardInset = scene.add.rectangle(panelX + 32, panelY + 40, panelWidth - 64, 236, 0xf5ebd1, 0.92);
     cardInset.setOrigin(0);
     cardInset.setStrokeStyle(1, 0xc7ad74, 0.74);
 
-    const cardBand = scene.add.rectangle(95, 153, 450, 26, 0x4d3118, 0.96);
+    const cardBand = scene.add.rectangle(panelX + 20, panelY + 28, panelWidth - 40, 26, 0x4d3118, 0.96);
     cardBand.setOrigin(0);
 
-    const codexSeal = scene.add.circle(505, 179, 18, 0xb78438, 0.95);
+    const codexSeal = scene.add.circle(panelX + panelWidth - 42, panelY + 54, 18, 0xb78438, 0.95);
     codexSeal.setStrokeStyle(2, 0x5b3a0f, 0.85);
 
     this.chapterText = scene.add.text(
-      505,
-      170,
+      panelX + panelWidth - 42,
+      panelY + 45,
       "",
       makeGameTextStyle({
         family: "display",
@@ -64,8 +71,8 @@ export class ArchaeologyCardOverlay {
     this.chapterText.setOrigin(0.5, 0);
 
     const title = scene.add.text(
-      320,
-      168,
+      centerX,
+      panelY + 44,
       "REGISTRO ARQUEOLOGICO",
       makeGameTextStyle({
         family: "display",
@@ -78,8 +85,8 @@ export class ArchaeologyCardOverlay {
     title.setOrigin(0.5);
 
     const subtitle = scene.add.text(
-      320,
-      194,
+      centerX,
+      panelY + 70,
       "Fragmento recuperado do codex subterraneo",
       makeGameTextStyle({
         color: "#cde8df",
@@ -91,14 +98,14 @@ export class ArchaeologyCardOverlay {
     subtitle.setOrigin(0.5);
 
     this.bodyText = scene.add.text(
-      320,
-      220,
+      centerX,
+      panelY + 96,
       "",
       makeGameTextStyle({
         color: "#31200d",
-        fontSize: "21px",
+        fontSize: "22px",
         align: "center",
-        wordWrapWidth: 370,
+        wordWrapWidth: 420,
         strokeThickness: 0,
         family: "body",
         fontStyle: "700",
@@ -108,8 +115,8 @@ export class ArchaeologyCardOverlay {
     this.bodyText.setLineSpacing(10);
 
     this.progressText = scene.add.text(
-      320,
-      403,
+      centerX,
+      panelY + 294,
       "",
       makeGameTextStyle({
         color: "#d9edf0",
@@ -120,21 +127,21 @@ export class ArchaeologyCardOverlay {
     );
     this.progressText.setOrigin(0.5);
 
-    const progressTrack = scene.add.rectangle(196, 425, 248, 8, gameTheme.colors.panelDeep, 1);
+    const progressTrack = scene.add.rectangle(centerX - 124, panelY + 316, 248, 8, gameTheme.colors.panelDeep, 1);
     progressTrack.setOrigin(0, 0.5);
     progressTrack.setStrokeStyle(1, gameTheme.colors.borderSoft, 0.82);
 
-    this.progressFill = scene.add.rectangle(196, 425, 248, 6, gameTheme.colors.accentCool, 1);
+    this.progressFill = scene.add.rectangle(centerX - 124, panelY + 316, 248, 6, gameTheme.colors.accentCool, 1);
     this.progressFill.setOrigin(0, 0.5);
 
-    this.closeButtonBody = scene.add.rectangle(320, 468, 166, 42, 0xe8cb79, 1);
+    this.closeButtonBody = scene.add.rectangle(centerX, panelY + 356, 180, 44, 0xe8cb79, 1);
     this.closeButtonBody.setStrokeStyle(2, 0x70511d, 0.88);
 
-    this.closeButtonGlow = scene.add.rectangle(320, 468, 166, 42, 0xffefb6, 0.08);
+    this.closeButtonGlow = scene.add.rectangle(centerX, panelY + 356, 180, 44, 0xffefb6, 0.08);
 
     this.closeButtonLabel = scene.add.text(
-      320,
-      456,
+      centerX,
+      panelY + 343,
       "VOLTAR AO TUNEL",
       makeGameTextStyle({
         family: "display",
@@ -151,17 +158,17 @@ export class ArchaeologyCardOverlay {
       this.closeButtonBody,
       this.closeButtonLabel,
     ]);
-    this.closeButton.setSize(166, 42);
+    this.closeButton.setSize(180, 44);
     this.closeButton.setInteractive(
-      new Phaser.Geom.Rectangle(237, 447, 166, 42),
+      new Phaser.Geom.Rectangle(centerX - 90, panelY + 334, 180, 44),
       Phaser.Geom.Rectangle.Contains,
     );
     this.closeButton.on("pointerover", () => this.setButtonState(true));
     this.closeButton.on("pointerout", () => this.setButtonState(false));
 
     const hint = scene.add.text(
-      320,
-      512,
+      centerX,
+      panelY + 402,
       "Pressione ESC ou E para fechar o registro",
       makeGameTextStyle({
         color: gameTheme.colors.textSoft,

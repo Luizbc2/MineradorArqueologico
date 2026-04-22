@@ -32,8 +32,8 @@ export class ExpeditionGoalsPanel {
   private lastFillWidth = -1;
 
   constructor(scene: Phaser.Scene) {
-    const width = 194;
-    const height = 74;
+    const width = 260;
+    const height = 90;
     const x = VIEWPORT_WIDTH - width - 12;
     const y = VIEWPORT_HEIGHT - height - 12;
 
@@ -53,7 +53,7 @@ export class ExpeditionGoalsPanel {
       makeGameTextStyle({
         family: "display",
         color: "#f6e6b5",
-        fontSize: "12px",
+        fontSize: "14px",
         fontStyle: "800",
         strokeThickness: 3,
       }),
@@ -66,7 +66,7 @@ export class ExpeditionGoalsPanel {
       makeGameTextStyle({
         family: "display",
         color: "#d7fff6",
-        fontSize: "12px",
+        fontSize: "14px",
         fontStyle: "800",
         strokeThickness: 3,
       }),
@@ -75,11 +75,11 @@ export class ExpeditionGoalsPanel {
 
     this.progressText = scene.add.text(
       x + 14,
-      y + 24,
+      y + 28,
       "0/0 metas",
       makeGameTextStyle({
         color: gameTheme.colors.textSoft,
-        fontSize: "10px",
+        fontSize: "11px",
         fontStyle: "700",
         strokeThickness: 2,
       }),
@@ -87,12 +87,12 @@ export class ExpeditionGoalsPanel {
 
     this.activeTitle = scene.add.text(
       x + 14,
-      y + 39,
+      y + 46,
       "Primeira meta",
       makeGameTextStyle({
         family: "display",
         color: "#ffffff",
-        fontSize: "11px",
+        fontSize: "13px",
         fontStyle: "800",
         strokeThickness: 3,
       }),
@@ -100,20 +100,20 @@ export class ExpeditionGoalsPanel {
 
     this.rewardText = scene.add.text(
       x + 14,
-      y + 52,
+      y + 62,
       "Premio: combo",
       makeGameTextStyle({
         color: "#ffe39b",
-        fontSize: "9px",
+        fontSize: "10px",
         fontStyle: "700",
         strokeThickness: 2,
       }),
     );
 
     const progressTrack = scene.add.rectangle(
-      x + 118,
-      y + 57,
-      60,
+      x + 164,
+      y + 66,
+      76,
       5,
       gameTheme.colors.panelDeep,
       1,
@@ -121,9 +121,9 @@ export class ExpeditionGoalsPanel {
     progressTrack.setOrigin(0, 0.5);
 
     this.activeFill = scene.add.rectangle(
-      x + 118,
-      y + 57,
-      60,
+      x + 164,
+      y + 66,
+      76,
       3,
       gameTheme.colors.accent,
       1,
@@ -132,12 +132,12 @@ export class ExpeditionGoalsPanel {
 
     this.progressValueText = scene.add.text(
       x + width - 14,
-      y + 49,
+      y + 56,
       "0/1",
       makeGameTextStyle({
         family: "display",
         color: "#d7fff6",
-        fontSize: "10px",
+        fontSize: "11px",
         fontStyle: "800",
         strokeThickness: 2,
       }),
@@ -146,11 +146,11 @@ export class ExpeditionGoalsPanel {
 
     this.perkText = scene.add.text(
       x + 14,
-      y + 62,
+      y + 76,
       "Sem perks ativos",
       makeGameTextStyle({
         color: "#9bdccf",
-        fontSize: "8px",
+        fontSize: "9px",
         fontStyle: "700",
         strokeThickness: 2,
       }),
@@ -204,7 +204,7 @@ export class ExpeditionGoalsPanel {
     const ratio = activeGoal
       ? Phaser.Math.Clamp(activeGoal.current / activeGoal.target, 0, 1)
       : 1;
-    const fillWidth = Math.max(12, Math.round(60 * ratio));
+    const fillWidth = Math.max(12, Math.round(76 * ratio));
 
     if (fillWidth !== this.lastFillWidth) {
       this.lastFillWidth = fillWidth;
