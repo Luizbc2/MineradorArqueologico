@@ -6,7 +6,10 @@ import {
   canAffordPickaxeUpgrade,
   getPickaxeUpgradeCost,
 } from "../game/progression/pickaxeUpgrade";
-import { createExpeditionProgression } from "../game/progression/expeditionGoals";
+import {
+  createExpeditionProgression,
+} from "../game/progression/expeditionGoals";
+import type { ExpeditionProgressionSnapshot } from "../game/progression/expeditionGoals";
 import {
   createResourceInventory,
   getResourceFromTile,
@@ -53,6 +56,7 @@ export class MineScene extends Phaser.Scene {
   private worldGrid: WorldGrid = [];
   private readonly archaeologyDeck = createArchaeologyDeck();
   private readonly expeditionProgression = createExpeditionProgression();
+  private progressionSnapshot: ExpeditionProgressionSnapshot = this.expeditionProgression.getSnapshot();
   private inventory: ResourceInventory = createResourceInventory();
   private energy = 100;
   private pickaxeLevel = 1;
@@ -131,6 +135,7 @@ export class MineScene extends Phaser.Scene {
     this.createArchaeologyOverlay();
     this.createUpgradeOverlay();
     this.createAudioDirector();
+    this.progressionSnapshot = this.expeditionProgression.getSnapshot();
 
     if (this.player) {
       this.cameras.main.startFollow(this.player.sprite, true, 0.14, 0.18);
@@ -221,7 +226,7 @@ export class MineScene extends Phaser.Scene {
       return;
     }
 
-    const moveTempoScale = 1 - this.expeditionProgression.getSnapshot().perks.moveTempoBonus;
+    const moveTempoScale = 1 - this.progressionSnapshot.perks.moveTempoBonus;
 
     const leftPressed =
       this.cursors?.left.isDown || this.moveKeys?.left.isDown;
@@ -581,7 +586,10 @@ export class MineScene extends Phaser.Scene {
   }
 
   private createSurfaceReturnUi() {
-    this.surfaceButton = this.add.rectangle(584, 36, 84, 34, gameTheme.colors.panelDeep, 0.98);
+    const buttonX = VIEWPORT_WIDTH - 62;
+    const buttonY = 118;
+
+    this.surfaceButton = this.add.rectangle(buttonX, buttonY, 96, 28, gameTheme.colors.panelDeep, 0.98);
     this.surfaceButton.setScrollFactor(0);
     this.surfaceButton.setStrokeStyle(2, gameTheme.colors.border, 0.95);
     this.surfaceButton.setDepth(1100);
@@ -597,13 +605,13 @@ export class MineScene extends Phaser.Scene {
     });
 
     this.surfaceButtonLabel = this.add.text(
-      584,
-      26,
+      buttonX,
+      buttonY - 9,
       "BASE [R]",
       makeGameTextStyle({
         family: "display",
         color: "#dbfdfa",
-        fontSize: "13px",
+        fontSize: "12px",
         fontStyle: "800",
         strokeThickness: 3,
       }),
@@ -613,12 +621,12 @@ export class MineScene extends Phaser.Scene {
     this.surfaceButtonLabel.setDepth(1110);
 
     this.surfaceStatusText = this.add.text(
-      584,
-      49,
+      buttonX,
+      buttonY + 4,
       "",
       makeGameTextStyle({
         color: gameTheme.colors.textSoft,
-        fontSize: "11px",
+        fontSize: "10px",
         fontStyle: "700",
         strokeThickness: 2,
       }),
@@ -700,7 +708,7 @@ export class MineScene extends Phaser.Scene {
       (tileDefinitions[tile.kind].hardness * 0.35) /
       (1 +
         (this.pickaxeLevel - 1) * 0.25 +
-        this.expeditionProgression.getSnapshot().perks.miningSpeedBonus);
+        this.progressionSnapshot.perks.miningSpeedBonus);
 
     if (
       !this.miningTarget ||
@@ -848,7 +856,7 @@ export class MineScene extends Phaser.Scene {
   private registerReward(resource: ResourceKind) {
     const meta = getResourceMeta(resource);
     const chainActive = this.rewardComboTimer > 0;
-    const comboBonus = this.expeditionProgression.getSnapshot().perks.comboWindowBonus;
+    const comboBonus = this.progressionSnapshot.perks.comboWindowBonus;
 
     this.rewardComboCount = chainActive ? this.rewardComboCount + 1 : 1;
     this.rewardComboWindow =
@@ -1149,7 +1157,7 @@ export class MineScene extends Phaser.Scene {
       this.lastLightingState.facing !== nextLightingState.facing ||
       this.lastLightingState.mining !== nextLightingState.mining;
 
-    if (!lightingStateChanged && this.lightingTick < 1 / 24) {
+    if (!lightingStateChanged && this.lightingTick < 1 / 18) {
       return;
     }
 
@@ -1233,6 +1241,8 @@ export class MineScene extends Phaser.Scene {
     const endX = Math.min(this.worldGrid[0].length - 1, Math.ceil((viewport.x + viewport.width) / TILE_SIZE) + 1);
     const startY = Math.max(0, Math.floor(viewport.y / TILE_SIZE) - 1);
     const endY = Math.min(this.worldGrid.length - 1, Math.ceil((viewport.y + viewport.height) / TILE_SIZE) + 1);
+    const rareGlowBonus = this.progressionSnapshot.perks.rareGlowBonus;
+    const shimmerPulse = 0.038 + Math.sin(this.time.now / 210) * 0.01;
 
     for (let y = startY; y <= endY; y += 1) {
       for (let x = startX; x <= endX; x += 1) {
@@ -1250,12 +1260,7 @@ export class MineScene extends Phaser.Scene {
 
         const screenX = x * TILE_SIZE + TILE_SIZE / 2 - viewport.x;
         const screenY = y * TILE_SIZE + TILE_SIZE / 2 - viewport.y;
-        const shimmerBase =
-          0.04 +
-          ((x + y) % 3) * 0.015 +
-          Math.sin((this.time.now + x * 37 + y * 61) / 280) * 0.012;
-        const shimmer =
-          shimmerBase * (1 + this.expeditionProgression.getSnapshot().perks.rareGlowBonus);
+        const shimmer = (shimmerPulse + ((x + y) % 3) * 0.012) * (1 + rareGlowBonus);
         const radius = tile.kind === "chest" ? 18 : tile.kind === "diamond" ? 16 : 14;
 
         this.lightLayer.fillStyle(material.glow, shimmer);
@@ -1304,7 +1309,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   private updateGoalsPanel(
-    snapshot = this.expeditionProgression.getSnapshot(),
+    snapshot = this.progressionSnapshot,
   ) {
     this.goalsPanel?.update({
       rank: snapshot.rank,
@@ -1316,8 +1321,9 @@ export class MineScene extends Phaser.Scene {
   }
 
   private syncExpeditionProgress(
-    snapshot: ReturnType<ReturnType<typeof createExpeditionProgression>["getSnapshot"]>,
+    snapshot: ExpeditionProgressionSnapshot,
   ) {
+    this.progressionSnapshot = snapshot;
     this.updateGoalsPanel(snapshot);
 
     for (const completed of snapshot.newlyCompleted) {

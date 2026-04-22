@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { VIEWPORT_WIDTH } from "../../game/world/constants";
 import { createPanelChrome, gameTheme, makeGameTextStyle } from "../theme/gameTheme";
 
 type GoalView = {
@@ -19,48 +20,53 @@ export type ExpeditionGoalsSnapshot = {
 
 export class ExpeditionGoalsPanel {
   private readonly container: Phaser.GameObjects.Container;
-  private readonly progressText: Phaser.GameObjects.Text;
   private readonly rankText: Phaser.GameObjects.Text;
+  private readonly progressText: Phaser.GameObjects.Text;
   private readonly activeTitle: Phaser.GameObjects.Text;
-  private readonly activeDescription: Phaser.GameObjects.Text;
-  private readonly activeReward: Phaser.GameObjects.Text;
-  private readonly activeProgress: Phaser.GameObjects.Text;
-  private readonly activeFill: Phaser.GameObjects.Rectangle;
-  private readonly nextTitle: Phaser.GameObjects.Text;
-  private readonly nextReward: Phaser.GameObjects.Text;
+  private readonly rewardText: Phaser.GameObjects.Text;
+  private readonly progressValueText: Phaser.GameObjects.Text;
   private readonly perkText: Phaser.GameObjects.Text;
+  private readonly activeFill: Phaser.GameObjects.Rectangle;
+
+  private lastKey = "";
+  private lastFillWidth = -1;
 
   constructor(scene: Phaser.Scene) {
+    const width = 174;
+    const height = 88;
+    const x = VIEWPORT_WIDTH - width - 14;
+    const y = 14;
+
     const chrome = createPanelChrome(scene, {
-      x: 430,
-      y: 84,
-      width: 196,
-      height: 134,
+      x,
+      y,
+      width,
+      height,
       accentColor: gameTheme.colors.accent,
       alpha: 0.94,
     });
 
     const title = scene.add.text(
-      444,
-      92,
+      x + 14,
+      y + 10,
       "EXPEDICAO",
       makeGameTextStyle({
         family: "display",
-        color: "#f7e9bf",
-        fontSize: "18px",
+        color: "#f6e6b5",
+        fontSize: "13px",
         fontStyle: "800",
-        strokeThickness: 4,
+        strokeThickness: 3,
       }),
     );
 
     this.rankText = scene.add.text(
-      562,
-      93,
-      "",
+      x + width - 14,
+      y + 10,
+      "R1",
       makeGameTextStyle({
         family: "display",
-        color: "#d9fff7",
-        fontSize: "14px",
+        color: "#d7fff6",
+        fontSize: "13px",
         fontStyle: "800",
         strokeThickness: 3,
       }),
@@ -68,113 +74,85 @@ export class ExpeditionGoalsPanel {
     this.rankText.setOrigin(1, 0);
 
     this.progressText = scene.add.text(
-      444,
-      112,
-      "",
+      x + 14,
+      y + 26,
+      "0/0 metas",
       makeGameTextStyle({
         color: gameTheme.colors.textSoft,
-        fontSize: "12px",
+        fontSize: "10px",
         fontStyle: "700",
         strokeThickness: 2,
       }),
     );
 
-    const activePanel = scene.add.rectangle(444, 128, 168, 42, gameTheme.colors.panelDeep, 0.94);
-    activePanel.setOrigin(0);
-    activePanel.setStrokeStyle(1, gameTheme.colors.borderSoft, 0.8);
-
     this.activeTitle = scene.add.text(
-      452,
-      132,
-      "",
+      x + 14,
+      y + 42,
+      "Primeira meta",
       makeGameTextStyle({
         family: "display",
-        color: "#f8fbff",
-        fontSize: "13px",
+        color: "#ffffff",
+        fontSize: "12px",
         fontStyle: "800",
         strokeThickness: 3,
       }),
     );
 
-    this.activeDescription = scene.add.text(
-      452,
-      146,
-      "",
-      makeGameTextStyle({
-        color: gameTheme.colors.textMuted,
-        fontSize: "11px",
-        fontStyle: "600",
-        strokeThickness: 2,
-        wordWrapWidth: 118,
-      }),
-    );
-
-    this.activeReward = scene.add.text(
-      452,
-      172,
-      "",
+    this.rewardText = scene.add.text(
+      x + 14,
+      y + 56,
+      "Premio: combo",
       makeGameTextStyle({
         color: "#ffe39b",
-        fontSize: "11px",
-        fontStyle: "800",
+        fontSize: "10px",
+        fontStyle: "700",
         strokeThickness: 2,
       }),
     );
 
-    this.activeProgress = scene.add.text(
-      600,
-      172,
-      "",
-      makeGameTextStyle({
-        family: "display",
-        color: "#dbfdfa",
-        fontSize: "11px",
-        fontStyle: "800",
-        strokeThickness: 2,
-      }),
+    const progressTrack = scene.add.rectangle(
+      x + 14,
+      y + 73,
+      126,
+      5,
+      gameTheme.colors.panelDeep,
+      1,
     );
-    this.activeProgress.setOrigin(1, 0);
+    progressTrack.setOrigin(0, 0.5);
 
-    const activeTrack = scene.add.rectangle(452, 191, 148, 6, gameTheme.colors.panel, 1);
-    activeTrack.setOrigin(0, 0.5);
-
-    this.activeFill = scene.add.rectangle(452, 191, 148, 4, gameTheme.colors.accent, 1);
+    this.activeFill = scene.add.rectangle(
+      x + 14,
+      y + 73,
+      126,
+      3,
+      gameTheme.colors.accent,
+      1,
+    );
     this.activeFill.setOrigin(0, 0.5);
 
-    this.nextTitle = scene.add.text(
-      444,
-      199,
-      "",
+    this.progressValueText = scene.add.text(
+      x + width - 14,
+      y + 66,
+      "0/1",
       makeGameTextStyle({
-        color: gameTheme.colors.textSoft,
-        fontSize: "11px",
-        fontStyle: "700",
-        strokeThickness: 2,
-      }),
-    );
-
-    this.nextReward = scene.add.text(
-      444,
-      212,
-      "",
-      makeGameTextStyle({
-        color: "#9cd8ff",
+        family: "display",
+        color: "#d7fff6",
         fontSize: "10px",
-        fontStyle: "700",
+        fontStyle: "800",
         strokeThickness: 2,
       }),
     );
+    this.progressValueText.setOrigin(1, 0);
 
     this.perkText = scene.add.text(
-      444,
-      226,
-      "",
+      x + 14,
+      y + 78,
+      "Sem perks ativos",
       makeGameTextStyle({
-        color: "#b6f0df",
-        fontSize: "10px",
+        color: "#9bdccf",
+        fontSize: "9px",
         fontStyle: "700",
         strokeThickness: 2,
-        wordWrapWidth: 170,
       }),
     );
 
@@ -183,53 +161,62 @@ export class ExpeditionGoalsPanel {
       title,
       this.rankText,
       this.progressText,
-      activePanel,
       this.activeTitle,
-      this.activeDescription,
-      this.activeReward,
-      this.activeProgress,
-      activeTrack,
+      this.rewardText,
+      progressTrack,
       this.activeFill,
-      this.nextTitle,
-      this.nextReward,
+      this.progressValueText,
       this.perkText,
     ]);
 
     this.container.setScrollFactor(0);
-    this.container.setDepth(1080);
+    this.container.setDepth(1030);
   }
 
   update(snapshot: ExpeditionGoalsSnapshot) {
-    this.rankText.setText(`R${snapshot.rank}`);
-    this.progressText.setText(snapshot.progressLabel);
-    this.perkText.setText(snapshot.perkSummary);
+    const activeGoal = snapshot.activeGoal;
+    const activeTitle = activeGoal ? this.truncate(activeGoal.title, 22) : "Expedicao lendaria";
+    const rewardText = activeGoal
+      ? `Premio: ${this.truncate(activeGoal.rewardLabel, 19)}`
+      : "Premio: gloria total";
+    const progressValue = activeGoal ? `${activeGoal.current}/${activeGoal.target}` : "MAX";
+    const perkText = this.truncate(snapshot.perkSummary, 30);
 
-    if (!snapshot.activeGoal) {
-      this.activeTitle.setText("Expedicao Lendaria");
-      this.activeDescription.setText("Todas as metas desta run foram concluidas.");
-      this.activeReward.setText("Recompensa: gloria total");
-      this.activeProgress.setText("MAX");
-      this.activeFill.width = 148;
-      this.nextTitle.setText("Proximo: reinicie e tente bater seu proprio ritmo");
-      this.nextReward.setText("Replay: refine rota, streak e profundidade");
-      return;
+    const key = [
+      snapshot.rank,
+      snapshot.progressLabel,
+      activeTitle,
+      rewardText,
+      progressValue,
+      perkText,
+    ].join("|");
+
+    if (key !== this.lastKey) {
+      this.lastKey = key;
+      this.rankText.setText(`R${snapshot.rank}`);
+      this.progressText.setText(snapshot.progressLabel);
+      this.activeTitle.setText(activeTitle);
+      this.rewardText.setText(rewardText);
+      this.progressValueText.setText(progressValue);
+      this.perkText.setText(perkText);
     }
 
-    const activeRatio = Phaser.Math.Clamp(snapshot.activeGoal.current / snapshot.activeGoal.target, 0, 1);
+    const ratio = activeGoal
+      ? Phaser.Math.Clamp(activeGoal.current / activeGoal.target, 0, 1)
+      : 1;
+    const fillWidth = Math.max(12, Math.round(126 * ratio));
 
-    this.activeTitle.setText(snapshot.activeGoal.title);
-    this.activeDescription.setText(snapshot.activeGoal.description);
-    this.activeReward.setText(`Premio: ${snapshot.activeGoal.rewardLabel}`);
-    this.activeProgress.setText(`${snapshot.activeGoal.current}/${snapshot.activeGoal.target}`);
-    this.activeFill.width = Math.max(12, 148 * activeRatio);
+    if (fillWidth !== this.lastFillWidth) {
+      this.lastFillWidth = fillWidth;
+      this.activeFill.width = fillWidth;
+    }
+  }
 
-    if (snapshot.nextGoal) {
-      this.nextTitle.setText(`Depois: ${snapshot.nextGoal.title}`);
-      this.nextReward.setText(`Proximo premio: ${snapshot.nextGoal.rewardLabel}`);
-      return;
+  private truncate(value: string, maxLength: number) {
+    if (value.length <= maxLength) {
+      return value;
     }
 
-    this.nextTitle.setText("Depois: ultima meta ativa");
-    this.nextReward.setText("Finalize a expedicao para fechar a run.");
+    return `${value.slice(0, Math.max(0, maxLength - 3))}...`;
   }
 }
