@@ -1,6 +1,5 @@
 import Phaser from "phaser";
 import type { PickaxeUpgradeCost } from "../../game/progression/pickaxeUpgrade";
-import { VIEWPORT_HEIGHT, VIEWPORT_WIDTH } from "../../game/world/constants";
 import { createPanelChrome, gameTheme, makeGameTextStyle } from "../theme/gameTheme";
 
 type OverlaySnapshot = {
@@ -33,13 +32,15 @@ export class UpgradeOverlay {
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
 
+    const viewportWidth = scene.scale.width;
+    const viewportHeight = scene.scale.height;
     const panelWidth = 540;
     const panelHeight = 320;
-    const panelX = (VIEWPORT_WIDTH - panelWidth) / 2;
-    const panelY = (VIEWPORT_HEIGHT - panelHeight) / 2 - 10;
-    const centerX = VIEWPORT_WIDTH / 2;
+    const panelX = (viewportWidth - panelWidth) / 2;
+    const panelY = (viewportHeight - panelHeight) / 2 - 10;
+    const centerX = viewportWidth / 2;
 
-    const scrim = scene.add.rectangle(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT, gameTheme.colors.bgTop, 0.9);
+    const scrim = scene.add.rectangle(0, 0, viewportWidth, viewportHeight, gameTheme.colors.bgTop, 0.9);
     scrim.setOrigin(0);
 
     const chrome = createPanelChrome(scene, {

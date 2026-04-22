@@ -1,5 +1,4 @@
 import Phaser from "phaser";
-import { VIEWPORT_WIDTH } from "../../game/world/constants";
 import type { ResourceInventory } from "../../game/inventory/resourceInventory";
 import { createPanelChrome, gameTheme, makeGameTextStyle } from "../theme/gameTheme";
 
@@ -43,9 +42,10 @@ export class MineHud {
   private lastComboColor = "";
 
   constructor(scene: Phaser.Scene) {
+    const viewportWidth = scene.scale.width;
     const panelX = 12;
     const panelY = 12;
-    const panelWidth = VIEWPORT_WIDTH - 24;
+    const panelWidth = viewportWidth - 24;
     const panelHeight = 66;
     const rightStartX = panelX + panelWidth - 172;
 

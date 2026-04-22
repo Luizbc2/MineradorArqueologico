@@ -1,4 +1,5 @@
 import {
+  PLAYER_SPAWN_TILE,
   SURFACE_ROW,
   WORLD_HEIGHT_TILES,
   WORLD_WIDTH_TILES,
@@ -112,7 +113,7 @@ export function generateWorld(seed = 0x0badc0de): WorldGrid {
   }
 
   for (let y = 0; y < SURFACE_ROW; y += 1) {
-    for (let x = 13; x < 19; x += 1) {
+    for (let x = PLAYER_SPAWN_TILE.x - 3; x <= PLAYER_SPAWN_TILE.x + 2; x += 1) {
       grid[y][x] = { kind: "empty" };
     }
   }

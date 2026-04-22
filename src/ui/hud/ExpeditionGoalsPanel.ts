@@ -1,5 +1,4 @@
 import Phaser from "phaser";
-import { VIEWPORT_HEIGHT, VIEWPORT_WIDTH } from "../../game/world/constants";
 import { createPanelChrome, gameTheme, makeGameTextStyle } from "../theme/gameTheme";
 
 type GoalView = {
@@ -32,10 +31,12 @@ export class ExpeditionGoalsPanel {
   private lastFillWidth = -1;
 
   constructor(scene: Phaser.Scene) {
+    const viewportWidth = scene.scale.width;
+    const viewportHeight = scene.scale.height;
     const width = 260;
     const height = 90;
-    const x = VIEWPORT_WIDTH - width - 12;
-    const y = VIEWPORT_HEIGHT - height - 12;
+    const x = viewportWidth - width - 12;
+    const y = viewportHeight - height - 12;
 
     const chrome = createPanelChrome(scene, {
       x,

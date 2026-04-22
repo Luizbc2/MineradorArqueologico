@@ -27,8 +27,6 @@ import {
   PLAYER_SPAWN_TILE,
   SURFACE_ROW,
   TILE_SIZE,
-  VIEWPORT_HEIGHT,
-  VIEWPORT_WIDTH,
   WORLD_HEIGHT_PX,
   WORLD_HEIGHT_TILES,
   WORLD_WIDTH_PX,
@@ -116,6 +114,14 @@ export class MineScene extends Phaser.Scene {
     super("mine");
   }
 
+  private get viewportWidth() {
+    return this.scale.width;
+  }
+
+  private get viewportHeight() {
+    return this.scale.height;
+  }
+
   create() {
     this.worldGrid = generateWorld();
     this.prepareSurfaceSafeZone();
@@ -139,11 +145,11 @@ export class MineScene extends Phaser.Scene {
     this.progressionSnapshot = this.expeditionProgression.getSnapshot();
 
     if (this.player) {
-      const fillWidthZoom = VIEWPORT_WIDTH / WORLD_WIDTH_PX;
+      const fillWidthZoom = Math.max(1, this.viewportWidth / WORLD_WIDTH_PX);
 
       this.cameras.main.setZoom(fillWidthZoom);
       this.cameras.main.startFollow(this.player.sprite, true, 0.14, 0.18);
-      this.cameras.main.setDeadzone(320, 220);
+      this.cameras.main.setDeadzone(this.viewportWidth * 0.18, this.viewportHeight * 0.18);
       this.cameras.main.centerOn(this.player.sprite.x, this.player.sprite.y);
     }
 
@@ -541,7 +547,7 @@ export class MineScene extends Phaser.Scene {
 
   private createSurfaceReturnUi() {
     const buttonX = 78;
-    const buttonY = VIEWPORT_HEIGHT - 54;
+    const buttonY = this.viewportHeight - 54;
 
     this.surfaceButton = this.add.rectangle(buttonX, buttonY, 116, 30, gameTheme.colors.panelDeep, 0.98);
     this.surfaceButton.setScrollFactor(0);
@@ -608,10 +614,10 @@ export class MineScene extends Phaser.Scene {
 
   private createScreenFlash() {
     this.screenFlash = this.add.rectangle(
-      VIEWPORT_WIDTH / 2,
-      VIEWPORT_HEIGHT / 2,
-      VIEWPORT_WIDTH,
-      VIEWPORT_HEIGHT,
+      this.viewportWidth / 2,
+      this.viewportHeight / 2,
+      this.viewportWidth,
+      this.viewportHeight,
       gameTheme.colors.accentSoft,
       0,
     );
@@ -1128,7 +1134,7 @@ export class MineScene extends Phaser.Scene {
 
     this.darknessLayer.clear();
     this.darknessLayer.fillStyle(0x02050a, darknessAlpha);
-    this.darknessLayer.fillRect(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
+    this.darknessLayer.fillRect(0, 0, this.viewportWidth, this.viewportHeight);
 
     this.lightLayer.clear();
     this.lightLayer.fillStyle(gameTheme.colors.accentCool, 0.06 + depthRatio * 0.02);
@@ -1340,7 +1346,7 @@ export class MineScene extends Phaser.Scene {
 
   private showSurfaceToast(message: string) {
     const toast = this.add.text(
-      VIEWPORT_WIDTH / 2,
+      this.viewportWidth / 2,
       180,
       message,
       makeGameTextStyle({
@@ -1379,7 +1385,7 @@ export class MineScene extends Phaser.Scene {
 
   private showMissionToast(title: string, rewardLabel: string) {
     const toast = this.add.text(
-      VIEWPORT_WIDTH / 2,
+      this.viewportWidth / 2,
       214,
       `META CONCLUIDA: ${title}\n${rewardLabel}`,
       makeGameTextStyle({

@@ -26,7 +26,7 @@ export const phaserGameConfig: Phaser.Types.Core.GameConfig = {
     smoothStep: false,
   },
   scale: {
-    mode: Phaser.Scale.FIT,
+    mode: Phaser.Scale.RESIZE,
     autoCenter: Phaser.Scale.CENTER_BOTH,
     expandParent: true,
   },
