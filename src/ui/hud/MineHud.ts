@@ -42,21 +42,26 @@ export class MineHud {
   private lastComboColor = "";
 
   constructor(scene: Phaser.Scene) {
-    const viewportWidth = Math.max(scene.scale.width || 0, scene.cameras.main.width || 0, 980);
-    const compactLayout = viewportWidth < 1240;
+    const viewportWidth = scene.scale.width || scene.cameras.main.width || 980;
+    const compactLayout = viewportWidth < 1280;
+    const narrowLayout = viewportWidth < 960;
     const leftX = 16;
     const topY = 16;
     const gap = 12;
-    const mainWidth = compactLayout ? Math.min(viewportWidth - 32, 492) : 516;
-    const mainHeight = 136;
+    const mainWidth = narrowLayout
+      ? Math.max(336, viewportWidth - 24)
+      : compactLayout
+        ? Math.min(viewportWidth - 32, 492)
+        : 516;
+    const mainHeight = narrowLayout ? 152 : 136;
     const resourcesWidth = compactLayout ? mainWidth : 340;
-    const resourcesHeight = 104;
+    const resourcesHeight = narrowLayout ? 108 : 104;
     const resourcesX = compactLayout ? leftX : viewportWidth - resourcesWidth - 16;
     const resourcesY = compactLayout ? topY + mainHeight + 12 : topY;
-    const depthSectionWidth = 146;
-    const energySectionX = leftX + depthSectionWidth + 20;
-    const energySectionWidth = mainWidth - depthSectionWidth - 36;
-    const statCardsY = topY + 88;
+    const depthSectionWidth = narrowLayout ? 124 : 146;
+    const energySectionX = leftX + depthSectionWidth + (narrowLayout ? 16 : 20);
+    const energySectionWidth = mainWidth - depthSectionWidth - (narrowLayout ? 28 : 36);
+    const statCardsY = topY + (narrowLayout ? 102 : 88);
     const statCardWidth = Math.floor((mainWidth - 32 - gap * 2) / 3);
     const chipGap = 10;
     const chipWidth = Math.floor((resourcesWidth - 32 - chipGap) / 2);
@@ -88,11 +93,12 @@ export class MineHud {
       leftX + depthSectionWidth,
       topY + 18,
       1,
-      mainHeight - 34,
+      mainHeight - (narrowLayout ? 40 : 34),
       gameTheme.colors.borderSoft,
       0.85,
     );
     sectionDivider.setOrigin(0, 0);
+    sectionDivider.setVisible(!narrowLayout);
 
     const eyebrow = scene.add.text(
       leftX + 16,
@@ -141,7 +147,7 @@ export class MineHud {
         fontSize: "10px",
         fontStyle: "600",
         strokeThickness: 1,
-        wordWrapWidth: depthSectionWidth - 20,
+        wordWrapWidth: depthSectionWidth - 18,
       }),
     );
 
@@ -211,7 +217,7 @@ export class MineHud {
         fontSize: "10px",
         fontStyle: "600",
         strokeThickness: 1,
-        wordWrapWidth: energySectionWidth - 10,
+        wordWrapWidth: energySectionWidth - 8,
       }),
     );
 

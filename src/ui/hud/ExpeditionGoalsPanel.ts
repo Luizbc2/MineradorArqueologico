@@ -32,12 +32,13 @@ export class ExpeditionGoalsPanel {
   private lastFillWidth = -1;
 
   constructor(scene: Phaser.Scene) {
-    const viewportWidth = scene.scale.width;
-    const viewportHeight = scene.scale.height;
-    const width = 348;
-    const height = 124;
-    const x = viewportWidth - width - 16;
-    const y = viewportHeight - height - 16;
+    const viewportWidth = scene.scale.width || scene.cameras.main.width || 348;
+    const viewportHeight = scene.scale.height || scene.cameras.main.height || 124;
+    const compactLayout = viewportWidth < 960;
+    const width = compactLayout ? Math.max(296, viewportWidth - 24) : 348;
+    const height = compactLayout ? 132 : 124;
+    const x = compactLayout ? 12 : viewportWidth - width - 16;
+    const y = viewportHeight - height - (compactLayout ? 12 : 16);
 
     this.progressTrackWidth = width - 32;
 
