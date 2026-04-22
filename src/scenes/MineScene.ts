@@ -122,6 +122,15 @@ export class MineScene extends Phaser.Scene {
     return this.scale.height;
   }
 
+  private getGameplayZoom() {
+    const targetVisibleColumns = 23;
+    const targetVisibleRows = 14;
+    const horizontalZoom = this.viewportWidth / (targetVisibleColumns * TILE_SIZE);
+    const verticalZoom = this.viewportHeight / (targetVisibleRows * TILE_SIZE);
+
+    return Phaser.Math.Clamp(Math.min(horizontalZoom, verticalZoom), 1.7, 2.55);
+  }
+
   create() {
     this.worldGrid = generateWorld();
     this.prepareSurfaceSafeZone();
@@ -136,20 +145,20 @@ export class MineScene extends Phaser.Scene {
     this.drawDepthGuides();
     this.createPlayer();
     this.createScreenFlash();
-    this.createSurfaceReturnUi();
-    this.createHud();
-    this.createGoalsPanel();
     this.createArchaeologyOverlay();
     this.createUpgradeOverlay();
     this.createAudioDirector();
     this.progressionSnapshot = this.expeditionProgression.getSnapshot();
 
     if (this.player) {
-      const fillWidthZoom = Math.max(1.32, this.viewportWidth / WORLD_WIDTH_PX);
+      const gameplayZoom = this.getGameplayZoom();
 
-      this.cameras.main.setZoom(fillWidthZoom);
+      this.cameras.main.setZoom(gameplayZoom);
       this.cameras.main.startFollow(this.player.sprite, true, 0.14, 0.18);
-      this.cameras.main.setDeadzone(this.viewportWidth * 0.12, this.viewportHeight * 0.12);
+      this.cameras.main.setDeadzone(
+        Math.min(this.viewportWidth * 0.18, 320),
+        Math.min(this.viewportHeight * 0.16, 150),
+      );
       this.cameras.main.centerOn(this.player.sprite.x, this.player.sprite.y);
     }
 
@@ -166,6 +175,12 @@ export class MineScene extends Phaser.Scene {
     this.escapeKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
     this.upgradeKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.U);
     this.surfaceKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+
+    this.scale.on(Phaser.Scale.Events.RESIZE, this.handleResize, this);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.scale.off(Phaser.Scale.Events.RESIZE, this.handleResize, this);
+    });
+    this.handleResize(this.scale.gameSize);
 
     this.hideLegacyViewport();
     this.drawWorldGrid(true);
@@ -536,11 +551,13 @@ export class MineScene extends Phaser.Scene {
   }
 
   private createHud() {
+    this.hud?.destroy();
     this.hud = new MineHud(this);
     this.updateHud();
   }
 
   private createGoalsPanel() {
+    this.goalsPanel?.destroy();
     this.goalsPanel = new ExpeditionGoalsPanel(this);
     this.updateGoalsPanel();
   }
@@ -596,6 +613,15 @@ export class MineScene extends Phaser.Scene {
     this.surfaceStatusText.setDepth(1110);
 
     this.updateSurfaceUi();
+  }
+
+  private destroySurfaceReturnUi() {
+    this.surfaceButton?.destroy();
+    this.surfaceButton = undefined;
+    this.surfaceButtonLabel?.destroy();
+    this.surfaceButtonLabel = undefined;
+    this.surfaceStatusText?.destroy();
+    this.surfaceStatusText = undefined;
   }
 
   private createAudioDirector() {
@@ -1124,42 +1150,79 @@ export class MineScene extends Phaser.Scene {
     const playerX = this.player.sprite.x - viewport.x;
     const playerY = this.player.sprite.y - viewport.y;
     const depthRatio = Phaser.Math.Clamp(this.player.position.y / WORLD_HEIGHT_TILES, 0, 1);
-    const darknessAlpha = 0.12 + depthRatio * 0.4;
-    const lampX = playerX + this.player.facing * 6;
-    const lampY = playerY - 6;
-    const outerRadius = 44 - depthRatio * 2;
-    const glowRadius = outerRadius + 16;
-    const coneLength = 72 - depthRatio * 8;
-    const coneSpread = 18 - depthRatio * 2;
+    const darknessAlpha = 0.1 + depthRatio * 0.26;
+    const lampX = playerX + this.player.facing * 2;
+    const lampY = playerY - 4;
+    const coreRadius = 24 - depthRatio * 1.5;
+    const glowRadius = 46 - depthRatio * 3;
+    const beamOffset = 34 - depthRatio * 4;
+    const beamWidth = 78 - depthRatio * 10;
+    const beamHeight = 46 - depthRatio * 4;
+    const farBeamOffset = 58 - depthRatio * 6;
+    const farBeamWidth = 44 - depthRatio * 6;
+    const farBeamHeight = 24 - depthRatio * 3;
 
     this.darknessLayer.clear();
     this.darknessLayer.fillStyle(0x02050a, darknessAlpha);
     this.darknessLayer.fillRect(0, 0, this.viewportWidth, this.viewportHeight);
 
     this.lightLayer.clear();
-    this.lightLayer.fillStyle(gameTheme.colors.accentCool, 0.04 + depthRatio * 0.015);
+    this.lightLayer.fillStyle(gameTheme.colors.accentCool, 0.04 + depthRatio * 0.01);
     this.lightLayer.fillCircle(lampX, lampY, glowRadius);
-    this.lightLayer.fillStyle(0xfff2cb, 0.1);
-    this.lightLayer.fillCircle(lampX, lampY, outerRadius);
-
+    this.lightLayer.fillStyle(0xfff5d6, 0.1);
+    this.lightLayer.fillCircle(lampX, lampY, coreRadius);
     this.lightLayer.fillStyle(gameTheme.colors.warning, 0.04 + depthRatio * 0.01);
-    this.lightLayer.fillTriangle(
-      lampX + this.player.facing * 8,
-      lampY - 2,
-      lampX + this.player.facing * coneLength,
-      lampY - coneSpread,
-      lampX + this.player.facing * coneLength,
-      lampY + coneSpread,
+    this.lightLayer.fillEllipse(
+      lampX + this.player.facing * beamOffset,
+      lampY + 1,
+      beamWidth,
+      beamHeight,
+    );
+    this.lightLayer.fillStyle(0xffefba, 0.025 + depthRatio * 0.008);
+    this.lightLayer.fillEllipse(
+      lampX + this.player.facing * farBeamOffset,
+      lampY + 2,
+      farBeamWidth,
+      farBeamHeight,
     );
 
     if (this.miningTarget) {
       const miningX = this.miningTarget.x * TILE_SIZE + TILE_SIZE / 2 - viewport.x;
       const miningY = this.miningTarget.y * TILE_SIZE + TILE_SIZE / 2 - viewport.y;
-      const pulse = 0.04 + Math.sin(this.time.now / 100) * 0.02;
+      const pulse = 0.035 + Math.sin(this.time.now / 100) * 0.015;
 
       this.lightLayer.fillStyle(gameTheme.colors.accent, pulse);
-      this.lightLayer.fillCircle(miningX, miningY, 14);
+      this.lightLayer.fillCircle(miningX, miningY, 12);
     }
+  }
+
+  private handleResize(gameSize: Phaser.Structs.Size) {
+    if (!gameSize.width || !gameSize.height) {
+      return;
+    }
+
+    this.screenFlash?.setPosition(gameSize.width / 2, gameSize.height / 2);
+    this.screenFlash?.setSize(gameSize.width, gameSize.height);
+
+    this.destroySurfaceReturnUi();
+    this.createSurfaceReturnUi();
+    this.createHud();
+    this.createGoalsPanel();
+
+    if (this.player) {
+      const gameplayZoom = this.getGameplayZoom();
+
+      this.cameras.main.setZoom(gameplayZoom);
+      this.cameras.main.setDeadzone(
+        Math.min(gameSize.width * 0.18, 320),
+        Math.min(gameSize.height * 0.16, 150),
+      );
+      this.cameras.main.centerOn(this.player.sprite.x, this.player.sprite.y);
+    }
+
+    this.drawWorldGrid(true);
+    this.updateSurfaceUi();
+    this.updateLighting(1);
   }
 
   private updateSurfaceUi() {

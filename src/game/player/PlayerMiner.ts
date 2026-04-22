@@ -42,7 +42,7 @@ export class PlayerMiner {
     this.targetX = this.toWorldX(startPosition.x);
     this.targetY = this.toWorldY(startPosition.y);
 
-    this.aura = scene.add.ellipse(0, 1, 34, 28, gameTheme.colors.accentCool, 0.16);
+    this.aura = scene.add.ellipse(0, 1, 24, 18, gameTheme.colors.accentCool, 0.08);
     this.dustShadow = scene.add.ellipse(0, 16, 22, 8, 0x03070d, 0.45);
 
     this.backpack = scene.add.rectangle(-7, 2, 9, 14, 0x4c3725, 1);
@@ -135,10 +135,10 @@ export class PlayerMiner {
     this.dustShadow.scaleX = 1 + locomotion * 0.14;
     this.dustShadow.scaleY = 1 - locomotion * 0.08;
     this.dustShadow.alpha = 0.36 + locomotion * 0.12;
-    this.aura.y = -2 + Math.sin(this.animationTime * 3.2) * 1.2;
-    this.aura.alpha = 0.1 + Math.sin(this.animationTime * 2.8) * 0.03;
-    this.aura.scaleX = 1.06 + Math.sin(this.animationTime * 2.1) * 0.06;
-    this.aura.scaleY = 1.04 + Math.cos(this.animationTime * 2.1) * 0.04;
+    this.aura.y = -1 + Math.sin(this.animationTime * 3) * 0.8;
+    this.aura.alpha = 0.05 + Math.sin(this.animationTime * 2.6) * 0.015;
+    this.aura.scaleX = 1.02 + Math.sin(this.animationTime * 2) * 0.03;
+    this.aura.scaleY = 1.01 + Math.cos(this.animationTime * 2) * 0.02;
 
     this.leftLeg.rotation = Phaser.Math.DegToRad(walkSwing * 1.2);
     this.rightLeg.rotation = Phaser.Math.DegToRad(-walkSwing * 1.2);
