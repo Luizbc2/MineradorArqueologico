@@ -112,8 +112,12 @@ export function generateWorld(seed = 0x0badc0de): WorldGrid {
     }
   }
 
-  for (let y = 0; y < SURFACE_ROW; y += 1) {
-    for (let x = PLAYER_SPAWN_TILE.x - 3; x <= PLAYER_SPAWN_TILE.x + 2; x += 1) {
+  const chamberTop = Math.max(1, PLAYER_SPAWN_TILE.y - 1);
+
+  for (let y = chamberTop; y < SURFACE_ROW; y += 1) {
+    const widthOffset = y <= PLAYER_SPAWN_TILE.y ? 2 : 3;
+
+    for (let x = PLAYER_SPAWN_TILE.x - widthOffset; x <= PLAYER_SPAWN_TILE.x + widthOffset; x += 1) {
       grid[y][x] = { kind: "empty" };
     }
   }

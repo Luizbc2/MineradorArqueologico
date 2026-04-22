@@ -145,6 +145,9 @@ export class MineScene extends Phaser.Scene {
     this.drawDepthGuides();
     this.createPlayer();
     this.createScreenFlash();
+    this.createSurfaceReturnUi();
+    this.createHud();
+    this.createGoalsPanel();
     this.createArchaeologyOverlay();
     this.createUpgradeOverlay();
     this.createAudioDirector();
@@ -315,10 +318,13 @@ export class MineScene extends Phaser.Scene {
   }
 
   private prepareSurfaceSafeZone() {
-    const startX = SURFACE_RETURN_TILE.x - 4;
-    const endX = SURFACE_RETURN_TILE.x + 4;
+    const chamberTop = Math.max(1, PLAYER_SPAWN_TILE.y - 1);
 
-    for (let y = 0; y <= SURFACE_ROW - 1; y += 1) {
+    for (let y = chamberTop; y <= SURFACE_ROW - 1; y += 1) {
+      const widthOffset = y <= PLAYER_SPAWN_TILE.y ? 2 : 4;
+      const startX = SURFACE_RETURN_TILE.x - widthOffset;
+      const endX = SURFACE_RETURN_TILE.x + widthOffset;
+
       for (let x = startX; x <= endX; x += 1) {
         if (this.worldGrid[y]?.[x]) {
           this.worldGrid[y][x] = { kind: "empty" };
@@ -326,7 +332,7 @@ export class MineScene extends Phaser.Scene {
       }
     }
 
-    for (let x = startX; x <= endX; x += 1) {
+    for (let x = SURFACE_RETURN_TILE.x - 4; x <= SURFACE_RETURN_TILE.x + 4; x += 1) {
       if (this.worldGrid[SURFACE_ROW]?.[x]) {
         this.worldGrid[SURFACE_ROW][x] = { kind: "stone" };
       }
@@ -1197,12 +1203,15 @@ export class MineScene extends Phaser.Scene {
   }
 
   private handleResize(gameSize: Phaser.Structs.Size) {
-    if (!gameSize.width || !gameSize.height) {
+    const width = gameSize.width || this.viewportWidth;
+    const height = gameSize.height || this.viewportHeight;
+
+    if (!width || !height) {
       return;
     }
 
-    this.screenFlash?.setPosition(gameSize.width / 2, gameSize.height / 2);
-    this.screenFlash?.setSize(gameSize.width, gameSize.height);
+    this.screenFlash?.setPosition(width / 2, height / 2);
+    this.screenFlash?.setSize(width, height);
 
     this.destroySurfaceReturnUi();
     this.createSurfaceReturnUi();
@@ -1214,8 +1223,8 @@ export class MineScene extends Phaser.Scene {
 
       this.cameras.main.setZoom(gameplayZoom);
       this.cameras.main.setDeadzone(
-        Math.min(gameSize.width * 0.18, 320),
-        Math.min(gameSize.height * 0.16, 150),
+        Math.min(width * 0.18, 320),
+        Math.min(height * 0.16, 150),
       );
       this.cameras.main.centerOn(this.player.sprite.x, this.player.sprite.y);
     }
