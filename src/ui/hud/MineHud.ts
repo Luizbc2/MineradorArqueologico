@@ -21,7 +21,7 @@ type ResourceChip = {
 };
 
 export class MineHud {
-  private readonly root: Phaser.GameObjects.Container;
+  private readonly container: Phaser.GameObjects.Container;
   private readonly depthText: Phaser.GameObjects.Text;
   private readonly energyText: Phaser.GameObjects.Text;
   private readonly energyFill: Phaser.GameObjects.Rectangle;
@@ -31,9 +31,9 @@ export class MineHud {
   private readonly comboText: Phaser.GameObjects.Text;
   private readonly comboFill: Phaser.GameObjects.Rectangle;
   private readonly resourceChips: Record<keyof ResourceInventory, ResourceChip>;
-  private readonly energyBarX: number;
-  private readonly comboBarX: number;
 
+  private readonly energyBarX = 108;
+  private readonly comboBarX = 272;
   private lastInfoKey = "";
   private lastEnergyWidth = -1;
   private lastEnergyColor = -1;
@@ -42,51 +42,49 @@ export class MineHud {
 
   constructor(scene: Phaser.Scene) {
     const viewportWidth = scene.scale.width;
+    const mainX = 18;
+    const mainY = 18;
+    const mainWidth = 336;
+    const mainHeight = 62;
+    const resourceWidth = 176;
+    const resourceX = viewportWidth - resourceWidth - 18;
+    const resourceY = 18;
 
-    const leftPanelX = 12;
-    const leftPanelY = 12;
-    const leftPanelWidth = 348;
-    const leftPanelHeight = 80;
-
-    const resourcePanelWidth = 176;
-    const resourcePanelX = viewportWidth - resourcePanelWidth - 12;
-    const resourcePanelY = 12;
-
-    const leftChrome = createPanelChrome(scene, {
-      x: leftPanelX,
-      y: leftPanelY,
-      width: leftPanelWidth,
-      height: leftPanelHeight,
+    const mainChrome = createPanelChrome(scene, {
+      x: mainX,
+      y: mainY,
+      width: mainWidth,
+      height: mainHeight,
       accentColor: gameTheme.colors.accentCool,
       alpha: 0.95,
     });
 
     const resourceChrome = createPanelChrome(scene, {
-      x: resourcePanelX,
-      y: resourcePanelY,
-      width: resourcePanelWidth,
-      height: 44,
+      x: resourceX,
+      y: resourceY,
+      width: resourceWidth,
+      height: 40,
       accentColor: gameTheme.colors.accent,
       alpha: 0.95,
     });
 
     const title = scene.add.text(
-      leftPanelX + 14,
-      leftPanelY + 10,
+      mainX + 14,
+      mainY + 8,
       "MINERADOR",
       makeGameTextStyle({
         family: "display",
         color: "#f7f3e6",
-        fontSize: "18px",
+        fontSize: "16px",
         fontStyle: "800",
         strokeThickness: 3,
       }),
     );
 
     const depthLabel = scene.add.text(
-      leftPanelX + 14,
-      leftPanelY + 34,
-      "PROFUNDIDADE",
+      mainX + 14,
+      mainY + 28,
+      "PROF.",
       makeGameTextStyle({
         color: gameTheme.colors.textSoft,
         fontSize: "10px",
@@ -96,21 +94,21 @@ export class MineHud {
     );
 
     this.depthText = scene.add.text(
-      leftPanelX + 14,
-      leftPanelY + 49,
+      mainX + 14,
+      mainY + 42,
       "0m",
       makeGameTextStyle({
         family: "display",
         color: "#ffffff",
-        fontSize: "30px",
+        fontSize: "26px",
         fontStyle: "800",
         strokeThickness: 4,
       }),
     );
 
     this.energyText = scene.add.text(
-      leftPanelX + 122,
-      leftPanelY + 14,
+      mainX + this.energyBarX,
+      mainY + 10,
       "ENERGIA 100%",
       makeGameTextStyle({
         color: gameTheme.colors.textSoft,
@@ -120,11 +118,10 @@ export class MineHud {
       }),
     );
 
-    this.energyBarX = leftPanelX + 122;
     const energyTrack = scene.add.rectangle(
-      this.energyBarX,
-      leftPanelY + 41,
-      206,
+      mainX + this.energyBarX,
+      mainY + 32,
+      210,
       12,
       gameTheme.colors.panelDeep,
       1,
@@ -133,9 +130,9 @@ export class MineHud {
     energyTrack.setStrokeStyle(1, gameTheme.colors.borderSoft, 0.9);
 
     this.energyFill = scene.add.rectangle(
-      this.energyBarX,
-      leftPanelY + 41,
-      206,
+      mainX + this.energyBarX,
+      mainY + 32,
+      210,
       8,
       gameTheme.colors.success,
       1,
@@ -143,8 +140,8 @@ export class MineHud {
     this.energyFill.setOrigin(0, 0.5);
 
     this.energyGlow = scene.add.rectangle(
-      this.energyBarX + 164,
-      leftPanelY + 41,
+      mainX + this.energyBarX + 166,
+      mainY + 32,
       18,
       8,
       0xffffff,
@@ -152,13 +149,13 @@ export class MineHud {
     );
     this.energyGlow.setOrigin(0, 0.5);
 
-    const pickaxePill = this.createPill(scene, { x: leftPanelX + 122, y: leftPanelY + 56, width: 68 });
-    const cardsPill = this.createPill(scene, { x: leftPanelX + 198, y: leftPanelY + 56, width: 82 });
-    const comboPill = this.createPill(scene, { x: leftPanelX + 288, y: leftPanelY + 56, width: 56 });
+    const pickaxePill = this.createPill(scene, { x: mainX + 108, y: mainY + 44, width: 62 });
+    const cardsPill = this.createPill(scene, { x: mainX + 178, y: mainY + 44, width: 74 });
+    const comboPill = this.createPill(scene, { x: mainX + 260, y: mainY + 44, width: 76 });
 
     this.pickaxeText = scene.add.text(
-      leftPanelX + 156,
-      leftPanelY + 67,
+      mainX + 139,
+      mainY + 55,
       "Lv1",
       makeGameTextStyle({
         family: "display",
@@ -171,8 +168,8 @@ export class MineHud {
     this.pickaxeText.setOrigin(0.5, 0.5);
 
     this.cardsText = scene.add.text(
-      leftPanelX + 239,
-      leftPanelY + 67,
+      mainX + 215,
+      mainY + 55,
       "0/0",
       makeGameTextStyle({
         family: "display",
@@ -185,8 +182,8 @@ export class MineHud {
     this.cardsText.setOrigin(0.5, 0.5);
 
     this.comboText = scene.add.text(
-      leftPanelX + 316,
-      leftPanelY + 67,
+      mainX + 298,
+      mainY + 55,
       "x0",
       makeGameTextStyle({
         family: "display",
@@ -198,11 +195,10 @@ export class MineHud {
     );
     this.comboText.setOrigin(0.5, 0.5);
 
-    this.comboBarX = leftPanelX + 288;
     const comboTrack = scene.add.rectangle(
-      this.comboBarX,
-      leftPanelY + 79,
-      56,
+      mainX + this.comboBarX,
+      mainY + 64,
+      52,
       4,
       gameTheme.colors.panelDeep,
       1,
@@ -210,9 +206,9 @@ export class MineHud {
     comboTrack.setOrigin(0, 0.5);
 
     this.comboFill = scene.add.rectangle(
-      this.comboBarX,
-      leftPanelY + 79,
-      56,
+      mainX + this.comboBarX,
+      mainY + 64,
+      52,
       2,
       gameTheme.colors.accent,
       1,
@@ -220,8 +216,8 @@ export class MineHud {
     this.comboFill.setOrigin(0, 0.5);
 
     const resourceTitle = scene.add.text(
-      resourcePanelX + 14,
-      resourcePanelY + 10,
+      resourceX + 14,
+      resourceY + 9,
       "COLETA",
       makeGameTextStyle({
         family: "display",
@@ -233,34 +229,14 @@ export class MineHud {
     );
 
     this.resourceChips = {
-      coal: this.createResourceChip(scene, {
-        x: resourcePanelX + 14,
-        y: resourcePanelY + 24,
-        label: "C",
-        color: gameTheme.colors.coal,
-      }),
-      iron: this.createResourceChip(scene, {
-        x: resourcePanelX + 54,
-        y: resourcePanelY + 24,
-        label: "F",
-        color: gameTheme.colors.iron,
-      }),
-      gold: this.createResourceChip(scene, {
-        x: resourcePanelX + 94,
-        y: resourcePanelY + 24,
-        label: "O",
-        color: gameTheme.colors.gold,
-      }),
-      diamond: this.createResourceChip(scene, {
-        x: resourcePanelX + 134,
-        y: resourcePanelY + 24,
-        label: "D",
-        color: gameTheme.colors.diamond,
-      }),
+      coal: this.createResourceChip(scene, { x: resourceX + 14, y: resourceY + 22, label: "C", color: gameTheme.colors.coal }),
+      iron: this.createResourceChip(scene, { x: resourceX + 54, y: resourceY + 22, label: "F", color: gameTheme.colors.iron }),
+      gold: this.createResourceChip(scene, { x: resourceX + 94, y: resourceY + 22, label: "O", color: gameTheme.colors.gold }),
+      diamond: this.createResourceChip(scene, { x: resourceX + 134, y: resourceY + 22, label: "D", color: gameTheme.colors.diamond }),
     };
 
-    this.root = scene.add.container(0, 0, [
-      ...leftChrome,
+    this.container = scene.add.container(0, 0, [
+      ...mainChrome,
       ...resourceChrome,
       title,
       depthLabel,
@@ -284,8 +260,8 @@ export class MineHud {
       ...this.resourceChips.diamond.nodes,
     ]);
 
-    this.root.setScrollFactor(0);
-    this.root.setDepth(1020);
+    this.container.setScrollFactor(0);
+    this.container.setDepth(1020);
   }
 
   update(snapshot: HudSnapshot) {
@@ -311,7 +287,6 @@ export class MineHud {
       this.cardsText.setText(`${snapshot.cardsFound}/${snapshot.cardsTotal}`);
       this.comboText.setText(snapshot.comboCount > 0 ? `x${snapshot.comboCount}` : "x0");
       this.comboText.setColor(snapshot.comboCount > 0 ? snapshot.comboColor : gameTheme.colors.textSoft);
-
       this.resourceChips.coal.valueText.setText(`C${snapshot.inventory.coal}`);
       this.resourceChips.iron.valueText.setText(`F${snapshot.inventory.iron}`);
       this.resourceChips.gold.valueText.setText(`O${snapshot.inventory.gold}`);
@@ -319,7 +294,7 @@ export class MineHud {
     }
 
     const normalizedEnergy = Phaser.Math.Clamp(snapshot.energy / 100, 0, 1);
-    const energyWidth = Math.max(12, Math.round(206 * normalizedEnergy));
+    const energyWidth = Math.max(12, Math.round(210 * normalizedEnergy));
     const energyColor =
       normalizedEnergy > 0.6
         ? gameTheme.colors.success
@@ -330,7 +305,7 @@ export class MineHud {
     if (energyWidth !== this.lastEnergyWidth) {
       this.lastEnergyWidth = energyWidth;
       this.energyFill.width = energyWidth;
-      this.energyGlow.x = this.energyBarX + Math.max(6, energyWidth - 18);
+      this.energyGlow.x = 18 + this.energyBarX + Math.max(6, energyWidth - 18);
       this.energyGlow.visible = energyWidth > 18;
     }
 
@@ -339,7 +314,7 @@ export class MineHud {
       this.energyFill.fillColor = energyColor;
     }
 
-    const comboWidth = Math.max(8, Math.round(56 * Phaser.Math.Clamp(snapshot.comboWindowRatio, 0, 1)));
+    const comboWidth = Math.max(8, Math.round(52 * Phaser.Math.Clamp(snapshot.comboWindowRatio, 0, 1)));
 
     if (comboWidth !== this.lastComboWidth) {
       this.lastComboWidth = comboWidth;

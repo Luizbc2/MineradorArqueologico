@@ -145,11 +145,11 @@ export class MineScene extends Phaser.Scene {
     this.progressionSnapshot = this.expeditionProgression.getSnapshot();
 
     if (this.player) {
-      const fillWidthZoom = Math.max(1.14, this.viewportWidth / WORLD_WIDTH_PX);
+      const fillWidthZoom = Math.max(1.32, this.viewportWidth / WORLD_WIDTH_PX);
 
       this.cameras.main.setZoom(fillWidthZoom);
       this.cameras.main.startFollow(this.player.sprite, true, 0.14, 0.18);
-      this.cameras.main.setDeadzone(this.viewportWidth * 0.16, this.viewportHeight * 0.16);
+      this.cameras.main.setDeadzone(this.viewportWidth * 0.12, this.viewportHeight * 0.12);
       this.cameras.main.centerOn(this.player.sprite.x, this.player.sprite.y);
     }
 
@@ -1125,27 +1125,27 @@ export class MineScene extends Phaser.Scene {
     const playerY = this.player.sprite.y - viewport.y;
     const depthRatio = Phaser.Math.Clamp(this.player.position.y / WORLD_HEIGHT_TILES, 0, 1);
     const darknessAlpha = 0.12 + depthRatio * 0.4;
-    const lampX = playerX + this.player.facing * 8;
-    const lampY = playerY - 12;
-    const outerRadius = 64 - depthRatio * 4;
-    const glowRadius = outerRadius + 22;
-    const coneLength = 114 - depthRatio * 10;
-    const coneSpread = 30 - depthRatio * 4;
+    const lampX = playerX + this.player.facing * 6;
+    const lampY = playerY - 6;
+    const outerRadius = 44 - depthRatio * 2;
+    const glowRadius = outerRadius + 16;
+    const coneLength = 72 - depthRatio * 8;
+    const coneSpread = 18 - depthRatio * 2;
 
     this.darknessLayer.clear();
     this.darknessLayer.fillStyle(0x02050a, darknessAlpha);
     this.darknessLayer.fillRect(0, 0, this.viewportWidth, this.viewportHeight);
 
     this.lightLayer.clear();
-    this.lightLayer.fillStyle(gameTheme.colors.accentCool, 0.06 + depthRatio * 0.02);
+    this.lightLayer.fillStyle(gameTheme.colors.accentCool, 0.04 + depthRatio * 0.015);
     this.lightLayer.fillCircle(lampX, lampY, glowRadius);
-    this.lightLayer.fillStyle(0xfff2cb, 0.08);
+    this.lightLayer.fillStyle(0xfff2cb, 0.1);
     this.lightLayer.fillCircle(lampX, lampY, outerRadius);
 
-    this.lightLayer.fillStyle(gameTheme.colors.warning, 0.05 + depthRatio * 0.015);
+    this.lightLayer.fillStyle(gameTheme.colors.warning, 0.04 + depthRatio * 0.01);
     this.lightLayer.fillTriangle(
-      lampX + this.player.facing * 10,
-      lampY - 4,
+      lampX + this.player.facing * 8,
+      lampY - 2,
       lampX + this.player.facing * coneLength,
       lampY - coneSpread,
       lampX + this.player.facing * coneLength,
