@@ -1752,7 +1752,6 @@ export class MineScene extends Phaser.Scene {
 
     const position = this.getFixedUiPosition(layout.x, layout.y);
     element.setPosition(position.x, position.y);
-    element.setScale(this.getFixedUiScale(layout.scaleX), this.getFixedUiScale(layout.scaleY));
   }
 
   private getFixedUiPosition(screenX: number, screenY: number) {
@@ -1768,7 +1767,6 @@ export class MineScene extends Phaser.Scene {
   }
 
   private getFixedUiScale(scale: number) {
-    const zoom = this.cameras.main.zoom || 1;
-    return scale / zoom;
+    return scale;
   }
 }
