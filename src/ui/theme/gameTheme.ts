@@ -3,7 +3,7 @@ import Phaser from "phaser";
 export const gameTheme = {
   fonts: {
     display: '"Oxanium", "Segoe UI", sans-serif',
-    body: '"Rajdhani", "Segoe UI", sans-serif',
+    body: '"Oxanium", "Segoe UI", sans-serif',
   },
   colors: {
     bgTop: 0x060a12,
@@ -129,6 +129,6 @@ export function makeGameTextStyle(options: GameTextStyleOptions = {}): Phaser.Ty
       : undefined,
     stroke: "#08111b",
     strokeThickness: options.strokeThickness ?? 3,
-    resolution: 2,
+    resolution: 3,
   };
 }
