@@ -38,7 +38,7 @@ export class ExpeditionGoalsPanel {
     const viewportHeight = scene.scale.height || scene.cameras.main.height || 176;
     const compactLayout = viewportWidth < 1040;
     const width = compactLayout ? Math.max(348, viewportWidth - 24) : 456;
-    const height = compactLayout ? 216 : 206;
+    const height = compactLayout ? 228 : 218;
     const x = compactLayout ? 12 : viewportWidth - width - 16;
     const y = viewportHeight - height - 16;
     const padding = 16;
@@ -190,7 +190,7 @@ export class ExpeditionGoalsPanel {
 
     const perkLabel = scene.add.text(
       x + padding,
-      y + 176,
+      y + 182,
       "Bonus ativo",
       makeGameTextStyle({
         color: gameTheme.colors.textSoft,
@@ -202,7 +202,7 @@ export class ExpeditionGoalsPanel {
 
     this.perkText = scene.add.text(
       x + padding + 72,
-      y + 176,
+      y + 182,
       "Sem bonus liberados",
       makeGameTextStyle({
         color: "#9bdccf",
@@ -215,7 +215,7 @@ export class ExpeditionGoalsPanel {
 
     this.nextGoalText = scene.add.text(
       x + padding,
-      y + 192,
+      y + 202,
       "Depois: continue a escavacao",
       makeGameTextStyle({
         color: gameTheme.colors.textMuted,

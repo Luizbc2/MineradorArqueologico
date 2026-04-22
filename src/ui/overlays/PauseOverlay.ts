@@ -21,7 +21,7 @@ export class PauseOverlay {
     const viewportWidth = scene.scale.width;
     const viewportHeight = scene.scale.height;
     const panelWidth = 620;
-    const panelHeight = 404;
+    const panelHeight = 484;
     const panelX = (viewportWidth - panelWidth) / 2;
     const panelY = (viewportHeight - panelHeight) / 2 - 12;
     const centerX = viewportWidth / 2;
@@ -67,7 +67,7 @@ export class PauseOverlay {
     );
     subtitle.setOrigin(0.5, 0);
 
-    const controlsPanel = scene.add.rectangle(panelX + 28, panelY + 126, panelWidth - 56, 142, gameTheme.colors.panelDeep, 0.96);
+    const controlsPanel = scene.add.rectangle(panelX + 28, panelY + 126, panelWidth - 56, 192, gameTheme.colors.panelDeep, 0.96);
     controlsPanel.setOrigin(0);
     controlsPanel.setStrokeStyle(1, gameTheme.colors.borderSoft, 0.82);
 
@@ -86,7 +86,7 @@ export class PauseOverlay {
 
     const controlsBody = scene.add.text(
       panelX + 46,
-      panelY + 172,
+      panelY + 174,
       "ESC  pausa ou retoma a expedicao\nE  interage com bau ou registro\nU  abre a forja na superficie\nR  retorna para a base segura",
       makeGameTextStyle({
         color: gameTheme.colors.text,
@@ -96,15 +96,15 @@ export class PauseOverlay {
         wordWrapWidth: panelWidth - 108,
       }),
     );
-    controlsBody.setLineSpacing(14);
+    controlsBody.setLineSpacing(18);
 
-    const roadmapPanel = scene.add.rectangle(panelX + 28, panelY + 282, panelWidth - 56, 58, gameTheme.colors.panelDeep, 0.9);
+    const roadmapPanel = scene.add.rectangle(panelX + 28, panelY + 336, panelWidth - 56, 58, gameTheme.colors.panelDeep, 0.9);
     roadmapPanel.setOrigin(0);
     roadmapPanel.setStrokeStyle(1, gameTheme.colors.borderSoft, 0.72);
 
     const roadmapLabel = scene.add.text(
       centerX,
-      panelY + 299,
+      panelY + 353,
       "Configuracoes e opcoes avancadas chegam no proximo passo.",
       makeGameTextStyle({
         color: gameTheme.colors.textSoft,
@@ -135,7 +135,7 @@ export class PauseOverlay {
     );
     resumeButtonLabel.setOrigin(0.5, 0);
 
-    this.resumeButton = scene.add.container(centerX - 100, panelY + 360, [
+    this.resumeButton = scene.add.container(centerX - 100, panelY + 426, [
       this.resumeButtonGlow,
       this.resumeButtonBody,
       resumeButtonLabel,
@@ -163,7 +163,7 @@ export class PauseOverlay {
     );
     menuButtonLabel.setOrigin(0.5, 0);
 
-    this.menuButton = scene.add.container(centerX + 112, panelY + 360, [
+    this.menuButton = scene.add.container(centerX + 112, panelY + 426, [
       this.menuButtonBody,
       menuButtonLabel,
     ]);
@@ -171,7 +171,7 @@ export class PauseOverlay {
 
     const hint = scene.add.text(
       centerX,
-      panelY + 392,
+      panelY + 462,
       "Pressione ESC para voltar para a expedicao",
       makeGameTextStyle({
         color: gameTheme.colors.textSoft,

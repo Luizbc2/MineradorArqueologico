@@ -67,7 +67,7 @@ export class MineHud {
       : compactLayout
         ? Math.min(viewportWidth - 32, 660)
         : 700;
-    const mainHeight = narrowLayout ? 206 : 194;
+    const mainHeight = narrowLayout ? 252 : 236;
     const resourcesWidth = compactLayout ? mainWidth : 392;
     const resourcesHeight = narrowLayout ? 176 : 170;
     const resourcesX = compactLayout ? leftX : viewportWidth - resourcesWidth - 16;
@@ -76,9 +76,9 @@ export class MineHud {
     const summaryTopY = topY + panelPadding + 28;
     const energySectionX = leftX + depthCardWidth + 22;
     const energySectionWidth = mainWidth - depthCardWidth - 46;
-    const dividerY = topY + (narrowLayout ? 112 : 108);
-    const statCardsY = dividerY + 16;
-    const statCardHeight = narrowLayout ? 56 : 52;
+    const dividerY = topY + (narrowLayout ? 156 : 148);
+    const statCardsY = dividerY + 14;
+    const statCardHeight = narrowLayout ? 64 : 60;
     const statCardWidth = Math.floor((mainWidth - panelPadding * 2 - gap * 2) / 3);
     const chipGap = 12;
     const chipWidth = Math.floor((resourcesWidth - panelPadding * 2 - chipGap) / 2);
@@ -139,7 +139,7 @@ export class MineHud {
       leftX + panelPadding,
       summaryTopY - 2,
       depthCardWidth - 6,
-      70,
+      76,
       gameTheme.colors.panelDeep,
       0.96,
     );
@@ -150,7 +150,7 @@ export class MineHud {
       leftX + panelPadding + 10,
       summaryTopY + 8,
       4,
-      48,
+      54,
       gameTheme.colors.accentCool,
       0.95,
     );
@@ -184,7 +184,7 @@ export class MineHud {
 
     this.depthStatusText = scene.add.text(
       leftX + panelPadding + 20,
-      summaryTopY + 56,
+      summaryTopY + 60,
       "Superficie segura",
       makeGameTextStyle({
         color: gameTheme.colors.textMuted,
@@ -265,7 +265,7 @@ export class MineHud {
 
     const energyHint = scene.add.text(
       energySectionX,
-      summaryTopY + 78,
+      summaryTopY + 88,
       "Escavacao, movimento e retorno seguro dependem dessa reserva.",
       makeGameTextStyle({
         color: gameTheme.colors.textMuted,
@@ -292,7 +292,7 @@ export class MineHud {
       height: statCardHeight,
       label: "PICARETA",
       accentColor: gameTheme.colors.warning,
-      detail: "Escavacao",
+      detail: "Ferramenta",
     });
     this.pickaxeText = pickaxeCard.valueText;
 
@@ -303,7 +303,7 @@ export class MineHud {
       height: statCardHeight,
       label: "CODEX",
       accentColor: gameTheme.colors.accentCool,
-      detail: "Registros",
+      detail: "Coleta atual",
     });
     this.cardsText = cardsCard.valueText;
 
@@ -314,14 +314,14 @@ export class MineHud {
       height: statCardHeight,
       label: "COMBO",
       accentColor: gameTheme.colors.accent,
-      detail: "Bonus",
+      detail: "Estado atual",
     });
     this.comboText = comboCard.valueText;
     this.comboDetailText = comboCard.detailText;
 
     const comboTrack = scene.add.rectangle(
       leftX + panelPadding + (statCardWidth + gap) * 2 + 12,
-      statCardsY + statCardHeight - 12,
+      statCardsY + statCardHeight - 11,
       this.comboBarWidth,
       8,
       gameTheme.colors.panelDeep,
@@ -332,7 +332,7 @@ export class MineHud {
 
     this.comboFill = scene.add.rectangle(
       leftX + panelPadding + (statCardWidth + gap) * 2 + 12,
-      statCardsY + statCardHeight - 12,
+      statCardsY + statCardHeight - 11,
       this.comboBarWidth,
       6,
       gameTheme.colors.accent,
@@ -477,7 +477,7 @@ export class MineHud {
       this.cardsText.setText(`${snapshot.cardsFound} / ${snapshot.cardsTotal}`);
       this.comboText.setText(snapshot.comboCount > 0 ? `x${snapshot.comboCount}` : "x0");
       this.comboText.setColor(snapshot.comboCount > 0 ? snapshot.comboColor : gameTheme.colors.textSoft);
-      this.comboDetailText.setText(snapshot.comboCount > 0 ? snapshot.comboLabel : "Sem bonus");
+      this.comboDetailText.setText(snapshot.comboCount > 0 ? "Bonus ativo" : "Sem bonus");
       this.resourceChips.coal.valueText.setText(`${snapshot.inventory.coal}`);
       this.resourceChips.iron.valueText.setText(`${snapshot.inventory.iron}`);
       this.resourceChips.gold.valueText.setText(`${snapshot.inventory.gold}`);
@@ -559,7 +559,7 @@ export class MineHud {
 
     const valueText = scene.add.text(
       options.x + 22,
-      options.y + 23,
+      options.y + 24,
       "--",
       makeGameTextStyle({
         family: "display",
@@ -572,11 +572,11 @@ export class MineHud {
 
     const detailText = scene.add.text(
       options.x + 22,
-      options.y + options.height - 18,
+      options.y + options.height - 20,
       options.detail,
       makeGameTextStyle({
         color: gameTheme.colors.textMuted,
-        fontSize: "13px",
+        fontSize: "12px",
         fontStyle: "700",
         strokeThickness: 1,
       }),
