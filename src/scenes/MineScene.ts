@@ -57,10 +57,24 @@ export class MineScene extends Phaser.Scene {
   private energy = 100;
   private pickaxeLevel = 1;
   private groundLayer?: Phaser.GameObjects.Graphics;
+  private groundDirty = true;
+  private lastGroundWindow?: {
+    startX: number;
+    endX: number;
+    startY: number;
+    endY: number;
+  };
   private atmosphereLayer?: Phaser.GameObjects.Graphics;
   private effectLayer?: Phaser.GameObjects.Graphics;
   private darknessLayer?: Phaser.GameObjects.Graphics;
   private lightLayer?: Phaser.GameObjects.Graphics;
+  private lightingTick = 0;
+  private lastLightingState?: {
+    tileX: number;
+    tileY: number;
+    facing: -1 | 1;
+    mining: boolean;
+  };
   private screenFlash?: Phaser.GameObjects.Rectangle;
   private surfacePadLayer?: Phaser.GameObjects.Graphics;
   private surfaceButton?: Phaser.GameObjects.Rectangle;
@@ -105,7 +119,7 @@ export class MineScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor("#06080f");
 
     this.drawBackdrop();
-    this.drawWorldGrid();
+    this.drawWorldGrid(true);
     this.drawAtmosphere();
     this.drawSurfaceSafeZone();
     this.drawDepthGuides();
@@ -139,6 +153,7 @@ export class MineScene extends Phaser.Scene {
     this.surfaceKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.R);
 
     this.hideLegacyViewport();
+    this.drawWorldGrid(true);
     this.game.events.emit("phaser:mine-ready");
   }
 
@@ -258,7 +273,8 @@ export class MineScene extends Phaser.Scene {
       atSurface: this.isAtSurface(),
       comboCount: this.rewardComboCount,
     });
-    this.updateLighting();
+    this.drawWorldGrid();
+    this.updateLighting(deltaSeconds);
     this.updateSurfaceUi();
     this.updateHud();
   }
@@ -303,16 +319,38 @@ export class MineScene extends Phaser.Scene {
     background.fillRect(0, 0, WORLD_WIDTH_PX, SURFACE_ROW * TILE_SIZE);
   }
 
-  private drawWorldGrid() {
+  private drawWorldGrid(force = false) {
     if (!this.groundLayer) {
       this.groundLayer = this.add.graphics();
     }
 
+    const view = this.cameras.main.worldView;
+    const nextWindow = {
+      startX: Math.max(0, Math.floor(view.x / TILE_SIZE) - 2),
+      endX: Math.min(this.worldGrid[0].length - 1, Math.ceil((view.x + view.width) / TILE_SIZE) + 2),
+      startY: Math.max(0, Math.floor(view.y / TILE_SIZE) - 2),
+      endY: Math.min(this.worldGrid.length - 1, Math.ceil((view.y + view.height) / TILE_SIZE) + 2),
+    };
+
+    if (
+      !force &&
+      !this.groundDirty &&
+      this.lastGroundWindow &&
+      this.lastGroundWindow.startX === nextWindow.startX &&
+      this.lastGroundWindow.endX === nextWindow.endX &&
+      this.lastGroundWindow.startY === nextWindow.startY &&
+      this.lastGroundWindow.endY === nextWindow.endY
+    ) {
+      return;
+    }
+
+    this.lastGroundWindow = nextWindow;
+    this.groundDirty = false;
     this.groundLayer.clear();
     const ground = this.groundLayer;
 
-    for (let y = 0; y < WORLD_HEIGHT_TILES; y += 1) {
-      for (let x = 0; x < this.worldGrid[y].length; x += 1) {
+    for (let y = nextWindow.startY; y <= nextWindow.endY; y += 1) {
+      for (let x = nextWindow.startX; x <= nextWindow.endX; x += 1) {
         const tileX = x * TILE_SIZE;
         const tileY = y * TILE_SIZE;
         const tile = this.worldGrid[y][x];
@@ -350,7 +388,7 @@ export class MineScene extends Phaser.Scene {
       }
     }
 
-    for (let index = 0; index < 16; index += 1) {
+    for (let index = 0; index < 8; index += 1) {
       const x = 48 + ((index * 41) % (WORLD_WIDTH_PX - 96));
       const y = SURFACE_ROW * TILE_SIZE + 80 + ((index * 137) % (WORLD_HEIGHT_PX - SURFACE_ROW * TILE_SIZE - 140));
       const mote = this.add.circle(x, y, 2 + (index % 3), gameTheme.colors.accentCool, 0.08 + (index % 4) * 0.02);
@@ -699,7 +737,8 @@ export class MineScene extends Phaser.Scene {
     if (this.miningTarget.progress >= this.miningTarget.required) {
       const brokenKind = this.worldGrid[target.y][target.x].kind;
       this.worldGrid[target.y][target.x] = { kind: "empty" };
-      this.drawWorldGrid();
+      this.groundDirty = true;
+      this.drawWorldGrid(true);
       this.spawnMiningImpact(target.x, target.y, brokenKind, true, 1);
       this.audioDirector?.playBlockBreak(brokenKind);
       this.collectTileDrop(brokenKind, target.x, target.y);
@@ -1091,10 +1130,31 @@ export class MineScene extends Phaser.Scene {
     });
   }
 
-  private updateLighting() {
+  private updateLighting(deltaSeconds: number) {
     if (!this.player || !this.darknessLayer || !this.lightLayer) {
       return;
     }
+
+    this.lightingTick += deltaSeconds;
+    const nextLightingState = {
+      tileX: this.player.position.x,
+      tileY: this.player.position.y,
+      facing: this.player.facing,
+      mining: Boolean(this.miningTarget),
+    };
+    const lightingStateChanged =
+      !this.lastLightingState ||
+      this.lastLightingState.tileX !== nextLightingState.tileX ||
+      this.lastLightingState.tileY !== nextLightingState.tileY ||
+      this.lastLightingState.facing !== nextLightingState.facing ||
+      this.lastLightingState.mining !== nextLightingState.mining;
+
+    if (!lightingStateChanged && this.lightingTick < 1 / 24) {
+      return;
+    }
+
+    this.lastLightingState = nextLightingState;
+    this.lightingTick = 0;
 
     const camera = this.cameras.main;
     const viewport = camera.worldView;
@@ -1481,7 +1541,8 @@ export class MineScene extends Phaser.Scene {
       }
 
       this.worldGrid[candidate.y][candidate.x] = { kind: "empty" };
-      this.drawWorldGrid();
+      this.groundDirty = true;
+      this.drawWorldGrid(true);
       this.spawnMiningImpact(candidate.x, candidate.y, "chest", true, 1);
       this.syncExpeditionProgress(this.expeditionProgression.applyChestOpened());
       this.audioDirector?.playChestOpen();
