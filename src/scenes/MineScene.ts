@@ -27,6 +27,8 @@ import {
   PLAYER_SPAWN_TILE,
   SURFACE_ROW,
   TILE_SIZE,
+  VIEWPORT_HEIGHT,
+  VIEWPORT_WIDTH,
   WORLD_HEIGHT_PX,
   WORLD_HEIGHT_TILES,
   WORLD_WIDTH_PX,
@@ -115,20 +117,27 @@ export class MineScene extends Phaser.Scene {
   }
 
   private get viewportWidth() {
-    return this.scale.width;
+    return Math.max(this.scale.width || 0, this.cameras.main.width || 0, VIEWPORT_WIDTH);
   }
 
   private get viewportHeight() {
-    return this.scale.height;
+    return Math.max(this.scale.height || 0, this.cameras.main.height || 0, VIEWPORT_HEIGHT);
   }
 
   private getGameplayZoom() {
-    const targetVisibleColumns = 23;
-    const targetVisibleRows = 14;
-    const horizontalZoom = this.viewportWidth / (targetVisibleColumns * TILE_SIZE);
-    const verticalZoom = this.viewportHeight / (targetVisibleRows * TILE_SIZE);
+    if (this.viewportWidth >= 1600) {
+      return 1.42;
+    }
 
-    return Phaser.Math.Clamp(Math.min(horizontalZoom, verticalZoom), 1.7, 2.55);
+    if (this.viewportWidth >= 1200) {
+      return 1.32;
+    }
+
+    if (this.viewportWidth >= 900) {
+      return 1.22;
+    }
+
+    return 1.12;
   }
 
   create() {
@@ -154,15 +163,8 @@ export class MineScene extends Phaser.Scene {
     this.progressionSnapshot = this.expeditionProgression.getSnapshot();
 
     if (this.player) {
-      const gameplayZoom = this.getGameplayZoom();
-
-      this.cameras.main.setZoom(gameplayZoom);
       this.cameras.main.startFollow(this.player.sprite, true, 0.14, 0.18);
-      this.cameras.main.setDeadzone(
-        Math.min(this.viewportWidth * 0.18, 320),
-        Math.min(this.viewportHeight * 0.16, 150),
-      );
-      this.cameras.main.centerOn(this.player.sprite.x, this.player.sprite.y);
+      this.applyCameraFraming();
     }
 
     this.cursors = this.input.keyboard?.createCursorKeys();
@@ -628,6 +630,23 @@ export class MineScene extends Phaser.Scene {
     this.surfaceButtonLabel = undefined;
     this.surfaceStatusText?.destroy();
     this.surfaceStatusText = undefined;
+  }
+
+  private applyCameraFraming() {
+    if (!this.player) {
+      return;
+    }
+
+    const camera = this.cameras.main;
+    const gameplayZoom = this.getGameplayZoom();
+
+    camera.setZoom(gameplayZoom);
+    camera.setDeadzone(
+      Math.min(this.viewportWidth * 0.12, 160),
+      Math.min(this.viewportHeight * 0.1, 96),
+    );
+    camera.setFollowOffset(0, -56);
+    camera.centerOn(this.player.sprite.x, this.player.sprite.y - 56);
   }
 
   private createAudioDirector() {
@@ -1219,14 +1238,7 @@ export class MineScene extends Phaser.Scene {
     this.createGoalsPanel();
 
     if (this.player) {
-      const gameplayZoom = this.getGameplayZoom();
-
-      this.cameras.main.setZoom(gameplayZoom);
-      this.cameras.main.setDeadzone(
-        Math.min(width * 0.18, 320),
-        Math.min(height * 0.16, 150),
-      );
-      this.cameras.main.centerOn(this.player.sprite.x, this.player.sprite.y);
+      this.applyCameraFraming();
     }
 
     this.drawWorldGrid(true);
