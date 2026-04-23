@@ -56,37 +56,39 @@ export class MineHud {
 
   constructor(scene: Phaser.Scene, options: MineHudOptions = {}) {
     const viewportWidth = scene.scale.width || scene.cameras.main.width || 980;
-    const compactLayout = viewportWidth < 1360;
-    const narrowLayout = viewportWidth < 980;
+    const compactLayout = viewportWidth < 1440;
+    const narrowLayout = viewportWidth < 1040;
     const leftX = 16;
     const topY = 16;
-    const panelPadding = narrowLayout ? 18 : 20;
-    const gap = 14;
+    const panelPadding = narrowLayout ? 18 : 22;
+    const gap = narrowLayout ? 12 : 14;
     const mainWidth = narrowLayout
-      ? Math.max(392, viewportWidth - 24)
+      ? Math.max(420, viewportWidth - 24)
       : compactLayout
-        ? Math.min(viewportWidth - 32, 660)
-        : 700;
-    const mainHeight = narrowLayout ? 252 : 236;
+        ? Math.min(viewportWidth - 32, 688)
+        : 724;
+    const mainHeight = narrowLayout ? 238 : 226;
     const resourcesWidth = compactLayout ? mainWidth : 392;
-    const resourcesHeight = narrowLayout ? 176 : 170;
+    const resourcesHeight = narrowLayout ? 164 : 156;
     const resourcesX = compactLayout ? leftX : viewportWidth - resourcesWidth - 16;
     const resourcesY = compactLayout ? topY + mainHeight + 12 : topY;
-    const depthCardWidth = narrowLayout ? 186 : 206;
-    const summaryTopY = topY + panelPadding + 28;
-    const energySectionX = leftX + depthCardWidth + 22;
-    const energySectionWidth = mainWidth - depthCardWidth - 46;
-    const dividerY = topY + (narrowLayout ? 156 : 148);
+    const headerY = topY + 14;
+    const depthCardWidth = narrowLayout ? 196 : 212;
+    const summaryTopY = topY + 54;
+    const focusCardHeight = 84;
+    const energySectionX = leftX + panelPadding + depthCardWidth + 16;
+    const energySectionWidth = mainWidth - panelPadding * 2 - depthCardWidth - 16;
+    const dividerY = summaryTopY + focusCardHeight + 16;
     const statCardsY = dividerY + 14;
-    const statCardHeight = narrowLayout ? 64 : 60;
+    const statCardHeight = 64;
     const statCardWidth = Math.floor((mainWidth - panelPadding * 2 - gap * 2) / 3);
     const chipGap = 12;
     const chipWidth = Math.floor((resourcesWidth - panelPadding * 2 - chipGap) / 2);
-    const chipHeight = 44;
+    const chipHeight = 40;
     const actionButtonWidth = narrowLayout ? 144 : 152;
     const actionButtonHeight = 40;
     const actionButtonX = leftX + mainWidth - actionButtonWidth - panelPadding;
-    const actionButtonY = topY + 16;
+    const actionButtonY = topY + 14;
 
     this.energyBarX = energySectionX;
     this.energyBarWidth = energySectionWidth;
@@ -112,12 +114,12 @@ export class MineHud {
 
     const header = scene.add.text(
       leftX + panelPadding,
-      topY + 14,
+      headerY,
       "PAINEL DE BORDO",
       makeGameTextStyle({
         family: "display",
         color: "#dcfff8",
-        fontSize: "16px",
+        fontSize: "18px",
         fontStyle: "800",
         strokeThickness: 1,
       }),
@@ -125,21 +127,21 @@ export class MineHud {
 
     const headerHint = scene.add.text(
       leftX + panelPadding,
-      topY + 32,
-      "Leitura rapida da expedicao",
+      headerY + 22,
+      "Resumo rapido da expedicao",
       makeGameTextStyle({
         color: gameTheme.colors.textSoft,
-        fontSize: "14px",
+        fontSize: "12px",
         fontStyle: "700",
-        strokeThickness: 1,
+        strokeThickness: 0,
       }),
     );
 
     const depthPlate = scene.add.rectangle(
       leftX + panelPadding,
-      summaryTopY - 2,
-      depthCardWidth - 6,
-      76,
+      summaryTopY,
+      depthCardWidth,
+      focusCardHeight,
       gameTheme.colors.panelDeep,
       0.96,
     );
@@ -148,9 +150,9 @@ export class MineHud {
 
     const depthAccent = scene.add.rectangle(
       leftX + panelPadding + 10,
-      summaryTopY + 8,
+      summaryTopY + 12,
       4,
-      54,
+      focusCardHeight - 24,
       gameTheme.colors.accentCool,
       0.95,
     );
@@ -158,25 +160,25 @@ export class MineHud {
 
     const depthLabel = scene.add.text(
       leftX + panelPadding + 20,
-      summaryTopY + 6,
+      summaryTopY + 10,
       "PROFUNDIDADE",
       makeGameTextStyle({
         family: "display",
         color: "#b8d8e6",
         fontSize: "12px",
         fontStyle: "800",
-        strokeThickness: 1,
+        strokeThickness: 0,
       }),
     );
 
     this.depthText = scene.add.text(
       leftX + panelPadding + 20,
-      summaryTopY + 20,
+      summaryTopY + 24,
       "0 m",
       makeGameTextStyle({
         family: "display",
         color: "#ffffff",
-        fontSize: narrowLayout ? "32px" : "36px",
+        fontSize: narrowLayout ? "34px" : "38px",
         fontStyle: "800",
         strokeThickness: 1,
       }),
@@ -188,55 +190,76 @@ export class MineHud {
       "Superficie segura",
       makeGameTextStyle({
         color: gameTheme.colors.textMuted,
-        fontSize: "14px",
+        fontSize: "13px",
         fontStyle: "700",
-        strokeThickness: 1,
+        strokeThickness: 0,
       }),
     );
 
-    const energyLabel = scene.add.text(
+    const energyPlate = scene.add.rectangle(
       energySectionX,
-      summaryTopY + 2,
+      summaryTopY,
+      energySectionWidth,
+      focusCardHeight,
+      gameTheme.colors.panelDeep,
+      0.96,
+    );
+    energyPlate.setOrigin(0);
+    energyPlate.setStrokeStyle(1, gameTheme.colors.borderSoft, 0.78);
+
+    const energyAccent = scene.add.rectangle(
+      energySectionX + 10,
+      summaryTopY + 12,
+      4,
+      focusCardHeight - 24,
+      gameTheme.colors.success,
+      0.95,
+    );
+    energyAccent.setOrigin(0);
+
+    const energyLabel = scene.add.text(
+      energySectionX + 20,
+      summaryTopY + 10,
       "ENERGIA",
       makeGameTextStyle({
         family: "display",
         color: "#d7fff2",
         fontSize: "12px",
         fontStyle: "800",
-        strokeThickness: 1,
+        strokeThickness: 0,
       }),
     );
 
     this.energyText = scene.add.text(
-      energySectionX,
-      summaryTopY + 16,
+      energySectionX + 20,
+      summaryTopY + 22,
       "100%",
       makeGameTextStyle({
         family: "display",
         color: "#effff8",
-        fontSize: narrowLayout ? "30px" : "34px",
+        fontSize: narrowLayout ? "32px" : "36px",
         fontStyle: "800",
         strokeThickness: 1,
       }),
     );
 
     this.energyStatusText = scene.add.text(
-      energySectionX + 118,
-      summaryTopY + 28,
+      energySectionX + 140,
+      summaryTopY + 34,
       "Reserva estavel",
       makeGameTextStyle({
         color: "#9ce7c5",
-        fontSize: "15px",
+        fontSize: "14px",
         fontStyle: "700",
-        strokeThickness: 1,
+        strokeThickness: 0,
       }),
     );
 
     const energyTrack = scene.add.rectangle(
       this.energyBarX,
-      summaryTopY + 60,
+      summaryTopY + 64,
       this.energyBarWidth,
-      18,
+      14,
       gameTheme.colors.panelDeep,
       1,
     );
@@ -245,9 +268,9 @@ export class MineHud {
 
     this.energyFill = scene.add.rectangle(
       this.energyBarX,
-      summaryTopY + 60,
+      summaryTopY + 64,
       this.energyBarWidth,
-      14,
+      10,
       gameTheme.colors.success,
       1,
     );
@@ -255,25 +278,13 @@ export class MineHud {
 
     this.energyGlow = scene.add.rectangle(
       this.energyBarX + this.energyBarWidth - 26,
-      summaryTopY + 60,
+      summaryTopY + 64,
       26,
-      14,
+      10,
       0xffffff,
-      0.14,
+      0.12,
     );
     this.energyGlow.setOrigin(0, 0.5);
-
-    const energyHint = scene.add.text(
-      energySectionX,
-      summaryTopY + 88,
-      "Escavacao, movimento e retorno seguro dependem dessa reserva.",
-      makeGameTextStyle({
-        color: gameTheme.colors.textMuted,
-        fontSize: "14px",
-        fontStyle: "700",
-        strokeThickness: 1,
-      }),
-    );
 
     const sectionDivider = scene.add.rectangle(
       leftX + panelPadding,
@@ -347,7 +358,7 @@ export class MineHud {
       makeGameTextStyle({
         family: "display",
         color: "#fff0ca",
-        fontSize: "16px",
+        fontSize: "18px",
         fontStyle: "800",
         strokeThickness: 1,
       }),
@@ -355,13 +366,13 @@ export class MineHud {
 
     const resourcesHint = scene.add.text(
       resourcesX + panelPadding,
-      resourcesY + 32,
-      "Inventario atual da expedicao",
+      resourcesY + 36,
+      "Recursos coletados nesta expedicao",
       makeGameTextStyle({
         color: gameTheme.colors.textSoft,
-        fontSize: "14px",
+        fontSize: "12px",
         fontStyle: "700",
-        strokeThickness: 1,
+        strokeThickness: 0,
       }),
     );
 
@@ -378,7 +389,7 @@ export class MineHud {
     this.resourceChips = {
       coal: this.createResourceChip(scene, {
         x: resourcesX + panelPadding,
-        y: resourcesY + 56,
+        y: resourcesY + 64,
         width: chipWidth,
         height: chipHeight,
         label: "Carvao",
@@ -386,7 +397,7 @@ export class MineHud {
       }),
       iron: this.createResourceChip(scene, {
         x: resourcesX + panelPadding + chipWidth + chipGap,
-        y: resourcesY + 56,
+        y: resourcesY + 64,
         width: chipWidth,
         height: chipHeight,
         label: "Ferro",
@@ -394,7 +405,7 @@ export class MineHud {
       }),
       gold: this.createResourceChip(scene, {
         x: resourcesX + panelPadding,
-        y: resourcesY + 56 + chipHeight + 10,
+        y: resourcesY + 64 + chipHeight + 10,
         width: chipWidth,
         height: chipHeight,
         label: "Ouro",
@@ -402,7 +413,7 @@ export class MineHud {
       }),
       diamond: this.createResourceChip(scene, {
         x: resourcesX + panelPadding + chipWidth + chipGap,
-        y: resourcesY + 56 + chipHeight + 10,
+        y: resourcesY + 64 + chipHeight + 10,
         width: chipWidth,
         height: chipHeight,
         label: "Diamante",
@@ -420,13 +431,14 @@ export class MineHud {
       depthLabel,
       this.depthText,
       this.depthStatusText,
+      energyPlate,
+      energyAccent,
       energyLabel,
       this.energyText,
       this.energyStatusText,
       energyTrack,
       this.energyFill,
       this.energyGlow,
-      energyHint,
       sectionDivider,
       ...pickaxeCard.nodes,
       ...cardsCard.nodes,
@@ -546,14 +558,14 @@ export class MineHud {
 
     const label = scene.add.text(
       options.x + 22,
-      options.y + 7,
+      options.y + 8,
       options.label,
       makeGameTextStyle({
         family: "display",
         color: gameTheme.colors.textSoft,
         fontSize: "12px",
         fontStyle: "800",
-        strokeThickness: 1,
+        strokeThickness: 0,
       }),
     );
 
@@ -564,7 +576,7 @@ export class MineHud {
       makeGameTextStyle({
         family: "display",
         color: gameTheme.colors.text,
-        fontSize: "22px",
+        fontSize: "24px",
         fontStyle: "800",
         strokeThickness: 1,
       }),
@@ -572,13 +584,13 @@ export class MineHud {
 
     const detailText = scene.add.text(
       options.x + 22,
-      options.y + options.height - 20,
+      options.y + options.height - 18,
       options.detail,
       makeGameTextStyle({
         color: gameTheme.colors.textMuted,
-        fontSize: "12px",
+        fontSize: "11px",
         fontStyle: "700",
-        strokeThickness: 1,
+        strokeThickness: 0,
       }),
     );
 
@@ -604,24 +616,24 @@ export class MineHud {
 
     const label = scene.add.text(
       options.x + 36,
-      options.y + 9,
+      options.y + 8,
       options.label,
       makeGameTextStyle({
         color: gameTheme.colors.textMuted,
-        fontSize: "14px",
+        fontSize: "13px",
         fontStyle: "700",
-        strokeThickness: 1,
+        strokeThickness: 0,
       }),
     );
 
     const valueText = scene.add.text(
       options.x + options.width - 10,
-      options.y + 8,
+      options.y + 6,
       "0",
       makeGameTextStyle({
         family: "display",
         color: gameTheme.colors.text,
-        fontSize: "20px",
+        fontSize: "22px",
         fontStyle: "800",
         strokeThickness: 1,
       }),
@@ -665,9 +677,9 @@ export class MineHud {
       makeGameTextStyle({
         family: "display",
         color: "#effcff",
-        fontSize: "15px",
+        fontSize: "16px",
         fontStyle: "800",
-        strokeThickness: 1,
+        strokeThickness: 0,
       }),
     );
 
@@ -679,7 +691,7 @@ export class MineHud {
         color: gameTheme.colors.textSoft,
         fontSize: "12px",
         fontStyle: "800",
-        strokeThickness: 1,
+        strokeThickness: 0,
       }),
     );
     hint.setOrigin(1, 0);

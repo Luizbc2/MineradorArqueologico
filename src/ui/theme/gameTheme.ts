@@ -128,7 +128,8 @@ export function makeGameTextStyle(options: GameTextStyleOptions = {}): Phaser.Ty
       ? { width: options.wordWrapWidth, useAdvancedWrap: true }
       : undefined,
     stroke: "#08111b",
-    strokeThickness: options.strokeThickness ?? 3,
-    resolution: 3,
+    strokeThickness: options.strokeThickness ?? 2,
+    padding: { top: 2, bottom: 2 },
+    resolution: 4,
   };
 }

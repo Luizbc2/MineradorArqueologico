@@ -16,7 +16,7 @@ export const phaserGameConfig: Phaser.Types.Core.GameConfig = {
   pixelArt: true,
   transparent: true,
   render: {
-    antialias: false,
+    antialias: true,
     pixelArt: true,
     roundPixels: true,
     powerPreference: "high-performance",
