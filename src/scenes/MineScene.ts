@@ -644,11 +644,14 @@ export class MineScene extends Phaser.Scene {
     layer.fillRect(x - 4, roofY + 3, width + 8, 3);
     layer.fillRect(x + 18, roofY - 8, width - 36, 5);
 
-    layer.fillStyle(0x26201a, 0.98);
+    layer.fillStyle(0x160f0a, 0.98);
+    layer.fillRect(doorX - 2, doorY - 2, doorWidth + 4, doorHeight + 2);
+    layer.fillStyle(0x5a3f2a, 0.98);
     layer.fillRect(doorX, doorY, doorWidth, doorHeight);
-    layer.fillStyle(palette.trim, 0.9);
-    layer.fillRect(doorX, doorY, doorWidth, 3);
-    layer.fillRect(doorX + doorWidth - 5, doorY + 8, 2, 14);
+    layer.fillStyle(0x76553b, 0.95);
+    layer.fillRect(doorX + 3, doorY + 4, doorWidth - 6, doorHeight - 8);
+    layer.fillStyle(0xd6c19a, 0.92);
+    layer.fillRect(doorX + doorWidth - 6, doorY + Math.round(doorHeight / 2), 2, 2);
 
     this.drawSurfaceWindow(layer, leftWindowX, windowY, windowWidth, windowHeight, palette.glow);
     this.drawSurfaceWindow(layer, rightWindowX, windowY, windowWidth, windowHeight, palette.glow);
