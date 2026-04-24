@@ -67,6 +67,7 @@ body { image-rendering: auto; }
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
+  min-height: 100%;
 }
 
 .game-hud-chip--priority {
@@ -75,9 +76,10 @@ body { image-rendering: auto; }
 
 .game-hud-chip--small {
   position: static;
-  min-width: 118px;
-  min-height: 42px;
-  padding: 8px 10px;
+  width: 100%;
+  min-width: 0;
+  min-height: 100%;
+  padding: 10px 12px;
 }
 
 .game-hud-chip__icon {
@@ -113,17 +115,18 @@ body { image-rendering: auto; }
 }
 
 .game-hud-chip--small .game-hud-chip__label {
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .game-hud-chip--small .game-hud-chip__value {
-  font-size: 18px;
+  font-size: 21px;
 }
 
 .game-hud-rail {
   position: absolute;
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
   gap: 8px;
 }
 

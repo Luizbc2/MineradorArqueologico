@@ -36,12 +36,10 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number): Hud
   const gap = tight ? uiSpace.xs : uiSpace.sm;
   const panelPadding = tight ? uiSpace.md : 20;
 
-  const depthWidth = width < 520 ? 114 : 126;
-  const depthHeight = 64;
-  const pickaxeWidth = width < 520 ? 136 : 150;
-  const pickaxeHeight = 64;
-  const railHeight = 44;
-  const railWidth = depthWidth + pickaxeWidth + gap;
+  const statusCardWidth = width < 520 ? 128 : 144;
+  const statusCardHeight = 64;
+  const railHeight = statusCardHeight;
+  const railWidth = statusCardWidth * 2 + gap;
 
   const buttonWidth = width < 560 ? 140 : 156;
   const buttonHeight = 48;
@@ -89,18 +87,18 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number): Hud
     statusDepth: {
       x: margin,
       y: margin,
-      width: depthWidth,
-      height: depthHeight,
+      width: statusCardWidth,
+      height: statusCardHeight,
     },
     statusPickaxe: {
-      x: margin + depthWidth + gap,
+      x: margin + statusCardWidth + gap,
       y: margin,
-      width: pickaxeWidth,
-      height: pickaxeHeight,
+      width: statusCardWidth,
+      height: statusCardHeight,
     },
     statusRail: {
       x: margin,
-      y: margin + depthHeight + gap,
+      y: margin + statusCardHeight + gap,
       width: railWidth,
       height: railHeight,
     },
