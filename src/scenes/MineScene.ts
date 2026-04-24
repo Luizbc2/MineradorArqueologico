@@ -135,8 +135,8 @@ export class MineScene extends Phaser.Scene {
   };
   private digKeys?: {
     down: Phaser.Input.Keyboard.Key;
-    dig: Phaser.Input.Keyboard.Key;
   };
+  private jumpKey?: Phaser.Input.Keyboard.Key;
   private interactKey?: Phaser.Input.Keyboard.Key;
   private escapeKey?: Phaser.Input.Keyboard.Key;
   private upgradeKey?: Phaser.Input.Keyboard.Key;
@@ -230,8 +230,8 @@ export class MineScene extends Phaser.Scene {
     }) as { left: Phaser.Input.Keyboard.Key; right: Phaser.Input.Keyboard.Key } | undefined;
     this.digKeys = this.input.keyboard?.addKeys({
       down: Phaser.Input.Keyboard.KeyCodes.S,
-      dig: Phaser.Input.Keyboard.KeyCodes.SPACE,
-    }) as { down: Phaser.Input.Keyboard.Key; dig: Phaser.Input.Keyboard.Key } | undefined;
+    }) as { down: Phaser.Input.Keyboard.Key } | undefined;
+    this.jumpKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
     this.interactKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.E);
     this.escapeKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
     this.upgradeKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.U);
@@ -324,6 +324,13 @@ export class MineScene extends Phaser.Scene {
       }
 
       if (this.tryOpenNearbyChest()) {
+        this.finalizeFrame(deltaSeconds);
+        return;
+      }
+    }
+
+    if (Phaser.Input.Keyboard.JustDown(this.jumpKey!)) {
+      if (this.tryJump()) {
         this.finalizeFrame(deltaSeconds);
         return;
       }
@@ -1206,13 +1213,11 @@ export class MineScene extends Phaser.Scene {
     const leftPressed = this.cursors?.left.isDown || this.moveKeys?.left.isDown;
     const rightPressed = this.cursors?.right.isDown || this.moveKeys?.right.isDown;
     const downPressed = this.cursors?.down.isDown || this.digKeys?.down.isDown;
-    const digPressed = this.digKeys?.dig.isDown;
 
     const target = this.resolveMiningTarget({
       leftPressed: Boolean(leftPressed),
       rightPressed: Boolean(rightPressed),
       downPressed: Boolean(downPressed),
-      digPressed: Boolean(digPressed),
     });
 
     if (!target) {
@@ -1286,7 +1291,6 @@ export class MineScene extends Phaser.Scene {
     leftPressed: boolean;
     rightPressed: boolean;
     downPressed: boolean;
-    digPressed: boolean;
   }) {
     if (!this.player) {
       return null;
@@ -1298,21 +1302,7 @@ export class MineScene extends Phaser.Scene {
       return mouseTarget;
     }
 
-    if (input.digPressed && input.leftPressed) {
-      return {
-        x: this.player.position.x - 1,
-        y: this.player.position.y,
-      };
-    }
-
-    if (input.digPressed && input.rightPressed) {
-      return {
-        x: this.player.position.x + 1,
-        y: this.player.position.y,
-      };
-    }
-
-    if (input.downPressed || input.digPressed) {
+    if (input.downPressed) {
       return {
         x: this.player.position.x,
         y: this.player.position.y + 1,
@@ -1837,6 +1827,33 @@ export class MineScene extends Phaser.Scene {
 
   private isMineable(kind: TileKind) {
     return tileDefinitions[kind].breakable;
+  }
+
+  private tryJump() {
+    if (!this.player) {
+      return false;
+    }
+
+    const grounded = !this.canOccupy(this.player.position.x, this.player.position.y + 1);
+
+    if (
+      !grounded ||
+      this.player.moveCooldown > 0 ||
+      this.player.fallCooldown > 0 ||
+      !this.canOccupy(this.player.position.x, this.player.position.y - 1)
+    ) {
+      return false;
+    }
+
+    this.player.snapToTile({
+      x: this.player.position.x,
+      y: this.player.position.y - 1,
+    });
+    this.player.moveCooldown = 0.11;
+    this.player.fallCooldown = 0.16;
+    this.clearMiningTarget();
+    this.audioDirector?.playStep(this.player.position.y / WORLD_HEIGHT_TILES);
+    return true;
   }
 
   private updateHud() {
