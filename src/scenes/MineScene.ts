@@ -15,7 +15,12 @@ import {
   getResourceFromTile,
   getResourceMeta,
   getResourceTierLabel,
+  resourceKinds,
 } from "../game/inventory/resourceInventory";
+import {
+  getInventorySaleSummary,
+  hasSellableResources,
+} from "../game/economy/resourceSellValues";
 import { MineAudioDirector } from "../game/audio/MineAudioDirector";
 import { PlayerMiner } from "../game/player/PlayerMiner";
 import { ExpeditionGoalsPanel } from "../ui/hud/ExpeditionGoalsPanel";
@@ -67,6 +72,7 @@ export class MineScene extends Phaser.Scene {
   private readonly expeditionProgression = createExpeditionProgression();
   private progressionSnapshot: ExpeditionProgressionSnapshot = this.expeditionProgression.getSnapshot();
   private inventory: ResourceInventory = createResourceInventory();
+  private coins = 0;
   private energy = 100;
   private pickaxeLevel = 1;
   private groundLayer?: Phaser.GameObjects.Graphics;
@@ -1161,6 +1167,34 @@ export class MineScene extends Phaser.Scene {
     this.updateHud();
     this.audioDirector?.playPickup(resource, rewardState.streak);
     this.spawnPickupFeedback(tileX, tileY, this.inventory[resource], rewardState);
+  }
+
+  private canSellInventory() {
+    return hasSellableResources(this.inventory);
+  }
+
+  private getInventorySaleSummary() {
+    return getInventorySaleSummary(this.inventory);
+  }
+
+  private sellInventory() {
+    const sale = this.getInventorySaleSummary();
+
+    if (sale.totalCoins <= 0 || !this.canSellInventory()) {
+      return sale;
+    }
+
+    this.coins += sale.totalCoins;
+
+    for (const resource of resourceKinds) {
+      this.inventory[resource] = 0;
+    }
+
+    this.game.events.emit("economy:changed", { coins: this.coins });
+    this.game.events.emit("inventory:changed", { ...this.inventory });
+    this.updateHud();
+
+    return sale;
   }
 
   private registerReward(resource: ResourceKind) {
