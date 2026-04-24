@@ -67,7 +67,6 @@ body { image-rendering: auto; }
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  min-height: 100%;
 }
 
 .game-hud-chip--priority {
@@ -78,7 +77,6 @@ body { image-rendering: auto; }
   position: static;
   width: 100%;
   min-width: 0;
-  min-height: 100%;
   padding: 10px 12px;
 }
 
