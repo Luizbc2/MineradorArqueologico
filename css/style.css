@@ -243,6 +243,67 @@ body { image-rendering: auto; }
   gap: 12px;
 }
 
+.game-surface-prompt-scope {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.game-surface-prompt {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 2px solid rgba(139, 115, 79, 0.95);
+  background: rgba(20, 16, 12, 0.96);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+  color: #f5efdf;
+  transform: translateX(-50%) translateY(8px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 120ms ease, transform 120ms ease, visibility 120ms ease;
+}
+
+.game-surface-prompt.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.game-surface-prompt[data-station="vendor"] {
+  border-color: rgba(231, 189, 99, 0.98);
+}
+
+.game-surface-prompt[data-station="workshop"] {
+  border-color: rgba(142, 206, 208, 0.98);
+}
+
+.game-surface-prompt__key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border: 2px solid rgba(139, 115, 79, 0.95);
+  background: rgba(49, 38, 29, 0.98);
+  color: #fffaf0;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.game-surface-prompt__label {
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.03em;
+  color: #f5efdf;
+}
+
 .game-hud-mission__overview {
   display: flex;
   justify-content: flex-end;
