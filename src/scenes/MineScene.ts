@@ -100,8 +100,7 @@ export class MineScene extends Phaser.Scene {
   private effectLayer?: Phaser.GameObjects.Graphics;
   private screenFlash?: Phaser.GameObjects.Rectangle;
   private surfacePadLayer?: Phaser.GameObjects.Graphics;
-  private surfaceVendorSprite?: Phaser.GameObjects.Image;
-  private surfaceWorkshopSprite?: Phaser.GameObjects.Image;
+  private surfaceVillageHubSprite?: Phaser.GameObjects.Image;
   private audioDirector?: MineAudioDirector;
   private goalsPanel?: ExpeditionGoalsPanel;
   private hud?: MineHud;
@@ -501,14 +500,9 @@ export class MineScene extends Phaser.Scene {
       this.surfacePadLayer = this.add.graphics();
     }
 
-    if (!this.surfaceVendorSprite) {
-      this.surfaceVendorSprite = this.add.image(0, 0, "surface-vendor-outpost");
-      this.surfaceVendorSprite.setOrigin(0.5, 1);
-    }
-
-    if (!this.surfaceWorkshopSprite) {
-      this.surfaceWorkshopSprite = this.add.image(0, 0, "surface-workshop-station");
-      this.surfaceWorkshopSprite.setOrigin(0.5, 1);
+    if (!this.surfaceVillageHubSprite) {
+      this.surfaceVillageHubSprite = this.add.image(0, 0, "surface-village-hub");
+      this.surfaceVillageHubSprite.setOrigin(0.5, 1);
     }
 
     this.surfacePadLayer.clear();
@@ -516,120 +510,15 @@ export class MineScene extends Phaser.Scene {
     const groundY = SURFACE_ROW * TILE_SIZE;
     const hubLeft = (SURFACE_RETURN_TILE.x - SURFACE_HUB_PLATFORM_HALF_WIDTH) * TILE_SIZE;
     const hubWidth = TILE_SIZE * (SURFACE_HUB_PLATFORM_HALF_WIDTH * 2 + 1);
-    const hubRight = hubLeft + hubWidth;
     const centerX = SURFACE_RETURN_TILE.x * TILE_SIZE + TILE_SIZE / 2;
-    const boardwalkY = groundY - 12;
-    const leftBuilding = {
-      x: hubLeft + 20,
-      y: groundY - 84,
-      width: 136,
-      height: 68,
-    };
-    const rightBuilding = {
-      x: hubRight - 156,
-      y: groundY - 84,
-      width: 136,
-      height: 68,
-    };
-    const vendorLot = {
-      x: SURFACE_VENDOR_PLOT.startX * TILE_SIZE + 32,
-      y: groundY - 74,
-      width: 156,
-      height: 62,
-    };
-    const workshopLot = {
-      x: SURFACE_WORKSHOP_PLOT.startX * TILE_SIZE + 28,
-      y: groundY - 78,
-      width: 164,
-      height: 66,
-    };
 
     layer.fillStyle(0x10182b, 0.3);
     layer.fillRect(hubLeft - 28, 18, hubWidth + 56, groundY - 26);
-
-    this.drawSurfaceHubBuilding(layer, leftBuilding.x, leftBuilding.y, leftBuilding.width, leftBuilding.height, {
-      body: 0x3c2d23,
-      trim: 0x8f6742,
-      roof: 0x71422a,
-      glow: 0xffd39a,
-      panel: 0x241a13,
+    this.layoutSurfaceStructureSprite(this.surfaceVillageHubSprite, {
+      x: centerX,
+      y: groundY + 10,
+      width: 720,
     });
-
-    this.drawSurfaceHubBuilding(layer, rightBuilding.x, rightBuilding.y, rightBuilding.width, rightBuilding.height, {
-      body: 0x2e2d34,
-      trim: 0x7d7f8d,
-      roof: 0x4c4d58,
-      glow: 0x8fe7ff,
-      panel: 0x151922,
-    });
-
-    this.drawSurfaceOutpostPlatform(layer, vendorLot.x + 10, boardwalkY, vendorLot.width - 20);
-    this.drawSurfaceOutpostPlatform(layer, workshopLot.x + 10, boardwalkY, workshopLot.width - 20);
-
-    this.layoutSurfaceStructureSprite(this.surfaceVendorSprite, {
-      x: vendorLot.x + vendorLot.width / 2,
-      y: boardwalkY + 14,
-      width: 192,
-    });
-    this.layoutSurfaceStructureSprite(this.surfaceWorkshopSprite, {
-      x: workshopLot.x + workshopLot.width / 2,
-      y: boardwalkY + 14,
-      width: 196,
-    });
-
-    this.drawSurfaceMineFrame(layer, centerX, groundY - 4);
-
-    const stringWireY = Math.round(Math.min(leftBuilding.y, rightBuilding.y) - 2);
-    const stringPostBaseY = Math.round(Math.min(leftBuilding.y, rightBuilding.y) + 12);
-    const leftStringPostX = Math.round(leftBuilding.x + leftBuilding.width - 26);
-    const rightStringPostX = Math.round(rightBuilding.x + 26);
-    const stringLightCount = 5;
-    const stringLightGap = (rightStringPostX - leftStringPostX) / (stringLightCount + 1);
-
-    this.drawSurfaceStringLightPost(layer, leftStringPostX, stringWireY, stringPostBaseY);
-    this.drawSurfaceStringLightPost(layer, rightStringPostX, stringWireY, stringPostBaseY);
-
-    layer.lineStyle(3, 0x5b4633, 0.95);
-    layer.lineBetween(leftStringPostX, stringWireY, rightStringPostX, stringWireY);
-
-    for (let index = 0; index < stringLightCount; index += 1) {
-      const lightX = Math.round(leftStringPostX + stringLightGap * (index + 1));
-      const lightY = stringWireY;
-      layer.fillStyle(0xffdca7, 0.82);
-      layer.fillCircle(lightX, lightY, 3);
-      layer.fillStyle(0xffdca7, 0.14);
-      layer.fillCircle(lightX, lightY, 10);
-    }
-
-    layer.fillStyle(0x2d2016, 0.98);
-    layer.fillRect(hubLeft - 12, boardwalkY, hubWidth + 24, 16);
-    layer.fillStyle(0x8e633f, 0.98);
-    layer.fillRect(hubLeft - 10, boardwalkY + 2, hubWidth + 20, 3);
-
-    for (let plank = 0; plank < hubWidth + 8; plank += 24) {
-      layer.fillStyle(plank % 48 === 0 ? 0x6c4c31 : 0x7a5638, 0.96);
-      layer.fillRect(hubLeft - 6 + plank, boardwalkY + 5, 18, 8);
-    }
-
-    for (let post = 0; post < 5; post += 1) {
-      const postX = hubLeft + 42 + post * 138;
-      layer.fillStyle(0x47311f, 0.95);
-      layer.fillRect(postX, boardwalkY + 10, 8, 28);
-      layer.fillStyle(0x8f6742, 0.92);
-      layer.fillRect(postX + 1, boardwalkY + 10, 2, 28);
-    }
-
-    this.drawSurfaceLamp(layer, hubLeft + 86, groundY - 8, 0xffd89b);
-    this.drawSurfaceLamp(layer, hubRight - 86, groundY - 8, 0x9fe7ff);
-
-    layer.fillStyle(0x4a3221, 0.96);
-    layer.fillRect(centerX - 26, groundY - 24, 52, 10);
-    layer.fillStyle(0xc9995e, 0.96);
-    layer.fillRect(centerX - 20, groundY - 21, 40, 3);
-
-    this.drawSurfaceCrate(layer, hubLeft + 176, groundY - 18, 26, 22);
-    this.drawSurfaceCrate(layer, hubRight - 214, groundY - 16, 24, 20);
-    this.drawSurfaceCrate(layer, hubRight - 184, groundY - 20, 30, 24);
 
   }
 

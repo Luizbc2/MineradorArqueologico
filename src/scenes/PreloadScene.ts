@@ -1,6 +1,5 @@
 import Phaser from "phaser";
-import vendorOutpostUrl from "../assets/surface/vendor-outpost-v3.png";
-import workshopStationUrl from "../assets/surface/workshop-station-v3.png";
+import villageHubUrl from "../assets/surface/village-hub-v2.png";
 
 export class PreloadScene extends Phaser.Scene {
   constructor() {
@@ -8,8 +7,7 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("surface-vendor-outpost", vendorOutpostUrl);
-    this.load.image("surface-workshop-station", workshopStationUrl);
+    this.load.image("surface-village-hub", villageHubUrl);
 
     this.load.once(Phaser.Loader.Events.COMPLETE, () => {
       this.game.events.emit("phaser:preload-complete");
