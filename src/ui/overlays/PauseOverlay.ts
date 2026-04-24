@@ -33,10 +33,10 @@ export class PauseOverlay {
 
     const controlsList = createHudElement("div", "game-modal-controls");
     controlsList.append(
-      createPauseShortcut("ESC", "pausa ou retoma a expedição"),
-      createPauseShortcut("E", "interage com baú ou registro"),
-      createPauseShortcut("U", "abre a forja na superfície"),
-      createPauseShortcut("R", "retorna para a base segura"),
+      createPauseShortcut("ESC", "Pausa ou retoma a expedição"),
+      createPauseShortcut("E", "Interage com baú ou registro"),
+      createPauseShortcut("U", "Abre a forja na superfície"),
+      createPauseShortcut("R", "Retorna para a base segura"),
     );
     controls.append(controlsList);
 

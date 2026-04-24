@@ -1895,7 +1895,7 @@ export class MineScene extends Phaser.Scene {
     const toast = this.add.text(
       startPoint.x,
       startPoint.y,
-      `META CONCLUIDA: ${title}\n${rewardLabel}`,
+      `META CONCLUÍDA: ${title}\n${rewardLabel}`,
       makeGameTextStyle({
         family: "display",
         color: "#fff0bc",

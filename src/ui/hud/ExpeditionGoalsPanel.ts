@@ -95,8 +95,8 @@ export class ExpeditionGoalsPanel {
     this.rewardText = createHudElement("div", "game-hud-reward__value", "Combo +0.20s");
     rewardCard.append(this.rewardText);
 
-    this.perkText = createHudElement("div", "game-hud-mission__foot", "Bônus atual: sem bônus ativos");
-    this.nextGoalText = createHudElement("div", "game-hud-mission__foot game-hud-mission__foot--muted", "Depois: continue cavando");
+    this.perkText = createHudElement("div", "game-hud-mission__foot", "Bônus atual: Sem bônus ativos");
+    this.nextGoalText = createHudElement("div", "game-hud-mission__foot game-hud-mission__foot--muted", "Depois: Continue cavando");
 
     body.append(
       overviewRow,
@@ -130,7 +130,7 @@ export class ExpeditionGoalsPanel {
     this.perkText.textContent = `Bônus atual: ${snapshot.perkSummary}`;
     this.nextGoalText.textContent = nextGoal
       ? `Depois: ${nextGoal.title}`
-      : "Depois: nenhuma meta pendente";
+      : "Depois: Nenhuma meta pendente";
 
     const ratio = activeGoal ? Phaser.Math.Clamp(activeGoal.current / activeGoal.target, 0, 1) : 1;
     this.progressFill.style.width = `${Math.round(ratio * 100)}%`;
