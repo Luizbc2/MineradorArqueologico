@@ -1074,13 +1074,10 @@ export class MineScene extends Phaser.Scene {
 
     const camera = this.cameras.main;
     camera.setRoundPixels(true);
-    camera.setDeadzone(
-      Math.min(this.viewportWidth * 0.12, 160),
-      Math.min(this.viewportHeight * 0.1, 96),
-    );
-    camera.setFollowOffset(0, -52);
+    camera.setDeadzone(0, 0);
+    camera.setFollowOffset(0, 0);
     this.updateCameraZoom(0, true);
-    camera.centerOn(this.player.sprite.x, this.player.sprite.y - 52);
+    this.centerCameraOnPlayer();
   }
 
   private updateCameraZoom(deltaSeconds: number, snap = false) {
@@ -1090,9 +1087,7 @@ export class MineScene extends Phaser.Scene {
 
     if (snap) {
       camera.setZoom(targetZoom);
-      if (this.player) {
-        camera.centerOn(this.player.sprite.x, this.player.sprite.y - 52);
-      }
+      this.centerCameraOnPlayer();
       return;
     }
 
@@ -1102,17 +1097,21 @@ export class MineScene extends Phaser.Scene {
     if (Math.abs(nextZoom - currentZoom) < 0.0005) {
       if (Math.abs(targetZoom - currentZoom) >= 0.0005) {
         camera.setZoom(targetZoom);
-        if (this.player) {
-          camera.centerOn(this.player.sprite.x, this.player.sprite.y - 52);
-        }
+        this.centerCameraOnPlayer();
       }
       return;
     }
 
     camera.setZoom(nextZoom);
-    if (this.player) {
-      camera.centerOn(this.player.sprite.x, this.player.sprite.y - 52);
+    this.centerCameraOnPlayer();
+  }
+
+  private centerCameraOnPlayer() {
+    if (!this.player) {
+      return;
     }
+
+    this.cameras.main.centerOn(this.player.sprite.x, this.player.sprite.y);
   }
 
   private adjustManualZoom(step: number) {
