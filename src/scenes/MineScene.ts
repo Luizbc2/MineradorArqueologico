@@ -509,9 +509,9 @@ export class MineScene extends Phaser.Scene {
     };
     const rightBuilding = {
       x: hubRight - 156,
-      y: groundY - 80,
+      y: groundY - 84,
       width: 136,
-      height: 64,
+      height: 68,
     };
 
     layer.fillStyle(0x10182b, 0.3);
@@ -587,14 +587,6 @@ export class MineScene extends Phaser.Scene {
     this.drawSurfaceCrate(layer, hubRight - 214, groundY - 16, 24, 20);
     this.drawSurfaceCrate(layer, hubRight - 184, groundY - 20, 30, 24);
 
-    layer.fillStyle(0x344a5e, 0.9);
-    layer.fillRect(hubRight - 94, groundY - 56, 10, 36);
-    layer.fillStyle(0x89dff5, 0.82);
-    layer.fillRect(hubRight - 112, groundY - 74, 46, 14);
-    layer.fillStyle(0x182230, 0.95);
-    layer.fillRect(hubRight - 106, groundY - 70, 34, 6);
-    layer.fillStyle(0x89dff5, 0.2);
-    layer.fillRect(hubRight - 118, groundY - 80, 58, 22);
   }
 
   private drawSurfaceHubBuilding(
@@ -646,12 +638,10 @@ export class MineScene extends Phaser.Scene {
 
     layer.fillStyle(0x160f0a, 0.98);
     layer.fillRect(doorX - 2, doorY - 2, doorWidth + 4, doorHeight + 2);
-    layer.fillStyle(0x5a3f2a, 0.98);
+    layer.fillStyle(0x402c1d, 0.98);
     layer.fillRect(doorX, doorY, doorWidth, doorHeight);
-    layer.fillStyle(0x76553b, 0.95);
-    layer.fillRect(doorX + 3, doorY + 4, doorWidth - 6, doorHeight - 8);
     layer.fillStyle(0xd6c19a, 0.92);
-    layer.fillRect(doorX + doorWidth - 6, doorY + Math.round(doorHeight / 2), 2, 2);
+    layer.fillRect(doorX + doorWidth - 6, doorY + Math.round(doorHeight / 2) - 1, 2, 2);
 
     this.drawSurfaceWindow(layer, leftWindowX, windowY, windowWidth, windowHeight, palette.glow);
     this.drawSurfaceWindow(layer, rightWindowX, windowY, windowWidth, windowHeight, palette.glow);
