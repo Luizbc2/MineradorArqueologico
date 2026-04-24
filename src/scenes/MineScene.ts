@@ -92,6 +92,7 @@ const SURFACE_STATION_CONFIG: Record<SurfaceStationKind, { offsetX: number; radi
     radius: 120,
   },
 } as const;
+const MOUSE_MINING_REACH_TILES = 2;
 
 export class MineScene extends Phaser.Scene {
   private worldGrid: WorldGrid = [];
@@ -1289,6 +1290,12 @@ export class MineScene extends Phaser.Scene {
       return null;
     }
 
+    const mouseTarget = this.resolveMouseMiningTarget();
+
+    if (mouseTarget) {
+      return mouseTarget;
+    }
+
     if (input.digPressed && input.leftPressed) {
       return {
         x: this.player.position.x - 1,
@@ -1311,6 +1318,49 @@ export class MineScene extends Phaser.Scene {
     }
 
     return null;
+  }
+
+  private resolveMouseMiningTarget() {
+    if (!this.player) {
+      return null;
+    }
+
+    const pointer = this.input.activePointer;
+
+    if (!pointer?.leftButtonDown()) {
+      return null;
+    }
+
+    const worldPoint = pointer.positionToCamera(this.cameras.main) as Phaser.Math.Vector2;
+    const target = {
+      x: Math.floor(worldPoint.x / TILE_SIZE),
+      y: Math.floor(worldPoint.y / TILE_SIZE),
+    };
+
+    if (!this.isMiningTargetInReach(target.x, target.y)) {
+      return null;
+    }
+
+    return target;
+  }
+
+  private isMiningTargetInReach(tileX: number, tileY: number) {
+    if (!this.player) {
+      return false;
+    }
+
+    if (
+      tileX < 0 ||
+      tileY < 0 ||
+      tileX >= WORLD_WIDTH_TILES ||
+      tileY >= WORLD_HEIGHT_TILES
+    ) {
+      return false;
+    }
+
+    const deltaX = Math.abs(tileX - this.player.position.x);
+    const deltaY = Math.abs(tileY - this.player.position.y);
+    return deltaX <= MOUSE_MINING_REACH_TILES && deltaY <= MOUSE_MINING_REACH_TILES;
   }
 
   private drawMiningOverlay() {
