@@ -369,6 +369,10 @@ body { image-rendering: auto; }
   color: #f5efdf;
 }
 
+.game-modal-card--vendor {
+  width: min(620px, calc(100vw - 48px));
+}
+
 .game-modal-card__accent {
   height: 5px;
   margin: -12px 0 22px;
@@ -450,6 +454,91 @@ body { image-rendering: auto; }
   line-height: 1.4;
   font-weight: 600;
   color: #ab987c;
+}
+
+.game-modal-vendor-wallet {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border: 1px solid rgba(86, 70, 51, 0.82);
+  background: rgba(20, 16, 12, 0.86);
+}
+
+.game-modal-vendor-wallet__label,
+.game-modal-vendor-total__label {
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #ffe39b;
+}
+
+.game-modal-vendor-wallet__value,
+.game-modal-vendor-total__value {
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 800;
+  color: #fffaf0;
+}
+
+.game-modal-vendor-list {
+  display: grid;
+  gap: 10px;
+}
+
+.game-modal-vendor-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(86, 70, 51, 0.72);
+  background: rgba(31, 24, 18, 0.92);
+}
+
+.game-modal-vendor-row__label,
+.game-modal-vendor-row__qty,
+.game-modal-vendor-row__total {
+  font-size: 16px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.game-modal-vendor-row__label {
+  color: #f5efdf;
+}
+
+.game-modal-vendor-row__qty {
+  color: #d3c4ad;
+}
+
+.game-modal-vendor-row__total {
+  color: #ffe39b;
+}
+
+.game-modal-vendor-empty {
+  padding: 14px 16px;
+  border: 1px solid rgba(86, 70, 51, 0.72);
+  background: rgba(31, 24, 18, 0.92);
+  font-size: 16px;
+  line-height: 1.45;
+  font-weight: 600;
+  color: #d3c4ad;
+}
+
+.game-modal-vendor-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 16px 18px;
+  border: 1px solid rgba(231, 189, 99, 0.55);
+  background: rgba(52, 38, 21, 0.82);
 }
 
 .game-modal-actions {

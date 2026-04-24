@@ -29,6 +29,7 @@ import { createHudElement, createHudScope } from "../ui/hud/domHud";
 import { ArchaeologyCardOverlay } from "../ui/overlays/ArchaeologyCardOverlay";
 import { PauseOverlay } from "../ui/overlays/PauseOverlay";
 import { UpgradeOverlay } from "../ui/overlays/UpgradeOverlay";
+import { VendorOverlay } from "../ui/overlays/VendorOverlay";
 import { generateWorld } from "../game/world/generateWorld";
 import {
   PLAYER_SPAWN_TILE,
@@ -120,6 +121,7 @@ export class MineScene extends Phaser.Scene {
   private archaeologyOverlay?: ArchaeologyCardOverlay;
   private pauseOverlay?: PauseOverlay;
   private upgradeOverlay?: UpgradeOverlay;
+  private vendorOverlay?: VendorOverlay;
   private surfacePromptScope?: HTMLDivElement;
   private surfacePrompt?: HTMLDivElement;
   private surfacePromptLabel?: HTMLSpanElement;
@@ -209,6 +211,7 @@ export class MineScene extends Phaser.Scene {
     this.createArchaeologyOverlay();
     this.createPauseOverlay();
     this.createUpgradeOverlay();
+    this.createVendorOverlay();
     this.createSurfacePrompt();
     this.createAudioDirector();
     this.progressionSnapshot = this.expeditionProgression.getSnapshot();
@@ -273,6 +276,14 @@ export class MineScene extends Phaser.Scene {
     if (this.upgradeOverlay?.isVisible) {
       if (Phaser.Input.Keyboard.JustDown(this.escapeKey!) || Phaser.Input.Keyboard.JustDown(this.upgradeKey!)) {
         this.closeUpgradeOverlay();
+      }
+      this.finalizeFrame(deltaSeconds);
+      return;
+    }
+
+    if (this.vendorOverlay?.isVisible) {
+      if (Phaser.Input.Keyboard.JustDown(this.escapeKey!)) {
+        this.closeVendorOverlay();
       }
       this.finalizeFrame(deltaSeconds);
       return;
@@ -1341,14 +1352,7 @@ export class MineScene extends Phaser.Scene {
     }
 
     if (station === "vendor") {
-      const sale = this.sellInventory();
-
-      if (sale.totalCoins <= 0) {
-        this.showSurfaceToast("Mochila vazia.");
-        return true;
-      }
-
-      this.showSurfaceToast(`Venda concluída: +${sale.totalCoins} moedas.`);
+      this.toggleVendorOverlay();
       return true;
     }
 
@@ -1995,7 +1999,12 @@ export class MineScene extends Phaser.Scene {
   }
 
   private togglePauseOverlay() {
-    if (this.archaeologyOverlay?.isVisible || this.upgradeOverlay?.isVisible || this.surfaceReturnLocked) {
+    if (
+      this.archaeologyOverlay?.isVisible ||
+      this.upgradeOverlay?.isVisible ||
+      this.vendorOverlay?.isVisible ||
+      this.surfaceReturnLocked
+    ) {
       return;
     }
 
@@ -2017,7 +2026,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   private toggleUpgradeOverlay() {
-    if (this.pauseOverlay?.isVisible) {
+    if (this.pauseOverlay?.isVisible || this.vendorOverlay?.isVisible) {
       return;
     }
 
@@ -2068,6 +2077,57 @@ export class MineScene extends Phaser.Scene {
     this.updateSurfacePrompt();
   }
 
+  private createVendorOverlay() {
+    this.vendorOverlay = new VendorOverlay(this);
+    this.registerFixedUiElement(this.vendorOverlay.getRoot());
+  }
+
+  private toggleVendorOverlay() {
+    if (this.pauseOverlay?.isVisible || this.upgradeOverlay?.isVisible || this.surfaceReturnLocked) {
+      return;
+    }
+
+    if (this.vendorOverlay?.isVisible) {
+      this.closeVendorOverlay();
+      return;
+    }
+
+    if (!this.player || this.player.position.y > 5) {
+      return;
+    }
+
+    this.vendorOverlay?.show({
+      coins: this.coins,
+      sale: this.getInventorySaleSummary(),
+      onSellAll: () => this.handleVendorSellAll(),
+      onClose: () => this.closeVendorOverlay(),
+    });
+    this.updateSurfacePrompt();
+  }
+
+  private handleVendorSellAll() {
+    const sale = this.sellInventory();
+
+    if (sale.totalCoins <= 0) {
+      this.showSurfaceToast("Mochila vazia.");
+    } else {
+      this.showSurfaceToast(`Venda concluída: +${sale.totalCoins} moedas.`);
+    }
+
+    this.vendorOverlay?.show({
+      coins: this.coins,
+      sale: this.getInventorySaleSummary(),
+      onSellAll: () => this.handleVendorSellAll(),
+      onClose: () => this.closeVendorOverlay(),
+    });
+    this.updateSurfacePrompt();
+  }
+
+  private closeVendorOverlay() {
+    this.vendorOverlay?.hide();
+    this.updateSurfacePrompt();
+  }
+
   private createSurfacePrompt() {
     if (typeof document === "undefined") {
       return;
@@ -2094,6 +2154,7 @@ export class MineScene extends Phaser.Scene {
       this.pauseOverlay?.isVisible ||
       this.archaeologyOverlay?.isVisible ||
       this.upgradeOverlay?.isVisible ||
+      this.vendorOverlay?.isVisible ||
       this.surfaceReturnLocked;
 
     if (!station || blocked) {
@@ -2105,8 +2166,8 @@ export class MineScene extends Phaser.Scene {
       const sale = this.getInventorySaleSummary();
       this.surfacePromptLabel.textContent =
         sale.totalCoins > 0
-          ? `VENDER TUDO • ${sale.totalCoins} MOEDAS`
-          : "VENDER RECURSOS";
+          ? `ABRIR VENDA • ${sale.totalCoins} MOEDAS`
+          : "ABRIR VENDA";
       this.surfacePrompt.dataset.station = "vendor";
     } else {
       this.surfacePromptLabel.textContent = "ABRIR OFICINA";
