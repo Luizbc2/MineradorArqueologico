@@ -409,8 +409,6 @@ export class MineScene extends Phaser.Scene {
     );
     background.fillRect(0, 0, WORLD_WIDTH_PX, WORLD_HEIGHT_PX);
 
-    background.fillStyle(gameTheme.colors.caveGlow, 0.08);
-    background.fillCircle(120, 140, 220);
     background.fillStyle(gameTheme.colors.ember, 0.06);
     background.fillCircle(540, WORLD_HEIGHT_PX - 260, 260);
 
