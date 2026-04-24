@@ -65,6 +65,14 @@ const SURFACE_RETURN_TILE = {
 
 const SURFACE_HUB_CLEAR_HALF_WIDTH = 12;
 const SURFACE_HUB_PLATFORM_HALF_WIDTH = 10;
+const SURFACE_VENDOR_PLOT = {
+  startX: 2,
+  endX: 8,
+} as const;
+const SURFACE_WORKSHOP_PLOT = {
+  startX: 51,
+  endX: 57,
+} as const;
 
 export class MineScene extends Phaser.Scene {
   private worldGrid: WorldGrid = [];
@@ -363,34 +371,61 @@ export class MineScene extends Phaser.Scene {
   }
 
   private prepareSurfaceSafeZone() {
-    for (let y = 0; y <= SURFACE_ROW - 1; y += 1) {
-      const startX = SURFACE_RETURN_TILE.x - SURFACE_HUB_CLEAR_HALF_WIDTH;
-      const endX = SURFACE_RETURN_TILE.x + SURFACE_HUB_CLEAR_HALF_WIDTH;
+    const airZones = [
+      {
+        startX: SURFACE_RETURN_TILE.x - SURFACE_HUB_CLEAR_HALF_WIDTH,
+        endX: SURFACE_RETURN_TILE.x + SURFACE_HUB_CLEAR_HALF_WIDTH,
+      },
+      SURFACE_VENDOR_PLOT,
+      SURFACE_WORKSHOP_PLOT,
+    ];
 
-      for (let x = startX; x <= endX; x += 1) {
-        if (this.worldGrid[y]?.[x]) {
-          this.worldGrid[y][x] = { kind: "empty" };
+    for (let y = 0; y <= SURFACE_ROW - 1; y += 1) {
+      for (const zone of airZones) {
+        for (let x = zone.startX; x <= zone.endX; x += 1) {
+          if (this.worldGrid[y]?.[x]) {
+            this.worldGrid[y][x] = { kind: "empty" };
+          }
         }
       }
     }
   }
 
   private restoreSurfaceHubFloor() {
-    for (let x = SURFACE_RETURN_TILE.x - SURFACE_HUB_PLATFORM_HALF_WIDTH; x <= SURFACE_RETURN_TILE.x + SURFACE_HUB_PLATFORM_HALF_WIDTH; x += 1) {
-      if (this.worldGrid[SURFACE_ROW]?.[x]) {
-        this.worldGrid[SURFACE_ROW][x] = { kind: "stone" };
+    const floorZones = [
+      {
+        startX: SURFACE_RETURN_TILE.x - SURFACE_HUB_PLATFORM_HALF_WIDTH,
+        endX: SURFACE_RETURN_TILE.x + SURFACE_HUB_PLATFORM_HALF_WIDTH,
+      },
+      SURFACE_VENDOR_PLOT,
+      SURFACE_WORKSHOP_PLOT,
+    ];
+
+    for (const zone of floorZones) {
+      for (let x = zone.startX; x <= zone.endX; x += 1) {
+        if (this.worldGrid[SURFACE_ROW]?.[x]) {
+          this.worldGrid[SURFACE_ROW][x] = { kind: "stone" };
+        }
       }
     }
   }
 
   private restoreSurfaceHub() {
-    for (let y = 0; y <= SURFACE_ROW - 1; y += 1) {
-      const startX = SURFACE_RETURN_TILE.x - SURFACE_HUB_CLEAR_HALF_WIDTH;
-      const endX = SURFACE_RETURN_TILE.x + SURFACE_HUB_CLEAR_HALF_WIDTH;
+    const airZones = [
+      {
+        startX: SURFACE_RETURN_TILE.x - SURFACE_HUB_CLEAR_HALF_WIDTH,
+        endX: SURFACE_RETURN_TILE.x + SURFACE_HUB_CLEAR_HALF_WIDTH,
+      },
+      SURFACE_VENDOR_PLOT,
+      SURFACE_WORKSHOP_PLOT,
+    ];
 
-      for (let x = startX; x <= endX; x += 1) {
-        if (this.worldGrid[y]?.[x]) {
-          this.worldGrid[y][x] = { kind: "empty" };
+    for (let y = 0; y <= SURFACE_ROW - 1; y += 1) {
+      for (const zone of airZones) {
+        for (let x = zone.startX; x <= zone.endX; x += 1) {
+          if (this.worldGrid[y]?.[x]) {
+            this.worldGrid[y][x] = { kind: "empty" };
+          }
         }
       }
     }
@@ -512,11 +547,29 @@ export class MineScene extends Phaser.Scene {
       width: 136,
       height: 68,
     };
+    const vendorLot = {
+      x: SURFACE_VENDOR_PLOT.startX * TILE_SIZE + 8,
+      y: groundY - 74,
+      width: (SURFACE_VENDOR_PLOT.endX - SURFACE_VENDOR_PLOT.startX + 1) * TILE_SIZE - 16,
+      height: 58,
+    };
+    const workshopLot = {
+      x: SURFACE_WORKSHOP_PLOT.startX * TILE_SIZE + 6,
+      y: groundY - 78,
+      width: (SURFACE_WORKSHOP_PLOT.endX - SURFACE_WORKSHOP_PLOT.startX + 1) * TILE_SIZE - 12,
+      height: 62,
+    };
 
     layer.fillStyle(0x10182b, 0.3);
     layer.fillRect(hubLeft - 28, 18, hubWidth + 56, groundY - 26);
 
-    this.drawSurfaceVendorStand(layer, leftBuilding.x, leftBuilding.y, leftBuilding.width, leftBuilding.height);
+    this.drawSurfaceHubBuilding(layer, leftBuilding.x, leftBuilding.y, leftBuilding.width, leftBuilding.height, {
+      body: 0x3c2d23,
+      trim: 0x8f6742,
+      roof: 0x71422a,
+      glow: 0xffd39a,
+      panel: 0x241a13,
+    });
 
     this.drawSurfaceHubBuilding(layer, rightBuilding.x, rightBuilding.y, rightBuilding.width, rightBuilding.height, {
       body: 0x2e2d34,
@@ -525,6 +578,9 @@ export class MineScene extends Phaser.Scene {
       glow: 0x8fe7ff,
       panel: 0x151922,
     });
+
+    this.drawSurfaceVendorStand(layer, vendorLot.x, vendorLot.y, vendorLot.width, vendorLot.height);
+    this.drawSurfaceWorkshopStation(layer, workshopLot.x, workshopLot.y, workshopLot.width, workshopLot.height);
 
     this.drawSurfaceMineFrame(layer, centerX, groundY - 4);
 
@@ -716,6 +772,71 @@ export class MineScene extends Phaser.Scene {
     layer.fillStyle(0x8f6742, 0.2);
     layer.fillCircle(x + 52, y + height - 26, 12);
     layer.fillCircle(x + 66, y + height - 24, 13);
+  }
+
+  private drawSurfaceWorkshopStation(
+    layer: Phaser.GameObjects.Graphics,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  ) {
+    const roofY = y - 10;
+    const frameLeftX = x + 14;
+    const frameRightX = x + width - 20;
+    const benchY = y + height - 18;
+    const rackY = y + 18;
+    const signX = x + Math.round(width / 2) - 22;
+
+    layer.fillStyle(0x06080f, 0.2);
+    layer.fillRect(x + 8, y + 8, width, height);
+
+    layer.fillStyle(0x242931, 0.98);
+    layer.fillRect(x + 12, y + 14, width - 24, height - 18);
+    layer.fillStyle(0x4c4d58, 0.98);
+    layer.fillRect(x + 8, roofY, width - 16, 10);
+    layer.fillStyle(0x7d7f8d, 0.9);
+    layer.fillRect(x + 12, roofY + 2, width - 24, 3);
+
+    layer.fillStyle(0x38414e, 0.98);
+    layer.fillRect(frameLeftX, y + 16, 8, height - 8);
+    layer.fillRect(frameRightX, y + 16, 8, height - 8);
+    layer.fillRect(frameLeftX, rackY, frameRightX - frameLeftX + 8, 4);
+
+    layer.fillStyle(0x151922, 0.98);
+    layer.fillRect(signX, roofY + 1, 44, 8);
+    layer.fillStyle(0x8fe7ff, 0.85);
+    layer.fillRect(signX + 6, roofY + 3, 32, 3);
+
+    layer.fillStyle(0x1b2129, 0.98);
+    layer.fillRect(x + 22, benchY, width - 44, 14);
+    layer.fillStyle(0x89dff5, 0.8);
+    layer.fillRect(x + 24, benchY + 2, width - 48, 3);
+
+    layer.fillStyle(0x6b7582, 0.96);
+    layer.fillRect(x + 38, y + 30, 18, 3);
+    layer.fillRect(x + 66, y + 28, 4, 16);
+    layer.fillRect(x + width - 62, y + 28, 18, 3);
+    layer.fillRect(x + width - 54, y + 31, 4, 14);
+
+    layer.fillStyle(0x8f6742, 0.96);
+    layer.fillRect(x + 54, benchY - 10, 28, 10);
+    layer.fillStyle(0x31261b, 0.98);
+    layer.fillRect(x + 64, benchY - 16, 8, 6);
+
+    layer.fillStyle(0x344a5e, 0.9);
+    layer.fillRect(x + width - 72, y + 24, 14, 26);
+    layer.fillStyle(0x89dff5, 0.82);
+    layer.fillRect(x + width - 84, y + 18, 38, 12);
+    layer.fillStyle(0x182230, 0.95);
+    layer.fillRect(x + width - 78, y + 21, 26, 5);
+    layer.fillStyle(0x89dff5, 0.18);
+    layer.fillRect(x + width - 88, y + 14, 46, 20);
+
+    layer.fillStyle(0x6d4b2e, 0.98);
+    layer.fillRect(x + 16, benchY - 4, 18, 18);
+    layer.fillStyle(0xc9995e, 0.9);
+    layer.fillRect(x + 19, benchY - 1, 12, 3);
   }
 
   private drawSurfaceWindow(
