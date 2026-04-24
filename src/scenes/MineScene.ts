@@ -1692,6 +1692,7 @@ export class MineScene extends Phaser.Scene {
 
     this.hud.update({
       depth: this.getSurfaceDepth(this.player.position.y),
+      coins: this.coins,
       energy: this.energy,
       pickaxeLevel: this.pickaxeLevel,
       cardsFound: this.archaeologyDeck.collectedCount,

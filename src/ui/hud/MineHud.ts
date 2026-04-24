@@ -10,6 +10,7 @@ import {
 
 type HudSnapshot = {
   depth: number;
+  coins: number;
   energy: number;
   pickaxeLevel: number;
   cardsFound: number;
@@ -32,6 +33,7 @@ export class MineHud {
   private readonly scope: HTMLDivElement;
   private readonly depthValue: HTMLDivElement;
   private readonly pickaxeValue: HTMLDivElement;
+  private readonly coinsValue: HTMLDivElement;
   private readonly codexChip: HTMLDivElement;
   private readonly codexValue: HTMLDivElement;
   private readonly comboChip: HTMLDivElement;
@@ -62,6 +64,11 @@ export class MineHud {
     const pickaxeChip = createHudStatChip("PICARETA", "LV 1", "pickaxe");
     setHudRect(pickaxeChip.root, layout.statusPickaxe);
     this.pickaxeValue = pickaxeChip.value;
+
+    const coinsChip = createHudStatChip("MOEDAS", "0", "coins");
+    coinsChip.root.classList.add("game-hud-chip--coins");
+    setHudRect(coinsChip.root, layout.statusCoins);
+    this.coinsValue = coinsChip.value;
 
     const rail = createHudElement("div", "game-hud-rail");
     rail.style.left = `${layout.statusRail.x}px`;
@@ -123,6 +130,7 @@ export class MineHud {
     this.scope.append(
       depthChip.root,
       pickaxeChip.root,
+      coinsChip.root,
       rail,
       this.backpackButton,
       this.backpackPanel,
@@ -136,6 +144,7 @@ export class MineHud {
   update(snapshot: HudSnapshot) {
     const infoKey = [
       snapshot.depth,
+      snapshot.coins,
       snapshot.pickaxeLevel,
       snapshot.cardsFound,
       snapshot.cardsTotal,
@@ -148,6 +157,7 @@ export class MineHud {
     if (infoKey !== this.lastInfoKey) {
       this.lastInfoKey = infoKey;
       this.depthValue.textContent = `${snapshot.depth}m`;
+      this.coinsValue.textContent = formatHudNumber(snapshot.coins);
       this.pickaxeValue.textContent = `LV ${snapshot.pickaxeLevel}`;
       this.codexValue.textContent = `${snapshot.cardsFound}/${snapshot.cardsTotal}`;
       this.resourceValues.coal.textContent = `${snapshot.inventory.coal}`;
@@ -181,7 +191,7 @@ export class MineHud {
   }
 }
 
-function createHudStatChip(label: string, value: string, icon?: "pickaxe" | "codex" | "combo") {
+function createHudStatChip(label: string, value: string, icon?: "pickaxe" | "codex" | "combo" | "coins") {
   const root = createHudElement("div", "game-hud-chip");
   const content = createHudElement("div", "game-hud-chip__content");
 
@@ -197,6 +207,10 @@ function createHudStatChip(label: string, value: string, icon?: "pickaxe" | "cod
   root.append(content);
 
   return { root, value: valueEl };
+}
+
+function formatHudNumber(value: number) {
+  return value.toLocaleString("pt-BR");
 }
 
 function createHudButton(label: string, icon: "missions" | "backpack", tone: "accent" | "cool") {

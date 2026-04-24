@@ -16,6 +16,7 @@ export type HudLayout = {
   tight: boolean;
   statusDepth: HudRect;
   statusPickaxe: HudRect;
+  statusCoins: HudRect;
   statusRail: HudRect;
   missionButton: HudRect;
   missionPanel: HudRect;
@@ -38,8 +39,11 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number): Hud
 
   const statusCardWidth = width < 520 ? 128 : 144;
   const statusCardHeight = 64;
+  const statusCoinsInline = width >= 700;
   const railHeight = statusCardHeight;
   const railWidth = statusCardWidth * 2 + gap;
+  const statusCoinsX = statusCoinsInline ? margin + (statusCardWidth + gap) * 2 : margin;
+  const statusCoinsY = statusCoinsInline ? margin : margin + statusCardHeight + gap;
 
   const buttonWidth = width < 560 ? 140 : 156;
   const buttonHeight = 48;
@@ -93,6 +97,12 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number): Hud
     statusPickaxe: {
       x: margin + statusCardWidth + gap,
       y: margin,
+      width: statusCardWidth,
+      height: statusCardHeight,
+    },
+    statusCoins: {
+      x: statusCoinsX,
+      y: statusCoinsY,
       width: statusCardWidth,
       height: statusCardHeight,
     },

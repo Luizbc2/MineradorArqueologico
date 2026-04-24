@@ -73,6 +73,10 @@ body { image-rendering: auto; }
   border-color: rgba(231, 189, 99, 0.98);
 }
 
+.game-hud-chip--coins {
+  border-color: rgba(231, 189, 99, 0.78);
+}
+
 .game-hud-chip--small {
   position: static;
   width: 100%;
@@ -195,6 +199,12 @@ body { image-rendering: auto; }
   height: 26px;
   transform: translateY(1px);
   filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.35));
+}
+
+.game-hud-icon--coins {
+  width: 25px;
+  height: 25px;
+  color: #e7bd63;
 }
 
 .game-hud-panel {

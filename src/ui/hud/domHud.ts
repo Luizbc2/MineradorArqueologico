@@ -1,6 +1,13 @@
 import { PHASER_ROOT_ID } from "../../app/phaser/gameConfig";
 
-export type HudDomIconKind = "missions" | "backpack" | "close" | "pickaxe" | "codex" | "combo";
+export type HudDomIconKind =
+  | "missions"
+  | "backpack"
+  | "close"
+  | "pickaxe"
+  | "codex"
+  | "combo"
+  | "coins";
 export type HudDomLayer = "hud" | "modal";
 
 const HUD_ROOT_ID = "game-hud-root";
@@ -122,6 +129,13 @@ function getHudIconSvg(kind: HudDomIconKind) {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
           <circle cx="12" cy="12" r="6"></circle>
           <path d="M12 2v4M22 12h-4M12 22v-4M2 12h4"></path>
+        </svg>
+      `;
+    case "coins":
+      return `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
+          <circle cx="12" cy="12" r="7"></circle>
+          <path d="M9 10h5.5M9 14h6M12 7v10"></path>
         </svg>
       `;
   }
