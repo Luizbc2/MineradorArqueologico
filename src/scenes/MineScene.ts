@@ -535,12 +535,22 @@ export class MineScene extends Phaser.Scene {
 
     this.drawSurfaceMineFrame(layer, centerX, groundY - 4);
 
-    layer.lineStyle(3, 0x5b4633, 0.95);
-    layer.lineBetween(leftBuilding.x + leftBuilding.width - 8, 74, rightBuilding.x + 8, 74);
+    const stringWireY = Math.round(Math.min(leftBuilding.y, rightBuilding.y) - 2);
+    const stringPostBaseY = Math.round(Math.min(leftBuilding.y, rightBuilding.y) + 12);
+    const leftStringPostX = Math.round(leftBuilding.x + leftBuilding.width - 26);
+    const rightStringPostX = Math.round(rightBuilding.x + 26);
+    const stringLightCount = 5;
+    const stringLightGap = (rightStringPostX - leftStringPostX) / (stringLightCount + 1);
 
-    for (let index = 0; index < 5; index += 1) {
-      const lightX = hubLeft + 178 + index * 58;
-      const lightY = 74;
+    this.drawSurfaceStringLightPost(layer, leftStringPostX, stringWireY, stringPostBaseY);
+    this.drawSurfaceStringLightPost(layer, rightStringPostX, stringWireY, stringPostBaseY);
+
+    layer.lineStyle(3, 0x5b4633, 0.95);
+    layer.lineBetween(leftStringPostX, stringWireY, rightStringPostX, stringWireY);
+
+    for (let index = 0; index < stringLightCount; index += 1) {
+      const lightX = Math.round(leftStringPostX + stringLightGap * (index + 1));
+      const lightY = stringWireY;
       layer.fillStyle(0xffdca7, 0.82);
       layer.fillCircle(lightX, lightY, 3);
       layer.fillStyle(0xffdca7, 0.14);
@@ -708,6 +718,22 @@ export class MineScene extends Phaser.Scene {
     layer.fillRect(x + 11, baseY - 35, 6, 10);
     layer.fillStyle(glowColor, 0.12);
     layer.fillCircle(x + 14, baseY - 29, 20);
+  }
+
+  private drawSurfaceStringLightPost(
+    layer: Phaser.GameObjects.Graphics,
+    x: number,
+    wireY: number,
+    baseY: number,
+  ) {
+    const postTopY = wireY - 8;
+
+    layer.fillStyle(0x3d2c1e, 0.98);
+    layer.fillRect(x - 3, postTopY, 6, baseY - postTopY);
+    layer.fillRect(x - 7, postTopY, 14, 4);
+    layer.fillStyle(0x8f6742, 0.88);
+    layer.fillRect(x - 1, postTopY + 2, 2, baseY - postTopY - 2);
+    layer.fillRect(x - 5, postTopY + 1, 10, 2);
   }
 
   private drawSurfaceCrate(
