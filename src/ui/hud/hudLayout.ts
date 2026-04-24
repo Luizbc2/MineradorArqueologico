@@ -98,7 +98,7 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number): Hud
     },
     statusRail: {
       x: margin,
-      y: margin + statusCardHeight + gap,
+      y: height - margin - railHeight,
       width: railWidth,
       height: railHeight,
     },
