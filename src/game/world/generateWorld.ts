@@ -33,7 +33,7 @@ export function generateWorld(seed = 0x0badc0de): WorldGrid {
 
   for (let y = 0; y < WORLD_HEIGHT_TILES; y += 1) {
     for (let x = 0; x < WORLD_WIDTH_TILES; x += 1) {
-      let kind: TileKind = "dirt";
+      let kind: TileKind = y === SURFACE_ROW ? "grass" : "dirt";
 
       if (y > SURFACE_ROW + 2) {
         kind = "stone";

@@ -425,7 +425,7 @@ export class MineScene extends Phaser.Scene {
   private restoreSurfaceHubFloor() {
     for (let x = SURFACE_BASE_CLEAR_ZONE.startX; x <= SURFACE_BASE_CLEAR_ZONE.endX; x += 1) {
       if (this.worldGrid[SURFACE_ROW]?.[x]) {
-        this.worldGrid[SURFACE_ROW][x] = { kind: "stone" };
+        this.worldGrid[SURFACE_ROW][x] = { kind: "grass" };
       }
     }
   }
@@ -502,7 +502,9 @@ export class MineScene extends Phaser.Scene {
         }
 
         const depthTint =
-          y < SURFACE_ROW ? 0.08 : Math.min(0.92, 0.3 + y / WORLD_HEIGHT_TILES / 1.8);
+          tile.kind === "grass"
+            ? 1
+            : y < SURFACE_ROW ? 0.08 : Math.min(0.92, 0.3 + y / WORLD_HEIGHT_TILES / 1.8);
         this.drawTileMaterial(ground, tile.kind, tileX, tileY, x, y, depthTint);
       }
     }
@@ -916,6 +918,11 @@ export class MineScene extends Phaser.Scene {
     ground.fillStyle(material.edge, depthTint * 0.84);
     ground.fillRect(tileX + borderSize, tileY + TILE_SIZE - 5, innerSize, 4);
 
+    if (kind === "grass") {
+      this.drawGrassTileDetails(ground, tileX, tileY, variant);
+      return;
+    }
+
     if (kind === "dirt" || kind === "stone" || kind === "bedrock") {
       for (let dot = 0; dot < 3; dot += 1) {
         const px = tileX + 5 + ((variant + dot * 9) % 18);
@@ -953,6 +960,51 @@ export class MineScene extends Phaser.Scene {
   private sampleTileVariant(gridX: number, gridY: number) {
     const hash = Math.imul(gridX + 17, 374761393) ^ Math.imul(gridY + 23, 668265263);
     return (hash ^ (hash >>> 13)) >>> 0;
+  }
+
+  private drawGrassTileDetails(
+    ground: Phaser.GameObjects.Graphics,
+    tileX: number,
+    tileY: number,
+    variant: number,
+  ) {
+    const grassTop = 8;
+
+    ground.fillStyle(0x2f7d3c, 0.96);
+    ground.fillRect(tileX + 1, tileY + 1, TILE_SIZE - 2, grassTop);
+    ground.fillStyle(0x8bcf58, 0.92);
+    ground.fillRect(tileX + 2, tileY + 1, TILE_SIZE - 4, 3);
+    ground.fillStyle(0x224f2c, 0.72);
+    ground.fillRect(tileX + 1, tileY + grassTop, TILE_SIZE - 2, 2);
+
+    for (let blade = 0; blade < 6; blade += 1) {
+      const bladeX = tileX + 3 + ((variant + blade * 5) % 25);
+      const bladeHeight = 2 + ((variant >>> (blade % 8)) & 3);
+      ground.fillStyle(blade % 2 === 0 ? 0x9bdd68 : 0x5fa846, 0.88);
+      ground.fillRect(bladeX, tileY + grassTop - bladeHeight, 1, bladeHeight);
+    }
+
+    for (let pebble = 0; pebble < 4; pebble += 1) {
+      const px = tileX + 4 + ((variant + pebble * 7) % 22);
+      const py = tileY + 13 + ((variant * 3 + pebble * 5) % 12);
+      ground.fillStyle(pebble % 2 === 0 ? 0x94613a : 0xc78953, 0.32);
+      ground.fillRect(px, py, pebble % 2 === 0 ? 2 : 1, 1);
+    }
+
+    if (variant % 5 === 0) {
+      const flowerX = tileX + 9 + (variant % 13);
+      const flowerY = tileY + 5;
+      ground.fillStyle(0xdff2a1, 0.95);
+      ground.fillRect(flowerX, flowerY, 2, 2);
+      ground.fillStyle(0xf2c8ff, 0.9);
+      ground.fillRect(flowerX - 1, flowerY + 1, 1, 1);
+      ground.fillRect(flowerX + 2, flowerY + 1, 1, 1);
+    } else if (variant % 7 === 0) {
+      const sproutX = tileX + 8 + (variant % 15);
+      ground.fillStyle(0xa9dc6f, 0.9);
+      ground.fillRect(sproutX, tileY + 4, 1, 4);
+      ground.fillRect(sproutX + 1, tileY + 5, 2, 1);
+    }
   }
 
   private drawDepthGuides() {

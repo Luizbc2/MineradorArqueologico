@@ -1,5 +1,6 @@
 export const tileKinds = [
   "empty",
+  "grass",
   "dirt",
   "stone",
   "coal",

@@ -7,6 +7,7 @@ export type TileDefinition = {
 
 export const tileDefinitions: Record<TileKind, TileDefinition> = {
   empty: { breakable: false, hardness: 0 },
+  grass: { breakable: true, hardness: 0.9 },
   dirt: { breakable: true, hardness: 1 },
   stone: { breakable: true, hardness: 2 },
   coal: { breakable: true, hardness: 1.2 },

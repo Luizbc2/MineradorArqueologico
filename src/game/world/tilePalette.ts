@@ -15,6 +15,13 @@ export const tilePalette: Record<TileKind, TileMaterial> = {
     edge: 0x000000,
     detail: 0x000000,
   },
+  grass: {
+    base: 0x704421,
+    top: 0x6fb34c,
+    edge: 0x3b2412,
+    detail: 0xd19a62,
+    glow: 0xa9dc6f,
+  },
   dirt: {
     base: 0x734726,
     top: 0xa96d3e,
