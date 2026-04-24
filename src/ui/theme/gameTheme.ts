@@ -2,8 +2,8 @@ import Phaser from "phaser";
 
 export const gameTheme = {
   fonts: {
-    display: '"Oxanium", "Segoe UI", sans-serif',
-    body: '"Oxanium", "Segoe UI", sans-serif',
+    display: '"Sora", "Segoe UI", sans-serif',
+    body: '"Sora", "Segoe UI", sans-serif',
   },
   colors: {
     bgTop: 0x060a12,
@@ -11,27 +11,56 @@ export const gameTheme = {
     bgBottom: 0x130d0a,
     caveGlow: 0x2b6cb0,
     ember: 0xff8b4d,
-    accent: 0xffd166,
-    accentSoft: 0xffe6a8,
-    accentCool: 0x7be0d6,
-    success: 0x67e8a5,
-    warning: 0xffcf6e,
+    accent: 0xe7bd63,
+    accentSoft: 0xf7d78d,
+    accentCool: 0x8eced0,
+    success: 0x7ac98f,
+    warning: 0xe59f52,
     danger: 0xff7a7a,
-    panel: 0x101a2a,
-    panelRaised: 0x172437,
-    panelDeep: 0x0a111b,
-    border: 0x315072,
-    borderSoft: 0x243a55,
-    coal: 0x9fb0c4,
-    iron: 0xf2c094,
-    gold: 0xffdf7b,
-    diamond: 0x92f0ff,
-    text: "#f4f7fb",
-    textMuted: "#b6c4d8",
-    textSoft: "#8ea2bc",
-    textDark: "#08101a",
+    panel: 0x221b15,
+    panelRaised: 0x31261d,
+    panelDeep: 0x14100c,
+    border: 0x8b734f,
+    borderSoft: 0x564633,
+    coal: 0x99a5b3,
+    iron: 0xd49a63,
+    gold: 0xf3c55d,
+    diamond: 0x89dff5,
+    text: "#f5efdf",
+    textMuted: "#d3c4ad",
+    textSoft: "#ab987c",
+    textDark: "#15110d",
   },
 } as const;
+
+export const uiSpace = {
+  xxs: 4,
+  xs: 8,
+  sm: 12,
+  md: 16,
+  lg: 24,
+  xl: 32,
+} as const;
+
+export function snapUi(value: number) {
+  return Math.round(value);
+}
+
+export function getDevicePixelRatio() {
+  if (typeof window === "undefined") {
+    return 1;
+  }
+
+  return Phaser.Math.Clamp(window.devicePixelRatio || 1, 1, 4);
+}
+
+export function getGameCanvasResolution() {
+  return getDevicePixelRatio();
+}
+
+export function getGameTextResolution() {
+  return 4;
+}
 
 type PanelChromeOptions = {
   x: number;
@@ -112,9 +141,13 @@ type GameTextStyleOptions = {
   wordWrapWidth?: number;
   strokeThickness?: number;
   family?: "display" | "body";
+  letterSpacing?: number;
+  resolution?: number;
 };
 
 export function makeGameTextStyle(options: GameTextStyleOptions = {}): Phaser.Types.GameObjects.Text.TextStyle {
+  const strokeThickness = options.strokeThickness ?? 0;
+
   return {
     color: options.color ?? gameTheme.colors.text,
     fontFamily:
@@ -125,11 +158,12 @@ export function makeGameTextStyle(options: GameTextStyleOptions = {}): Phaser.Ty
     fontStyle: options.fontStyle,
     align: options.align,
     wordWrap: options.wordWrapWidth
-      ? { width: options.wordWrapWidth, useAdvancedWrap: true }
+      ? { width: snapUi(options.wordWrapWidth), useAdvancedWrap: true }
       : undefined,
-    stroke: "#08111b",
-    strokeThickness: options.strokeThickness ?? 2,
-    padding: { top: 2, bottom: 2 },
-    resolution: 4,
+    stroke: strokeThickness > 0 ? "#120d09" : undefined,
+    strokeThickness,
+    padding: { top: 0, right: 0, bottom: 0, left: 0 },
+    letterSpacing: options.letterSpacing,
+    resolution: options.resolution ?? getGameTextResolution(),
   };
 }

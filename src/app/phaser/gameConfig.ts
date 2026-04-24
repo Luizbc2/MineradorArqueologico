@@ -13,10 +13,12 @@ export const phaserGameConfig: Phaser.Types.Core.GameConfig = {
   height: VIEWPORT_HEIGHT,
   autoRound: true,
   backgroundColor: "#05070d",
+  antialias: false,
   pixelArt: true,
   transparent: true,
   render: {
-    antialias: true,
+    antialias: false,
+    antialiasGL: false,
     pixelArt: true,
     roundPixels: true,
     powerPreference: "high-performance",
