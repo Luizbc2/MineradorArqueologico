@@ -100,6 +100,8 @@ export class MineScene extends Phaser.Scene {
   private effectLayer?: Phaser.GameObjects.Graphics;
   private screenFlash?: Phaser.GameObjects.Rectangle;
   private surfacePadLayer?: Phaser.GameObjects.Graphics;
+  private surfaceVendorSprite?: Phaser.GameObjects.Image;
+  private surfaceWorkshopSprite?: Phaser.GameObjects.Image;
   private audioDirector?: MineAudioDirector;
   private goalsPanel?: ExpeditionGoalsPanel;
   private hud?: MineHud;
@@ -499,6 +501,16 @@ export class MineScene extends Phaser.Scene {
       this.surfacePadLayer = this.add.graphics();
     }
 
+    if (!this.surfaceVendorSprite) {
+      this.surfaceVendorSprite = this.add.image(0, 0, "surface-vendor-outpost");
+      this.surfaceVendorSprite.setOrigin(0.5, 1);
+    }
+
+    if (!this.surfaceWorkshopSprite) {
+      this.surfaceWorkshopSprite = this.add.image(0, 0, "surface-workshop-station");
+      this.surfaceWorkshopSprite.setOrigin(0.5, 1);
+    }
+
     this.surfacePadLayer.clear();
     const layer = this.surfacePadLayer;
     const groundY = SURFACE_ROW * TILE_SIZE;
@@ -554,8 +566,16 @@ export class MineScene extends Phaser.Scene {
     this.drawSurfaceOutpostPlatform(layer, vendorLot.x + 10, boardwalkY, vendorLot.width - 20);
     this.drawSurfaceOutpostPlatform(layer, workshopLot.x + 10, boardwalkY, workshopLot.width - 20);
 
-    this.drawSurfaceVendorStand(layer, vendorLot.x, vendorLot.y, vendorLot.width, vendorLot.height);
-    this.drawSurfaceWorkshopStation(layer, workshopLot.x, workshopLot.y, workshopLot.width, workshopLot.height);
+    this.layoutSurfaceStructureSprite(this.surfaceVendorSprite, {
+      x: vendorLot.x + vendorLot.width / 2,
+      y: boardwalkY + 14,
+      width: 192,
+    });
+    this.layoutSurfaceStructureSprite(this.surfaceWorkshopSprite, {
+      x: workshopLot.x + workshopLot.width / 2,
+      y: boardwalkY + 14,
+      width: 196,
+    });
 
     this.drawSurfaceMineFrame(layer, centerX, groundY - 4);
 
@@ -830,6 +850,26 @@ export class MineScene extends Phaser.Scene {
       layer.fillStyle(0x8f6742, 0.92);
       layer.fillRect(postX + 1, y + 10, 2, 22);
     }
+  }
+
+  private layoutSurfaceStructureSprite(
+    sprite: Phaser.GameObjects.Image | undefined,
+    placement: {
+      x: number;
+      y: number;
+      width: number;
+    },
+  ) {
+    if (!sprite) {
+      return;
+    }
+
+    const targetWidth = Math.round(placement.width);
+    const aspectRatio = sprite.width / sprite.height;
+    const targetHeight = Math.round(targetWidth / aspectRatio);
+
+    sprite.setPosition(Math.round(placement.x), Math.round(placement.y));
+    sprite.setDisplaySize(targetWidth, targetHeight);
   }
 
   private drawSurfaceWindow(
