@@ -529,19 +529,19 @@ export class MineScene extends Phaser.Scene {
     layer.fillRect(hubLeft - 28, 18, hubWidth + 56, groundY - 26);
 
     this.layoutSurfaceStructureSprite(this.surfaceVendorSprite, {
-      x: centerX - 266,
+      x: centerX - 238,
       y: buildingBaselineY,
-      width: 228,
+      width: 220,
     });
     this.layoutSurfaceStructureSprite(this.surfaceCenterMineSprite, {
       x: centerX,
       y: buildingBaselineY,
-      width: 248,
+      width: 170,
     });
     this.layoutSurfaceStructureSprite(this.surfaceWorkshopSprite, {
-      x: centerX + 278,
+      x: centerX + 242,
       y: buildingBaselineY,
-      width: 236,
+      width: 224,
     });
 
   }

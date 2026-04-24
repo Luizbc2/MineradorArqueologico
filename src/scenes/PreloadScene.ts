@@ -1,7 +1,7 @@
 import Phaser from "phaser";
-import centerMineCoreUrl from "../assets/surface/center-mine-core-v2.png";
-import vendorOutpostUrl from "../assets/surface/vendor-outpost-v3.png";
-import workshopStationUrl from "../assets/surface/workshop-station-v3.png";
+import centerMineCoreUrl from "../assets/surface/center-mine-core-v3.png";
+import vendorOutpostUrl from "../assets/surface/vendor-outpost-v4.png";
+import workshopStationUrl from "../assets/surface/workshop-station-v4.png";
 
 export class PreloadScene extends Phaser.Scene {
   constructor() {
