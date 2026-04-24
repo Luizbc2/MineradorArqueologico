@@ -30,6 +30,8 @@ export class PlayerMiner {
   private animationTime = 0;
   private mining = false;
   private falling = false;
+  private jumpPoseTimer = 0;
+  private landingSquashTimer = 0;
   private stepKick = 0;
 
   position: PlayerTilePosition;
@@ -106,13 +108,24 @@ export class PlayerMiner {
   }
 
   setFalling(active: boolean) {
+    if (this.falling && !active) {
+      this.landingSquashTimer = 0.14;
+    }
+
     this.falling = active;
+  }
+
+  playJump() {
+    this.jumpPoseTimer = 0.24;
+    this.stepKick = 1.15;
   }
 
   update(deltaSeconds: number) {
     this.animationTime += deltaSeconds;
     this.moveCooldown = Math.max(0, this.moveCooldown - deltaSeconds);
     this.fallCooldown = Math.max(0, this.fallCooldown - deltaSeconds);
+    this.jumpPoseTimer = Math.max(0, this.jumpPoseTimer - deltaSeconds);
+    this.landingSquashTimer = Math.max(0, this.landingSquashTimer - deltaSeconds);
     this.stepKick = Phaser.Math.Linear(this.stepKick, 0, 0.18);
 
     this.sprite.x = Phaser.Math.Linear(this.sprite.x, this.targetX, 0.28);
@@ -122,32 +135,61 @@ export class PlayerMiner {
     const xDelta = Math.abs(this.targetX - this.sprite.x);
     const yDelta = Math.abs(this.targetY - this.sprite.y);
     const locomotion = Phaser.Math.Clamp((xDelta + yDelta) / 10, 0, 1);
-    const idleBob = -Math.abs(Math.sin(this.animationTime * 4.8)) * 1.1;
-    const walkSwing = Math.sin(this.animationTime * 14) * (2.8 * locomotion + this.stepKick);
-    const fallLean = this.falling ? Phaser.Math.Linear(this.rig.rotation, -0.18, 0.26) : Phaser.Math.Linear(this.rig.rotation, 0, 0.2);
+    const moving = locomotion > 0.04;
+    const jumpRatio = Phaser.Math.Clamp(this.jumpPoseTimer / 0.24, 0, 1);
+    const landingRatio = Phaser.Math.Clamp(this.landingSquashTimer / 0.14, 0, 1);
+    const airborne = this.falling || jumpRatio > 0;
+    const idleBob = airborne ? 0 : -Math.abs(Math.sin(this.animationTime * 4.8)) * 1.1;
+    const runSwing = Math.sin(this.animationTime * 16) * (moving ? 1 : 0);
+    const runPower = moving ? 1 + this.stepKick * 0.3 : 0;
+    const walkSwing = runSwing * 13 * runPower;
+    const fallLean = this.falling ? Phaser.Math.Linear(this.rig.rotation, -0.16, 0.28) : Phaser.Math.Linear(this.rig.rotation, 0, 0.22);
+    const jumpLift = jumpRatio * 4;
     const miningSwing = this.mining ? Math.sin(this.animationTime * 22) * 0.95 : 0;
     const miningLift = this.mining ? Math.abs(Math.sin(this.animationTime * 22)) * 2.5 : 0;
 
-    this.rig.y = this.standingOffsetY + idleBob - miningLift;
-    this.rig.rotation = this.falling ? fallLean : walkSwing * 0.01;
-    this.dustShadow.scaleX = 1 + locomotion * 0.14;
-    this.dustShadow.scaleY = 1 - locomotion * 0.08;
-    this.dustShadow.alpha = 0.36 + locomotion * 0.12;
+    this.rig.y = this.standingOffsetY + idleBob - miningLift - jumpLift + landingRatio * 2;
+    this.rig.rotation = this.falling ? fallLean : walkSwing * 0.003 - jumpRatio * 0.08;
+    this.rig.scaleX = 1 + landingRatio * 0.08;
+    this.rig.scaleY = 1 - landingRatio * 0.1;
+    this.dustShadow.scaleX = 1 + locomotion * 0.18 + landingRatio * 0.28;
+    this.dustShadow.scaleY = 1 - locomotion * 0.1 - landingRatio * 0.1;
+    this.dustShadow.alpha = 0.34 + locomotion * 0.14 + landingRatio * 0.16;
 
-    this.leftLeg.rotation = Phaser.Math.DegToRad(walkSwing * 1.2);
-    this.rightLeg.rotation = Phaser.Math.DegToRad(-walkSwing * 1.2);
-    this.leftLeg.y = 14 + Math.max(0, -walkSwing) * 0.08;
-    this.rightLeg.y = 14 + Math.max(0, walkSwing) * 0.08;
+    if (this.falling) {
+      this.leftLeg.rotation = Phaser.Math.DegToRad(-8);
+      this.rightLeg.rotation = Phaser.Math.DegToRad(10);
+      this.leftLeg.y = 15;
+      this.rightLeg.y = 15;
+    } else if (jumpRatio > 0) {
+      this.leftLeg.rotation = Phaser.Math.DegToRad(-26);
+      this.rightLeg.rotation = Phaser.Math.DegToRad(24);
+      this.leftLeg.y = 12;
+      this.rightLeg.y = 12;
+    } else {
+      this.leftLeg.rotation = Phaser.Math.DegToRad(walkSwing);
+      this.rightLeg.rotation = Phaser.Math.DegToRad(-walkSwing);
+      this.leftLeg.y = 14 + Math.max(0, -walkSwing) * 0.08 - landingRatio;
+      this.rightLeg.y = 14 + Math.max(0, walkSwing) * 0.08 - landingRatio;
+    }
 
-    this.leftArm.rotation = Phaser.Math.DegToRad(-walkSwing * 0.8 - (this.falling ? 12 : 0));
-    this.rightArm.rotation = Phaser.Math.DegToRad(this.mining ? -62 + miningSwing * 12 : walkSwing * 0.45 + 10);
+    const leftArmRun = -walkSwing * 0.8;
+    const rightArmRun = walkSwing * 0.6 + 10;
+    const leftArmAir = this.falling ? -18 : -34 * jumpRatio;
+    const rightArmAir = this.falling ? 28 : -22 * jumpRatio;
+
+    this.leftArm.rotation = Phaser.Math.DegToRad(airborne ? leftArmAir : leftArmRun);
+    this.rightArm.rotation = Phaser.Math.DegToRad(
+      this.mining ? -68 + miningSwing * 14 : airborne ? rightArmAir : rightArmRun,
+    );
 
     this.pickaxeHandle.rotation = this.rightArm.rotation;
     this.pickaxeHead.rotation = this.rightArm.rotation;
     this.pickaxeHandle.y = 11 - miningLift * 0.25;
     this.pickaxeHead.y = 4 - miningLift * 0.38;
 
-    this.backpack.x = -7 - locomotion * 0.4;
+    this.backpack.x = -7 - locomotion * 0.5;
+    this.backpack.y = 2 + Math.abs(runSwing) * 0.7 - jumpRatio * 1.5;
     this.helmet.y = -7 + idleBob * 0.12;
     this.visor.y = -5 + idleBob * 0.12;
     this.lamp.y = -9 + idleBob * 0.18;

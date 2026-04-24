@@ -1848,6 +1848,7 @@ export class MineScene extends Phaser.Scene {
       x: this.player.position.x,
       y: this.player.position.y - 1,
     });
+    this.player.playJump();
     this.player.moveCooldown = 0.11;
     this.player.fallCooldown = 0.16;
     this.clearMiningTarget();
