@@ -100,9 +100,7 @@ export class MineScene extends Phaser.Scene {
   private effectLayer?: Phaser.GameObjects.Graphics;
   private screenFlash?: Phaser.GameObjects.Rectangle;
   private surfacePadLayer?: Phaser.GameObjects.Graphics;
-  private surfaceVendorSprite?: Phaser.GameObjects.Image;
-  private surfaceCenterMineSprite?: Phaser.GameObjects.Image;
-  private surfaceWorkshopSprite?: Phaser.GameObjects.Image;
+  private surfaceVillageHubSprite?: Phaser.GameObjects.Image;
   private audioDirector?: MineAudioDirector;
   private goalsPanel?: ExpeditionGoalsPanel;
   private hud?: MineHud;
@@ -502,19 +500,9 @@ export class MineScene extends Phaser.Scene {
       this.surfacePadLayer = this.add.graphics();
     }
 
-    if (!this.surfaceVendorSprite) {
-      this.surfaceVendorSprite = this.add.image(0, 0, "surface-vendor-outpost");
-      this.surfaceVendorSprite.setOrigin(0.5, 1);
-    }
-
-    if (!this.surfaceCenterMineSprite) {
-      this.surfaceCenterMineSprite = this.add.image(0, 0, "surface-center-mine-core");
-      this.surfaceCenterMineSprite.setOrigin(0.5, 1);
-    }
-
-    if (!this.surfaceWorkshopSprite) {
-      this.surfaceWorkshopSprite = this.add.image(0, 0, "surface-workshop-station");
-      this.surfaceWorkshopSprite.setOrigin(0.5, 1);
+    if (!this.surfaceVillageHubSprite) {
+      this.surfaceVillageHubSprite = this.add.image(0, 0, "surface-village-hub-clean");
+      this.surfaceVillageHubSprite.setOrigin(0.5, 1);
     }
 
     this.surfacePadLayer.clear();
@@ -527,21 +515,10 @@ export class MineScene extends Phaser.Scene {
 
     layer.fillStyle(0x10182b, 0.3);
     layer.fillRect(hubLeft - 28, 18, hubWidth + 56, groundY - 26);
-
-    this.layoutSurfaceStructureSprite(this.surfaceVendorSprite, {
-      x: centerX - 238,
-      y: buildingBaselineY,
-      width: 220,
-    });
-    this.layoutSurfaceStructureSprite(this.surfaceCenterMineSprite, {
+    this.layoutSurfaceStructureSprite(this.surfaceVillageHubSprite, {
       x: centerX,
       y: buildingBaselineY,
-      width: 170,
-    });
-    this.layoutSurfaceStructureSprite(this.surfaceWorkshopSprite, {
-      x: centerX + 242,
-      y: buildingBaselineY,
-      width: 224,
+      width: 676,
     });
 
   }
