@@ -149,9 +149,9 @@ export class MineScene extends Phaser.Scene {
   private rewardLabel = "Mina fria";
   private rewardColor: string = gameTheme.colors.textSoft;
   private manualZoomOffset = 0;
-  private readonly zoomStep = 1;
-  private readonly minCameraZoom = 1;
-  private readonly maxCameraZoom = 1;
+  private readonly zoomStep = 0.15;
+  private readonly minCameraZoom = 0.8;
+  private readonly maxCameraZoom = 1.3;
   private readonly zoomSmoothing = 10;
   private surfaceReturnLocked = false;
   private lastAppliedDepth = -1;
