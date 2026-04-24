@@ -523,13 +523,13 @@ export class MineScene extends Phaser.Scene {
       x: SURFACE_VENDOR_PLOT.startX * TILE_SIZE + 32,
       y: groundY - 74,
       width: 156,
-      height: 58,
+      height: 62,
     };
     const workshopLot = {
       x: SURFACE_WORKSHOP_PLOT.startX * TILE_SIZE + 28,
       y: groundY - 78,
       width: 164,
-      height: 62,
+      height: 66,
     };
 
     layer.fillStyle(0x10182b, 0.3);
@@ -550,6 +550,9 @@ export class MineScene extends Phaser.Scene {
       glow: 0x8fe7ff,
       panel: 0x151922,
     });
+
+    this.drawSurfaceOutpostPlatform(layer, vendorLot.x + 10, boardwalkY, vendorLot.width - 20);
+    this.drawSurfaceOutpostPlatform(layer, workshopLot.x + 10, boardwalkY, workshopLot.width - 20);
 
     this.drawSurfaceVendorStand(layer, vendorLot.x, vendorLot.y, vendorLot.width, vendorLot.height);
     this.drawSurfaceWorkshopStation(layer, workshopLot.x, workshopLot.y, workshopLot.width, workshopLot.height);
@@ -746,9 +749,9 @@ export class MineScene extends Phaser.Scene {
   ) {
     const buildingWidth = 128;
     const buildingX = Math.round(x + (width - buildingWidth) / 2);
-    const roofY = y + 2;
-    const bodyY = y + 14;
-    const bodyHeight = 40;
+    const roofY = y + 6;
+    const bodyY = y + 18;
+    const bodyHeight = 48;
     const shutterWidth = 46;
     const shutterHeight = 24;
     const shutterX = buildingX + Math.round(buildingWidth / 2) - Math.round(shutterWidth / 2);
@@ -802,6 +805,31 @@ export class MineScene extends Phaser.Scene {
 
     this.drawSurfaceCrate(layer, buildingX + 8, y + height - 18, 18, 18);
     this.drawSurfaceCrate(layer, buildingX + 30, y + height - 16, 16, 16);
+  }
+
+  private drawSurfaceOutpostPlatform(
+    layer: Phaser.GameObjects.Graphics,
+    x: number,
+    y: number,
+    width: number,
+  ) {
+    layer.fillStyle(0x2d2016, 0.98);
+    layer.fillRect(x, y, width, 14);
+    layer.fillStyle(0x8e633f, 0.98);
+    layer.fillRect(x + 2, y + 2, width - 4, 3);
+
+    for (let plank = 0; plank < width - 4; plank += 22) {
+      layer.fillStyle(plank % 44 === 0 ? 0x6c4c31 : 0x7a5638, 0.96);
+      layer.fillRect(x + 2 + plank, y + 5, 16, 7);
+    }
+
+    for (let post = 0; post < 2; post += 1) {
+      const postX = x + 24 + post * (width - 48);
+      layer.fillStyle(0x47311f, 0.95);
+      layer.fillRect(postX, y + 10, 8, 22);
+      layer.fillStyle(0x8f6742, 0.92);
+      layer.fillRect(postX + 1, y + 10, 2, 22);
+    }
   }
 
   private drawSurfaceWindow(
