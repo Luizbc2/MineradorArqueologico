@@ -516,13 +516,7 @@ export class MineScene extends Phaser.Scene {
     layer.fillStyle(0x10182b, 0.3);
     layer.fillRect(hubLeft - 28, 18, hubWidth + 56, groundY - 26);
 
-    this.drawSurfaceHubBuilding(layer, leftBuilding.x, leftBuilding.y, leftBuilding.width, leftBuilding.height, {
-      body: 0x3c2d23,
-      trim: 0x8f6742,
-      roof: 0x71422a,
-      glow: 0xffd39a,
-      panel: 0x241a13,
-    });
+    this.drawSurfaceVendorStand(layer, leftBuilding.x, leftBuilding.y, leftBuilding.width, leftBuilding.height);
 
     this.drawSurfaceHubBuilding(layer, rightBuilding.x, rightBuilding.y, rightBuilding.width, rightBuilding.height, {
       body: 0x2e2d34,
@@ -649,6 +643,84 @@ export class MineScene extends Phaser.Scene {
     layer.fillRect(panelX, roofY + 2, 36, 8);
     layer.fillStyle(palette.glow, 0.85);
     layer.fillRect(panelX + 6, roofY + 4, 24, 3);
+  }
+
+  private drawSurfaceVendorStand(
+    layer: Phaser.GameObjects.Graphics,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  ) {
+    const canopyY = y + 12;
+    const postTopY = canopyY + 8;
+    const postBottomY = y + height;
+    const leftPostX = x + 14;
+    const rightPostX = x + width - 20;
+    const counterY = y + height - 20;
+    const counterHeight = 16;
+    const backWallX = x + 16;
+    const backWallY = y + 28;
+    const backWallWidth = width - 32;
+    const backWallHeight = 24;
+    const signX = x + Math.round(width / 2) - 20;
+
+    layer.fillStyle(0x06080f, 0.18);
+    layer.fillRect(x + 10, y + 10, width - 4, height - 2);
+
+    layer.fillStyle(0x6e4329, 0.98);
+    layer.fillRect(x - 6, canopyY, width + 12, 10);
+    layer.fillStyle(0x9e6840, 0.95);
+    layer.fillRect(x - 2, canopyY + 2, width + 4, 3);
+
+    for (let stripe = 0; stripe < width - 8; stripe += 22) {
+      layer.fillStyle(stripe % 44 === 0 ? 0xffd39a : 0xe9b46d, 0.92);
+      layer.fillRect(x + 4 + stripe, canopyY + 10, 12, 8);
+    }
+
+    layer.fillStyle(0x3d2819, 0.98);
+    layer.fillRect(leftPostX, postTopY, 6, postBottomY - postTopY);
+    layer.fillRect(rightPostX, postTopY, 6, postBottomY - postTopY);
+    layer.fillStyle(0x946844, 0.9);
+    layer.fillRect(leftPostX + 1, postTopY + 2, 2, postBottomY - postTopY - 2);
+    layer.fillRect(rightPostX + 1, postTopY + 2, 2, postBottomY - postTopY - 2);
+
+    layer.fillStyle(0x2b1c12, 0.94);
+    layer.fillRect(backWallX, backWallY, backWallWidth, backWallHeight);
+    layer.fillStyle(0x8f6742, 0.9);
+    layer.fillRect(backWallX + 2, backWallY + 2, backWallWidth - 4, 3);
+    layer.fillRect(backWallX + 10, backWallY + 12, backWallWidth - 20, 2);
+
+    layer.fillStyle(0x20150d, 0.98);
+    layer.fillRect(x + 10, counterY, width - 20, counterHeight);
+    layer.fillStyle(0x8e633f, 0.94);
+    layer.fillRect(x + 12, counterY + 2, width - 24, 3);
+
+    layer.fillStyle(0x4e3825, 0.98);
+    layer.fillRect(x + 18, counterY + 4, 22, 12);
+    layer.fillRect(x + width - 48, counterY + 3, 18, 13);
+    layer.fillStyle(0xc9995e, 0.92);
+    layer.fillRect(x + 21, counterY + 6, 16, 3);
+    layer.fillRect(x + width - 45, counterY + 5, 12, 3);
+
+    layer.fillStyle(0x7a5638, 0.96);
+    layer.fillRect(x + 30, y + height - 34, 26, 14);
+    layer.fillRect(x + width - 58, y + height - 36, 22, 16);
+    layer.fillStyle(0x3f2b1c, 0.98);
+    layer.fillRect(x + 42, y + height - 34, 2, 14);
+    layer.fillRect(x + width - 47, y + height - 36, 2, 16);
+
+    layer.fillStyle(0xc9ad82, 0.92);
+    layer.fillCircle(x + 74, y + height - 26, 8);
+    layer.fillCircle(x + 88, y + height - 24, 7);
+    layer.fillStyle(0x8f6742, 0.2);
+    layer.fillCircle(x + 74, y + height - 26, 14);
+    layer.fillCircle(x + 88, y + height - 24, 13);
+
+    layer.fillStyle(0x2b1d13, 0.98);
+    layer.fillRect(signX, y + 4, 40, 8);
+    layer.fillStyle(0xffd39a, 0.88);
+    layer.fillRect(signX + 6, y + 6, 28, 3);
   }
 
   private drawSurfaceWindow(
