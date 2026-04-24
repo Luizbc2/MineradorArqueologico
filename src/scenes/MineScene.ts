@@ -58,6 +58,9 @@ const SURFACE_RETURN_TILE = {
   y: SURFACE_ROW - 1,
 } as const;
 
+const SURFACE_HUB_CLEAR_HALF_WIDTH = 12;
+const SURFACE_HUB_PLATFORM_HALF_WIDTH = 10;
+
 export class MineScene extends Phaser.Scene {
   private worldGrid: WorldGrid = [];
   private readonly archaeologyDeck = createArchaeologyDeck();
@@ -78,9 +81,6 @@ export class MineScene extends Phaser.Scene {
   private effectLayer?: Phaser.GameObjects.Graphics;
   private screenFlash?: Phaser.GameObjects.Rectangle;
   private surfacePadLayer?: Phaser.GameObjects.Graphics;
-  private surfaceButton?: Phaser.GameObjects.Rectangle;
-  private surfaceButtonLabel?: Phaser.GameObjects.Text;
-  private surfaceStatusText?: Phaser.GameObjects.Text;
   private audioDirector?: MineAudioDirector;
   private goalsPanel?: ExpeditionGoalsPanel;
   private hud?: MineHud;
@@ -175,7 +175,6 @@ export class MineScene extends Phaser.Scene {
     this.createPlayer();
     this.createUiCamera();
     this.createScreenFlash();
-    this.createSurfaceReturnUi();
     this.createHud();
     this.createGoalsPanel();
     this.createArchaeologyOverlay();
@@ -359,17 +358,34 @@ export class MineScene extends Phaser.Scene {
       comboCount: this.rewardComboCount,
     });
     this.drawWorldGrid();
-    this.updateSurfaceUi();
     this.updateHud();
   }
 
   private prepareSurfaceSafeZone() {
-    const chamberTop = Math.max(1, PLAYER_SPAWN_TILE.y - 1);
+    for (let y = 0; y <= SURFACE_ROW - 1; y += 1) {
+      const startX = SURFACE_RETURN_TILE.x - SURFACE_HUB_CLEAR_HALF_WIDTH;
+      const endX = SURFACE_RETURN_TILE.x + SURFACE_HUB_CLEAR_HALF_WIDTH;
 
-    for (let y = chamberTop; y <= SURFACE_ROW - 1; y += 1) {
-      const widthOffset = y <= PLAYER_SPAWN_TILE.y ? 2 : 4;
-      const startX = SURFACE_RETURN_TILE.x - widthOffset;
-      const endX = SURFACE_RETURN_TILE.x + widthOffset;
+      for (let x = startX; x <= endX; x += 1) {
+        if (this.worldGrid[y]?.[x]) {
+          this.worldGrid[y][x] = { kind: "empty" };
+        }
+      }
+    }
+  }
+
+  private restoreSurfaceHubFloor() {
+    for (let x = SURFACE_RETURN_TILE.x - SURFACE_HUB_PLATFORM_HALF_WIDTH; x <= SURFACE_RETURN_TILE.x + SURFACE_HUB_PLATFORM_HALF_WIDTH; x += 1) {
+      if (this.worldGrid[SURFACE_ROW]?.[x]) {
+        this.worldGrid[SURFACE_ROW][x] = { kind: "stone" };
+      }
+    }
+  }
+
+  private restoreSurfaceHub() {
+    for (let y = 0; y <= SURFACE_ROW - 1; y += 1) {
+      const startX = SURFACE_RETURN_TILE.x - SURFACE_HUB_CLEAR_HALF_WIDTH;
+      const endX = SURFACE_RETURN_TILE.x + SURFACE_HUB_CLEAR_HALF_WIDTH;
 
       for (let x = startX; x <= endX; x += 1) {
         if (this.worldGrid[y]?.[x]) {
@@ -378,11 +394,7 @@ export class MineScene extends Phaser.Scene {
       }
     }
 
-    for (let x = SURFACE_RETURN_TILE.x - 4; x <= SURFACE_RETURN_TILE.x + 4; x += 1) {
-      if (this.worldGrid[SURFACE_ROW]?.[x]) {
-        this.worldGrid[SURFACE_ROW][x] = { kind: "stone" };
-      }
-    }
+    this.restoreSurfaceHubFloor();
   }
 
   private drawBackdrop() {
@@ -483,39 +495,234 @@ export class MineScene extends Phaser.Scene {
 
     this.surfacePadLayer.clear();
     const layer = this.surfacePadLayer;
-    const startX = (SURFACE_RETURN_TILE.x - 4) * TILE_SIZE;
-    const topY = SURFACE_ROW * TILE_SIZE - 10;
-    const width = TILE_SIZE * 9;
+    const groundY = SURFACE_ROW * TILE_SIZE;
+    const hubLeft = (SURFACE_RETURN_TILE.x - SURFACE_HUB_PLATFORM_HALF_WIDTH) * TILE_SIZE;
+    const hubWidth = TILE_SIZE * (SURFACE_HUB_PLATFORM_HALF_WIDTH * 2 + 1);
+    const hubRight = hubLeft + hubWidth;
+    const centerX = SURFACE_RETURN_TILE.x * TILE_SIZE + TILE_SIZE / 2;
+    const boardwalkY = groundY - 12;
+    const leftBuilding = {
+      x: hubLeft + 20,
+      y: groundY - 84,
+      width: 136,
+      height: 68,
+    };
+    const rightBuilding = {
+      x: hubRight - 156,
+      y: groundY - 80,
+      width: 136,
+      height: 64,
+    };
 
-    layer.fillStyle(0x113048, 0.38);
-    layer.fillRoundedRect(startX - 10, topY - 16, width + 20, 44, 14);
-    layer.fillStyle(gameTheme.colors.accentCool, 0.14);
-    layer.fillRoundedRect(startX - 6, topY - 12, width + 12, 36, 12);
-    layer.fillStyle(gameTheme.colors.accentSoft, 0.8);
-    layer.fillRect(startX + 14, topY + 8, width - 28, 3);
+    layer.fillStyle(0x10182b, 0.3);
+    layer.fillRect(hubLeft - 28, 18, hubWidth + 56, groundY - 26);
 
-    for (let index = 0; index < 3; index += 1) {
-      const lightX = startX + 38 + index * 104;
-      layer.fillStyle(gameTheme.colors.accentCool, 0.2);
-      layer.fillCircle(lightX, topY + 10, 11);
-      layer.fillStyle(0xdffffa, 0.95);
-      layer.fillCircle(lightX, topY + 10, 4);
+    this.drawSurfaceHubBuilding(layer, leftBuilding.x, leftBuilding.y, leftBuilding.width, leftBuilding.height, {
+      body: 0x3c2d23,
+      trim: 0x8f6742,
+      roof: 0x71422a,
+      glow: 0xffd39a,
+      panel: 0x241a13,
+    });
+
+    this.drawSurfaceHubBuilding(layer, rightBuilding.x, rightBuilding.y, rightBuilding.width, rightBuilding.height, {
+      body: 0x2e2d34,
+      trim: 0x7d7f8d,
+      roof: 0x4c4d58,
+      glow: 0x8fe7ff,
+      panel: 0x151922,
+    });
+
+    this.drawSurfaceMineFrame(layer, centerX, groundY - 4);
+
+    layer.lineStyle(3, 0x5b4633, 0.95);
+    layer.lineBetween(leftBuilding.x + leftBuilding.width - 8, 74, rightBuilding.x + 8, 74);
+
+    for (let index = 0; index < 5; index += 1) {
+      const lightX = hubLeft + 178 + index * 58;
+      const lightY = 74;
+      layer.fillStyle(0xffdca7, 0.82);
+      layer.fillCircle(lightX, lightY, 3);
+      layer.fillStyle(0xffdca7, 0.14);
+      layer.fillCircle(lightX, lightY, 10);
     }
 
-    const label = this.add.text(
-      startX + width / 2,
-      topY - 30,
-      "BASE SEGURA",
-      makeGameTextStyle({
-        family: "display",
-        color: "#d9fff8",
-        fontSize: "16px",
-        fontStyle: "800",
-        strokeThickness: 4,
-      }),
-    );
-    label.setOrigin(0.5, 0);
-    label.setAlpha(0.72);
+    layer.fillStyle(0x2d2016, 0.98);
+    layer.fillRect(hubLeft - 12, boardwalkY, hubWidth + 24, 16);
+    layer.fillStyle(0x8e633f, 0.98);
+    layer.fillRect(hubLeft - 10, boardwalkY + 2, hubWidth + 20, 3);
+
+    for (let plank = 0; plank < hubWidth + 8; plank += 24) {
+      layer.fillStyle(plank % 48 === 0 ? 0x6c4c31 : 0x7a5638, 0.96);
+      layer.fillRect(hubLeft - 6 + plank, boardwalkY + 5, 18, 8);
+    }
+
+    for (let post = 0; post < 5; post += 1) {
+      const postX = hubLeft + 42 + post * 138;
+      layer.fillStyle(0x47311f, 0.95);
+      layer.fillRect(postX, boardwalkY + 10, 8, 28);
+      layer.fillStyle(0x8f6742, 0.92);
+      layer.fillRect(postX + 1, boardwalkY + 10, 2, 28);
+    }
+
+    this.drawSurfaceLamp(layer, hubLeft + 86, groundY - 8, 0xffd89b);
+    this.drawSurfaceLamp(layer, hubRight - 86, groundY - 8, 0x9fe7ff);
+
+    layer.fillStyle(0x4a3221, 0.96);
+    layer.fillRect(centerX - 26, groundY - 24, 52, 10);
+    layer.fillStyle(0xc9995e, 0.96);
+    layer.fillRect(centerX - 20, groundY - 21, 40, 3);
+
+    this.drawSurfaceCrate(layer, hubLeft + 176, groundY - 18, 26, 22);
+    this.drawSurfaceCrate(layer, hubRight - 214, groundY - 16, 24, 20);
+    this.drawSurfaceCrate(layer, hubRight - 184, groundY - 20, 30, 24);
+
+    layer.fillStyle(0x344a5e, 0.9);
+    layer.fillRect(hubRight - 94, groundY - 56, 10, 36);
+    layer.fillStyle(0x89dff5, 0.82);
+    layer.fillRect(hubRight - 112, groundY - 74, 46, 14);
+    layer.fillStyle(0x182230, 0.95);
+    layer.fillRect(hubRight - 106, groundY - 70, 34, 6);
+    layer.fillStyle(0x89dff5, 0.2);
+    layer.fillRect(hubRight - 118, groundY - 80, 58, 22);
+  }
+
+  private drawSurfaceHubBuilding(
+    layer: Phaser.GameObjects.Graphics,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    palette: {
+      body: number;
+      trim: number;
+      roof: number;
+      glow: number;
+      panel: number;
+    },
+  ) {
+    const roofY = y - 12;
+    const doorWidth = 24;
+    const doorHeight = 32;
+    const doorX = Math.round(x + width / 2 - doorWidth / 2);
+    const doorY = y + height - doorHeight;
+    const windowWidth = 20;
+    const windowHeight = 16;
+    const windowY = y + 24;
+    const leftWindowX = x + 20;
+    const rightWindowX = x + width - 20 - windowWidth;
+    const panelX = x + width / 2 - 18;
+
+    layer.fillStyle(0x06080f, 0.22);
+    layer.fillRect(x + 8, y + 8, width, height);
+
+    layer.fillStyle(palette.body, 0.98);
+    layer.fillRect(x, y, width, height);
+    layer.fillStyle(0x1a130e, 0.95);
+    layer.fillRect(x + 4, y + 4, width - 8, height - 8);
+
+    layer.fillStyle(palette.trim, 0.98);
+    layer.fillRect(x, y, width, 4);
+    layer.fillRect(x, y + height - 4, width, 4);
+    layer.fillRect(x, y, 4, height);
+    layer.fillRect(x + width - 4, y, 4, height);
+    layer.fillRect(x + 10, y + 12, width - 20, 3);
+
+    layer.fillStyle(palette.roof, 0.98);
+    layer.fillRect(x - 8, roofY, width + 16, 12);
+    layer.fillStyle(palette.trim, 0.9);
+    layer.fillRect(x - 4, roofY + 3, width + 8, 3);
+    layer.fillRect(x + 18, roofY - 8, width - 36, 5);
+
+    layer.fillStyle(0x26201a, 0.98);
+    layer.fillRect(doorX, doorY, doorWidth, doorHeight);
+    layer.fillStyle(palette.trim, 0.9);
+    layer.fillRect(doorX, doorY, doorWidth, 3);
+    layer.fillRect(doorX + doorWidth - 5, doorY + 8, 2, 14);
+
+    this.drawSurfaceWindow(layer, leftWindowX, windowY, windowWidth, windowHeight, palette.glow);
+    this.drawSurfaceWindow(layer, rightWindowX, windowY, windowWidth, windowHeight, palette.glow);
+
+    layer.fillStyle(palette.panel, 0.98);
+    layer.fillRect(panelX, roofY + 2, 36, 8);
+    layer.fillStyle(palette.glow, 0.85);
+    layer.fillRect(panelX + 6, roofY + 4, 24, 3);
+  }
+
+  private drawSurfaceWindow(
+    layer: Phaser.GameObjects.Graphics,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    glow: number,
+  ) {
+    layer.fillStyle(0x23170f, 0.98);
+    layer.fillRect(x - 2, y - 2, width + 4, height + 4);
+    layer.fillStyle(glow, 0.92);
+    layer.fillRect(x, y, width, height);
+    layer.fillStyle(0x23170f, 0.95);
+    layer.fillRect(x + Math.floor(width / 2) - 1, y, 2, height);
+    layer.fillRect(x, y + Math.floor(height / 2) - 1, width, 2);
+    layer.fillStyle(glow, 0.12);
+    layer.fillRect(x - 4, y - 4, width + 8, height + 8);
+  }
+
+  private drawSurfaceMineFrame(
+    layer: Phaser.GameObjects.Graphics,
+    centerX: number,
+    baseY: number,
+  ) {
+    const frameTopY = baseY - 56;
+
+    layer.fillStyle(0x4b3422, 0.98);
+    layer.fillRect(centerX - 44, frameTopY, 10, 56);
+    layer.fillRect(centerX + 34, frameTopY, 10, 56);
+    layer.fillRect(centerX - 56, frameTopY, 112, 10);
+    layer.fillRect(centerX - 18, frameTopY - 10, 36, 10);
+
+    layer.fillStyle(0x7f5f3f, 0.95);
+    layer.fillRect(centerX - 40, frameTopY + 4, 2, 48);
+    layer.fillRect(centerX + 38, frameTopY + 4, 2, 48);
+    layer.fillRect(centerX - 50, frameTopY + 3, 100, 2);
+
+    layer.fillStyle(0x1a140f, 0.98);
+    layer.fillRect(centerX - 28, frameTopY + 10, 56, 34);
+    layer.fillStyle(gameTheme.colors.accent, 0.7);
+    layer.fillRect(centerX - 18, frameTopY + 18, 36, 4);
+    layer.fillRect(centerX - 10, frameTopY + 28, 20, 4);
+  }
+
+  private drawSurfaceLamp(
+    layer: Phaser.GameObjects.Graphics,
+    x: number,
+    baseY: number,
+    glowColor: number,
+  ) {
+    layer.fillStyle(0x4a3724, 0.98);
+    layer.fillRect(x - 3, baseY - 42, 6, 42);
+    layer.fillRect(x - 3, baseY - 42, 18, 4);
+    layer.fillStyle(0x23170f, 0.98);
+    layer.fillRect(x + 9, baseY - 37, 10, 14);
+    layer.fillStyle(glowColor, 0.88);
+    layer.fillRect(x + 11, baseY - 35, 6, 10);
+    layer.fillStyle(glowColor, 0.12);
+    layer.fillCircle(x + 14, baseY - 29, 20);
+  }
+
+  private drawSurfaceCrate(
+    layer: Phaser.GameObjects.Graphics,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  ) {
+    layer.fillStyle(0x5b3f28, 0.98);
+    layer.fillRect(x, y, width, height);
+    layer.fillStyle(0x8e633f, 0.94);
+    layer.fillRect(x + 3, y + 3, width - 6, 3);
+    layer.fillRect(x + 3, y + height - 6, width - 6, 3);
+    layer.fillRect(x + width / 2 - 1, y + 4, 2, height - 8);
   }
 
   private drawTileMaterial(
@@ -617,6 +824,7 @@ export class MineScene extends Phaser.Scene {
     this.hud?.destroy();
     this.hud = new MineHud(this, {
       onPauseToggle: () => this.togglePauseOverlay(),
+      onSurfaceReturn: () => this.tryReturnToSurface(),
     });
     this.registerFixedUiElement(this.hud.getRoot());
     this.updateHud();
@@ -627,71 +835,6 @@ export class MineScene extends Phaser.Scene {
     this.goalsPanel = new ExpeditionGoalsPanel(this);
     this.registerFixedUiElement(this.goalsPanel.getRoot());
     this.updateGoalsPanel();
-  }
-
-  private createSurfaceReturnUi() {
-    const buttonX = 78;
-    const buttonY = this.viewportHeight - 54;
-
-    this.surfaceButton = this.add.rectangle(buttonX, buttonY, 116, 30, gameTheme.colors.panelDeep, 0.98);
-    this.surfaceButton.setScrollFactor(0);
-    this.surfaceButton.setStrokeStyle(2, gameTheme.colors.border, 0.95);
-    this.surfaceButton.setDepth(1100);
-    this.surfaceButton.setInteractive({ useHandCursor: true });
-    this.registerFixedUiElement(this.surfaceButton);
-    this.surfaceButton.on("pointerdown", () => {
-      this.tryReturnToSurface();
-    });
-    this.surfaceButton.on("pointerover", () => {
-      this.surfaceButton?.setFillStyle(gameTheme.colors.panelRaised, 1);
-    });
-    this.surfaceButton.on("pointerout", () => {
-      this.updateSurfaceUi();
-    });
-
-    this.surfaceButtonLabel = this.add.text(
-      buttonX,
-      buttonY - 10,
-      "BASE [R]",
-      makeGameTextStyle({
-        family: "display",
-        color: "#dbfdfa",
-        fontSize: "12px",
-        fontStyle: "800",
-        strokeThickness: 3,
-      }),
-    );
-    this.surfaceButtonLabel.setOrigin(0.5, 0);
-    this.surfaceButtonLabel.setScrollFactor(0);
-    this.surfaceButtonLabel.setDepth(1110);
-    this.registerFixedUiElement(this.surfaceButtonLabel);
-
-    this.surfaceStatusText = this.add.text(
-      buttonX,
-      buttonY + 5,
-      "",
-      makeGameTextStyle({
-        color: gameTheme.colors.textSoft,
-        fontSize: "10px",
-        fontStyle: "700",
-        strokeThickness: 2,
-      }),
-    );
-    this.surfaceStatusText.setOrigin(0.5, 0);
-    this.surfaceStatusText.setScrollFactor(0);
-    this.surfaceStatusText.setDepth(1110);
-    this.registerFixedUiElement(this.surfaceStatusText);
-
-    this.updateSurfaceUi();
-  }
-
-  private destroySurfaceReturnUi() {
-    this.surfaceButton?.destroy();
-    this.surfaceButton = undefined;
-    this.surfaceButtonLabel?.destroy();
-    this.surfaceButtonLabel = undefined;
-    this.surfaceStatusText?.destroy();
-    this.surfaceStatusText = undefined;
   }
 
   private applyCameraFraming() {
@@ -1302,8 +1445,6 @@ export class MineScene extends Phaser.Scene {
     this.screenFlash?.setSize(width, height);
     this.updateFixedUiElementLayout(this.screenFlash);
 
-    this.destroySurfaceReturnUi();
-    this.createSurfaceReturnUi();
     this.createHud();
     this.createGoalsPanel();
 
@@ -1312,28 +1453,6 @@ export class MineScene extends Phaser.Scene {
     }
 
     this.drawWorldGrid(true);
-    this.updateSurfaceUi();
-  }
-
-  private updateSurfaceUi() {
-    const atSurface = this.isAtSurface();
-    const locked = this.surfaceReturnLocked;
-    const fillColor = atSurface ? 0x173420 : gameTheme.colors.panelDeep;
-    const borderColor = atSurface ? gameTheme.colors.success : gameTheme.colors.border;
-
-    this.surfaceButton?.setFillStyle(fillColor, locked ? 0.55 : 0.98);
-    this.surfaceButton?.setStrokeStyle(2, borderColor, locked ? 0.55 : 0.95);
-    this.surfaceButton?.setAlpha(locked ? 0.7 : 1);
-
-    this.surfaceButtonLabel?.setColor(atSurface ? "#b8ffd4" : "#dbfdfa");
-    this.surfaceStatusText?.setColor(atSurface ? "#90f0b8" : gameTheme.colors.textSoft);
-    this.surfaceStatusText?.setText(
-      locked
-        ? "subindo..."
-        : atSurface
-          ? "abrigo"
-          : `${Math.max(0, this.player?.position.y ?? 0)}m`,
-    );
   }
 
   private canOccupy(tileX: number, tileY: number) {
@@ -1428,7 +1547,6 @@ export class MineScene extends Phaser.Scene {
     this.rewardComboWindow = 2.6;
     this.rewardLabel = "Retorno seguro";
     this.rewardColor = "#d2fff7";
-    this.updateSurfaceUi();
 
     const camera = this.cameras.main;
 
@@ -1436,6 +1554,9 @@ export class MineScene extends Phaser.Scene {
     this.audioDirector?.playSurfaceReturn();
     this.pulseScreenFlash(gameTheme.colors.accentCool, 0.16, 220);
     camera.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.restoreSurfaceHub();
+      this.groundDirty = true;
+      this.drawWorldGrid(true);
       this.player?.warpToTile(SURFACE_RETURN_TILE);
       if (this.player) {
         this.player.moveCooldown = 0.2;
@@ -1450,7 +1571,6 @@ export class MineScene extends Phaser.Scene {
       camera.fadeIn(220, 7, 14, 22);
       this.surfaceReturnLocked = false;
       this.showSurfaceToast("Base segura alcancada.");
-      this.updateSurfaceUi();
     });
     camera.fadeOut(180, 7, 14, 22);
 
