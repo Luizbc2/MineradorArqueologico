@@ -744,66 +744,64 @@ export class MineScene extends Phaser.Scene {
     width: number,
     height: number,
   ) {
-    const shedWidth = 132;
-    const shedX = Math.round(x + (width - shedWidth) / 2);
-    const roofY = y + 4;
+    const buildingWidth = 128;
+    const buildingX = Math.round(x + (width - buildingWidth) / 2);
+    const roofY = y + 2;
     const bodyY = y + 14;
-    const bodyHeight = 38;
-    const signX = shedX + Math.round(shedWidth / 2) - 18;
-    const shutterWidth = 54;
+    const bodyHeight = 40;
+    const shutterWidth = 46;
     const shutterHeight = 24;
-    const shutterX = shedX + Math.round(shedWidth / 2) - Math.round(shutterWidth / 2);
-    const shutterY = bodyY + 10;
+    const shutterX = buildingX + Math.round(buildingWidth / 2) - Math.round(shutterWidth / 2);
+    const shutterY = bodyY + 12;
+    const windowX = buildingX + 14;
+    const windowY = bodyY + 14;
+    const panelX = buildingX + buildingWidth - 34;
+    const panelY = bodyY + 18;
+    const signX = buildingX + Math.round(buildingWidth / 2) - 16;
 
     layer.fillStyle(0x06080f, 0.2);
-    layer.fillRect(shedX + 8, y + 10, shedWidth, height - 2);
+    layer.fillRect(buildingX + 8, y + 10, buildingWidth, height - 2);
 
     layer.fillStyle(0x4c4d58, 0.98);
-    layer.fillRect(shedX - 8, roofY, shedWidth + 16, 10);
+    layer.fillRect(buildingX - 8, roofY, buildingWidth + 16, 12);
     layer.fillStyle(0x7d7f8d, 0.9);
-    layer.fillRect(shedX - 2, roofY + 2, shedWidth + 4, 3);
-    layer.fillRect(shedX + 18, roofY - 4, shedWidth - 36, 4);
+    layer.fillRect(buildingX - 2, roofY + 3, buildingWidth + 4, 3);
+    layer.fillRect(buildingX + 18, roofY - 5, buildingWidth - 36, 5);
 
-    layer.fillStyle(0x242931, 0.98);
-    layer.fillRect(shedX, bodyY, shedWidth, bodyHeight);
+    layer.fillStyle(0x2a2f38, 0.98);
+    layer.fillRect(buildingX, bodyY, buildingWidth, bodyHeight);
     layer.fillStyle(0x7d7f8d, 0.96);
-    layer.fillRect(shedX, bodyY, shedWidth, 4);
-    layer.fillRect(shedX, bodyY, 4, bodyHeight);
-    layer.fillRect(shedX + shedWidth - 4, bodyY, 4, bodyHeight);
-    layer.fillRect(shedX, bodyY + bodyHeight - 4, shedWidth, 4);
+    layer.fillRect(buildingX, bodyY, buildingWidth, 4);
+    layer.fillRect(buildingX, bodyY, 4, bodyHeight);
+    layer.fillRect(buildingX + buildingWidth - 4, bodyY, 4, bodyHeight);
+    layer.fillRect(buildingX, bodyY + bodyHeight - 4, buildingWidth, 4);
+    layer.fillRect(buildingX + 12, bodyY + 10, buildingWidth - 24, 2);
 
     layer.fillStyle(0x151922, 0.98);
-    layer.fillRect(signX, roofY - 8, 36, 8);
-    layer.fillStyle(0x8fe7ff, 0.88);
-    layer.fillRect(signX + 7, roofY - 5, 12, 2);
-    layer.fillRect(signX + 21, roofY - 6, 2, 4);
-    layer.fillRect(signX + 19, roofY - 4, 6, 2);
+    layer.fillRect(signX, roofY - 9, 32, 8);
+    layer.fillStyle(0x8fe7ff, 0.9);
+    layer.fillRect(signX + 7, roofY - 6, 18, 2);
 
-    layer.fillStyle(0x1a2028, 0.98);
+    this.drawSurfaceWindow(layer, windowX, windowY, 18, 16, 0x8fe7ff);
+
+    layer.fillStyle(0x1b222b, 0.98);
     layer.fillRect(shutterX, shutterY, shutterWidth, shutterHeight);
     layer.fillStyle(0x5c6674, 0.94);
     for (let slat = 0; slat < shutterHeight; slat += 6) {
       layer.fillRect(shutterX + 2, shutterY + slat, shutterWidth - 4, 2);
     }
 
-    layer.fillStyle(0x6b7582, 0.96);
-    layer.fillRect(shedX + 14, bodyY + 12, 18, 20);
-    layer.fillRect(shedX + 18, bodyY + 16, 10, 2);
-    layer.fillRect(shedX + 18, bodyY + 22, 10, 2);
-    layer.fillRect(shedX + 18, bodyY + 28, 10, 2);
-
-    layer.fillStyle(0x11161d, 0.98);
-    layer.fillRect(shedX + shedWidth - 40, bodyY + 18, 22, 14);
-    layer.fillStyle(0x89dff5, 0.85);
-    layer.fillRect(shedX + shedWidth - 36, bodyY + 22, 14, 3);
+    layer.fillStyle(0x181d24, 0.98);
+    layer.fillRect(panelX, panelY, 20, 14);
+    layer.fillStyle(0x89dff5, 0.86);
+    layer.fillRect(panelX + 4, panelY + 4, 12, 3);
 
     layer.fillStyle(0x7d7f8d, 0.96);
-    layer.fillRect(shedX + shedWidth - 24, roofY - 10, 6, 18);
-    layer.fillRect(shedX + shedWidth - 28, roofY - 10, 14, 4);
+    layer.fillRect(buildingX + buildingWidth - 26, roofY - 8, 6, 18);
+    layer.fillRect(buildingX + buildingWidth - 30, roofY - 8, 14, 4);
 
-    layer.fillStyle(0x8f6742, 0.98);
-    layer.fillRect(shedX + 10, y + height - 8, 20, 8);
-    layer.fillRect(shedX + 36, y + height - 10, 24, 10);
+    this.drawSurfaceCrate(layer, buildingX + 8, y + height - 18, 18, 18);
+    this.drawSurfaceCrate(layer, buildingX + 30, y + height - 16, 16, 16);
   }
 
   private drawSurfaceWindow(
