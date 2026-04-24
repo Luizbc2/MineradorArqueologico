@@ -9,6 +9,7 @@ export type PlayerTilePosition = {
 
 export class PlayerMiner {
   readonly sprite: Phaser.GameObjects.Container;
+  private readonly standingOffsetY = -9;
 
   private readonly dustShadow: Phaser.GameObjects.Ellipse;
   private readonly rig: Phaser.GameObjects.Container;
@@ -121,13 +122,13 @@ export class PlayerMiner {
     const xDelta = Math.abs(this.targetX - this.sprite.x);
     const yDelta = Math.abs(this.targetY - this.sprite.y);
     const locomotion = Phaser.Math.Clamp((xDelta + yDelta) / 10, 0, 1);
-    const idleBob = Math.sin(this.animationTime * 4.8) * 1.6;
+    const idleBob = -Math.abs(Math.sin(this.animationTime * 4.8)) * 1.1;
     const walkSwing = Math.sin(this.animationTime * 14) * (2.8 * locomotion + this.stepKick);
     const fallLean = this.falling ? Phaser.Math.Linear(this.rig.rotation, -0.18, 0.26) : Phaser.Math.Linear(this.rig.rotation, 0, 0.2);
     const miningSwing = this.mining ? Math.sin(this.animationTime * 22) * 0.95 : 0;
     const miningLift = this.mining ? Math.abs(Math.sin(this.animationTime * 22)) * 2.5 : 0;
 
-    this.rig.y = idleBob - miningLift;
+    this.rig.y = this.standingOffsetY + idleBob - miningLift;
     this.rig.rotation = this.falling ? fallLean : walkSwing * 0.01;
     this.dustShadow.scaleX = 1 + locomotion * 0.14;
     this.dustShadow.scaleY = 1 - locomotion * 0.08;
