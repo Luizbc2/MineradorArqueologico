@@ -109,9 +109,9 @@ export class MineScene extends Phaser.Scene {
   private rewardLabel = "Mina fria";
   private rewardColor: string = gameTheme.colors.textSoft;
   private manualZoomOffset = 0;
-  private readonly zoomStep = 0.04;
-  private readonly minCameraZoom = 1.05;
-  private readonly maxCameraZoom = 1.38;
+  private readonly zoomStep = 1;
+  private readonly minCameraZoom = 1;
+  private readonly maxCameraZoom = 1;
   private readonly zoomSmoothing = 10;
   private surfaceReturnLocked = false;
   private lastAppliedDepth = -1;
@@ -138,11 +138,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   private getGameplayZoom() {
-    const widthProgress = Phaser.Math.Clamp((this.viewportWidth - VIEWPORT_WIDTH) / 1280, 0, 1);
-    const heightProgress = Phaser.Math.Clamp((this.viewportHeight - VIEWPORT_HEIGHT) / 720, 0, 1);
-    const zoomProgress = Math.max(widthProgress, heightProgress);
-
-    return Phaser.Math.Linear(1, 1.05, zoomProgress);
+    return 1;
   }
 
   private getTargetCameraZoom() {
@@ -154,10 +150,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   private getMinimumCameraZoom() {
-    const widthBoundZoom = this.viewportWidth / WORLD_WIDTH_PX;
-    const heightBoundZoom = this.viewportHeight / WORLD_HEIGHT_PX;
-
-    return Math.max(this.minCameraZoom, widthBoundZoom, heightBoundZoom);
+    return 1;
   }
 
   create() {
@@ -863,6 +856,7 @@ export class MineScene extends Phaser.Scene {
     }
 
     const camera = this.cameras.main;
+    camera.setRoundPixels(true);
     camera.setDeadzone(
       Math.min(this.viewportWidth * 0.12, 160),
       Math.min(this.viewportHeight * 0.1, 96),
