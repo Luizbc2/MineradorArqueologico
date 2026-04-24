@@ -1369,9 +1369,10 @@ export class MineScene extends Phaser.Scene {
         this.rewardComboWindow > 0
           ? Phaser.Math.Clamp(this.rewardComboTimer / this.rewardComboWindow, 0, 1)
           : 0,
-      comboLabel: this.rewardLabel,
       comboColor: this.rewardColor,
       inventory: this.inventory,
+      atSurface: this.isAtSurface(),
+      surfaceReturnLocked: this.surfaceReturnLocked,
     });
   }
 
