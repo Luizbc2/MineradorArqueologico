@@ -753,17 +753,20 @@ export class MineScene extends Phaser.Scene {
   ) {
     const material = tilePalette[kind];
     const variant = this.sampleTileVariant(gridX, gridY);
-    const inset = kind === "chest" ? 3 : 1;
-    const width = TILE_SIZE - inset * 2;
+    const borderSize = 1;
+    const innerSize = TILE_SIZE - borderSize * 2;
+
+    ground.fillStyle(0x111827, Math.min(0.9, depthTint * 0.62 + 0.18));
+    ground.fillRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
 
     ground.fillStyle(material.base, depthTint);
-    ground.fillRect(tileX + inset, tileY + inset, width, width);
+    ground.fillRect(tileX + borderSize, tileY + borderSize, innerSize, innerSize);
 
     ground.fillStyle(material.top, depthTint * 0.86);
-    ground.fillRect(tileX + inset, tileY + inset, width, 4);
+    ground.fillRect(tileX + borderSize, tileY + borderSize, innerSize, 4);
 
     ground.fillStyle(material.edge, depthTint * 0.84);
-    ground.fillRect(tileX + inset, tileY + TILE_SIZE - 5, width, 4);
+    ground.fillRect(tileX + borderSize, tileY + TILE_SIZE - 5, innerSize, 4);
 
     if (kind === "dirt" || kind === "stone" || kind === "bedrock") {
       for (let dot = 0; dot < 3; dot += 1) {
