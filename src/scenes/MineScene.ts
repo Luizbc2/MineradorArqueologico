@@ -1838,7 +1838,6 @@ export class MineScene extends Phaser.Scene {
 
     if (
       !grounded ||
-      this.player.moveCooldown > 0 ||
       this.player.fallCooldown > 0 ||
       !this.canOccupy(this.player.position.x, this.player.position.y - 1)
     ) {
