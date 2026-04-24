@@ -113,6 +113,7 @@ export class MineScene extends Phaser.Scene {
   };
   private atmosphereLayer?: Phaser.GameObjects.Graphics;
   private effectLayer?: Phaser.GameObjects.Graphics;
+  private mouseTargetLayer?: Phaser.GameObjects.Graphics;
   private screenFlash?: Phaser.GameObjects.Rectangle;
   private surfacePadLayer?: Phaser.GameObjects.Graphics;
   private surfaceVillageHubSprite?: Phaser.GameObjects.Image;
@@ -265,6 +266,7 @@ export class MineScene extends Phaser.Scene {
 
     const deltaSeconds = delta / 1000;
     this.updateSurfacePrompt();
+    this.updateMouseMiningPreview();
 
     if (this.archaeologyOverlay?.isVisible) {
       if (Phaser.Input.Keyboard.JustDown(this.escapeKey!) || Phaser.Input.Keyboard.JustDown(this.interactKey!)) {
@@ -1325,23 +1327,31 @@ export class MineScene extends Phaser.Scene {
       return null;
     }
 
-    const pointer = this.input.activePointer;
-
-    if (!pointer?.leftButtonDown()) {
+    if (!this.input.activePointer?.leftButtonDown()) {
       return null;
     }
 
-    const worldPoint = pointer.positionToCamera(this.cameras.main) as Phaser.Math.Vector2;
-    const target = {
-      x: Math.floor(worldPoint.x / TILE_SIZE),
-      y: Math.floor(worldPoint.y / TILE_SIZE),
-    };
+    const target = this.getMouseMiningTile();
 
-    if (!this.isMiningTargetInReach(target.x, target.y)) {
+    if (!target || !this.isMiningTargetInReach(target.x, target.y)) {
       return null;
     }
 
     return target;
+  }
+
+  private getMouseMiningTile() {
+    const pointer = this.input.activePointer;
+
+    if (!pointer) {
+      return null;
+    }
+
+    const worldPoint = pointer.positionToCamera(this.cameras.main) as Phaser.Math.Vector2;
+    return {
+      x: Math.floor(worldPoint.x / TILE_SIZE),
+      y: Math.floor(worldPoint.y / TILE_SIZE),
+    };
   }
 
   private isMiningTargetInReach(tileX: number, tileY: number) {
@@ -1361,6 +1371,48 @@ export class MineScene extends Phaser.Scene {
     const deltaX = Math.abs(tileX - this.player.position.x);
     const deltaY = Math.abs(tileY - this.player.position.y);
     return deltaX <= MOUSE_MINING_REACH_TILES && deltaY <= MOUSE_MINING_REACH_TILES;
+  }
+
+  private updateMouseMiningPreview() {
+    if (!this.mouseTargetLayer) {
+      this.mouseTargetLayer = this.add.graphics();
+    }
+
+    this.mouseTargetLayer.clear();
+
+    if (
+      !this.player ||
+      this.miningTarget ||
+      this.pauseOverlay?.isVisible ||
+      this.archaeologyOverlay?.isVisible ||
+      this.upgradeOverlay?.isVisible ||
+      this.vendorOverlay?.isVisible
+    ) {
+      return;
+    }
+
+    const target = this.getMouseMiningTile();
+
+    if (!target || !this.isMiningTargetInReach(target.x, target.y)) {
+      return;
+    }
+
+    const tile = this.worldGrid[target.y]?.[target.x];
+
+    if (!tile || !this.isMineable(tile.kind)) {
+      return;
+    }
+
+    const material = tilePalette[tile.kind];
+    const tileX = target.x * TILE_SIZE;
+    const tileY = target.y * TILE_SIZE;
+    const pulse = 0.42 + Math.sin(this.time.now / 120) * 0.1;
+    const color = material.glow ?? material.detail;
+
+    this.mouseTargetLayer.lineStyle(2, color, pulse);
+    this.mouseTargetLayer.strokeRect(tileX + 3, tileY + 3, TILE_SIZE - 6, TILE_SIZE - 6);
+    this.mouseTargetLayer.fillStyle(color, 0.04);
+    this.mouseTargetLayer.fillRect(tileX + 4, tileY + 4, TILE_SIZE - 8, TILE_SIZE - 8);
   }
 
   private drawMiningOverlay() {
