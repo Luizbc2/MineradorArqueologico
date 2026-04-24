@@ -339,9 +339,11 @@ export class MineScene extends Phaser.Scene {
     this.player.update(deltaSeconds);
     this.updateCameraZoom(deltaSeconds);
 
-    if (this.player.position.y !== this.lastAppliedDepth) {
-      this.lastAppliedDepth = this.player.position.y;
-      this.syncExpeditionProgress(this.expeditionProgression.applyDepth(this.player.position.y));
+    const currentDepth = this.getSurfaceDepth(this.player.position.y);
+
+    if (currentDepth !== this.lastAppliedDepth) {
+      this.lastAppliedDepth = currentDepth;
+      this.syncExpeditionProgress(this.expeditionProgression.applyDepth(currentDepth));
     }
 
     this.updateRewardLoop(deltaSeconds);
@@ -1492,7 +1494,7 @@ export class MineScene extends Phaser.Scene {
     }
 
     this.hud.update({
-      depth: this.player.position.y,
+      depth: this.getSurfaceDepth(this.player.position.y),
       energy: this.energy,
       pickaxeLevel: this.pickaxeLevel,
       cardsFound: this.archaeologyDeck.collectedCount,
@@ -1537,6 +1539,10 @@ export class MineScene extends Phaser.Scene {
     return Boolean(this.player && this.player.position.y <= SURFACE_RETURN_TILE.y);
   }
 
+  private getSurfaceDepth(tileY: number) {
+    return Math.max(0, tileY - SURFACE_RETURN_TILE.y);
+  }
+
   private tryReturnToSurface() {
     if (
       !this.player ||
@@ -1554,7 +1560,7 @@ export class MineScene extends Phaser.Scene {
     }
 
     this.surfaceReturnLocked = true;
-    const departureDepth = this.player.position.y;
+    const departureDepth = this.getSurfaceDepth(this.player.position.y);
     this.clearMiningTarget();
     this.rewardComboCount = 0;
     this.rewardComboTimer = 0;
