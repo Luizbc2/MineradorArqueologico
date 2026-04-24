@@ -147,41 +147,30 @@ export class PlayerMiner {
     const jumpLift = jumpRatio * 4;
     const miningSwing = this.mining ? Math.sin(this.animationTime * 22) * 0.95 : 0;
     const miningLift = this.mining ? Math.abs(Math.sin(this.animationTime * 22)) * 2.5 : 0;
+    const runFrame = Math.floor(this.animationTime * 10) % 4;
 
     this.rig.y = this.standingOffsetY + idleBob - miningLift - jumpLift + landingRatio * 2;
-    this.rig.rotation = this.falling ? fallLean : walkSwing * 0.003 - jumpRatio * 0.08;
+    this.rig.rotation = this.falling ? fallLean : (moving ? (runFrame % 2 === 0 ? -0.045 : 0.045) : 0) - jumpRatio * 0.08;
     this.rig.scaleX = 1 + landingRatio * 0.08;
     this.rig.scaleY = 1 - landingRatio * 0.1;
     this.dustShadow.scaleX = 1 + locomotion * 0.18 + landingRatio * 0.28;
     this.dustShadow.scaleY = 1 - locomotion * 0.1 - landingRatio * 0.1;
     this.dustShadow.alpha = 0.34 + locomotion * 0.14 + landingRatio * 0.16;
 
+    this.applyBasePose();
+
     if (this.falling) {
-      this.leftLeg.rotation = Phaser.Math.DegToRad(-8);
-      this.rightLeg.rotation = Phaser.Math.DegToRad(10);
-      this.leftLeg.y = 15;
-      this.rightLeg.y = 15;
+      this.applyFallPose();
     } else if (jumpRatio > 0) {
-      this.leftLeg.rotation = Phaser.Math.DegToRad(-26);
-      this.rightLeg.rotation = Phaser.Math.DegToRad(24);
-      this.leftLeg.y = 12;
-      this.rightLeg.y = 12;
-    } else {
-      this.leftLeg.rotation = Phaser.Math.DegToRad(walkSwing);
-      this.rightLeg.rotation = Phaser.Math.DegToRad(-walkSwing);
-      this.leftLeg.y = 14 + Math.max(0, -walkSwing) * 0.08 - landingRatio;
-      this.rightLeg.y = 14 + Math.max(0, walkSwing) * 0.08 - landingRatio;
+      this.applyJumpPose(jumpRatio);
+    } else if (moving) {
+      this.applyRunPose(runFrame, landingRatio);
     }
 
-    const leftArmRun = -walkSwing * 0.8;
-    const rightArmRun = walkSwing * 0.6 + 10;
-    const leftArmAir = this.falling ? -18 : -34 * jumpRatio;
-    const rightArmAir = this.falling ? 28 : -22 * jumpRatio;
-
-    this.leftArm.rotation = Phaser.Math.DegToRad(airborne ? leftArmAir : leftArmRun);
-    this.rightArm.rotation = Phaser.Math.DegToRad(
-      this.mining ? -68 + miningSwing * 14 : airborne ? rightArmAir : rightArmRun,
-    );
+    if (this.mining) {
+      this.rightArm.rotation = Phaser.Math.DegToRad(-76 + miningSwing * 16);
+      this.rightArm.x = 9 + Math.abs(miningSwing) * 2;
+    }
 
     this.pickaxeHandle.rotation = this.rightArm.rotation;
     this.pickaxeHead.rotation = this.rightArm.rotation;
@@ -196,6 +185,90 @@ export class PlayerMiner {
     this.lamp.alpha = 0.82 + Math.sin(this.animationTime * 10) * 0.12;
     this.lamp.scaleX = 1 + Math.sin(this.animationTime * 8.5) * 0.06;
     this.lamp.scaleY = 1 + Math.cos(this.animationTime * 8.5) * 0.06;
+  }
+
+  private applyBasePose() {
+    this.leftLeg.x = -4;
+    this.leftLeg.y = 14;
+    this.leftLeg.rotation = 0;
+    this.leftLeg.scaleY = 1;
+
+    this.rightLeg.x = 4;
+    this.rightLeg.y = 14;
+    this.rightLeg.rotation = 0;
+    this.rightLeg.scaleY = 1;
+
+    this.leftArm.x = -9;
+    this.leftArm.y = 5;
+    this.leftArm.rotation = Phaser.Math.DegToRad(-4);
+
+    this.rightArm.x = 9;
+    this.rightArm.y = 4;
+    this.rightArm.rotation = Phaser.Math.DegToRad(10);
+  }
+
+  private applyRunPose(frame: number, landingRatio: number) {
+    const forward = frame === 0 || frame === 3;
+    const stride = forward ? 1 : -1;
+    const lift = frame === 1 || frame === 3 ? 2 : 0;
+
+    this.leftLeg.x = -5 - stride;
+    this.leftLeg.y = 14 - lift - landingRatio;
+    this.leftLeg.rotation = Phaser.Math.DegToRad(28 * stride);
+    this.leftLeg.scaleY = forward ? 1.12 : 0.92;
+
+    this.rightLeg.x = 5 + stride;
+    this.rightLeg.y = 14 - (2 - lift) - landingRatio;
+    this.rightLeg.rotation = Phaser.Math.DegToRad(-30 * stride);
+    this.rightLeg.scaleY = forward ? 0.92 : 1.12;
+
+    this.leftArm.x = -10 + stride;
+    this.leftArm.y = 5;
+    this.leftArm.rotation = Phaser.Math.DegToRad(-34 * stride);
+
+    this.rightArm.x = 10 - stride;
+    this.rightArm.y = 4;
+    this.rightArm.rotation = Phaser.Math.DegToRad(34 * stride + 8);
+  }
+
+  private applyJumpPose(jumpRatio: number) {
+    this.leftLeg.x = -5;
+    this.leftLeg.y = 12;
+    this.leftLeg.rotation = Phaser.Math.DegToRad(-38);
+    this.leftLeg.scaleY = 0.92;
+
+    this.rightLeg.x = 5;
+    this.rightLeg.y = 12;
+    this.rightLeg.rotation = Phaser.Math.DegToRad(36);
+    this.rightLeg.scaleY = 0.92;
+
+    this.leftArm.x = -10;
+    this.leftArm.y = 3;
+    this.leftArm.rotation = Phaser.Math.DegToRad(-46 * jumpRatio);
+
+    this.rightArm.x = 9;
+    this.rightArm.y = 2;
+    this.rightArm.rotation = Phaser.Math.DegToRad(-28 * jumpRatio + 8);
+  }
+
+  private applyFallPose() {
+    this.leftLeg.x = -5;
+    this.leftLeg.y = 15;
+    this.leftLeg.rotation = Phaser.Math.DegToRad(12);
+    this.leftLeg.scaleY = 1.08;
+
+    this.rightLeg.x = 5;
+    this.rightLeg.y = 15;
+    this.rightLeg.rotation = Phaser.Math.DegToRad(-14);
+    this.rightLeg.scaleY = 1.08;
+
+    this.leftArm.x = -10;
+    this.leftArm.y = 6;
+    this.leftArm.rotation = Phaser.Math.DegToRad(-24);
+
+    this.rightArm.x = 10;
+    this.rightArm.y = 6;
+    this.rightArm.rotation = Phaser.Math.DegToRad(32);
   }
 
   snapToTile(nextPosition: PlayerTilePosition) {
