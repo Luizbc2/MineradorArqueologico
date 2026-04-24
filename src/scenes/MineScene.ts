@@ -38,6 +38,7 @@ import {
   WORLD_HEIGHT_PX,
   WORLD_HEIGHT_TILES,
   WORLD_WIDTH_PX,
+  WORLD_WIDTH_TILES,
 } from "../game/world/constants";
 import { tilePalette } from "../game/world/tilePalette";
 import { tileDefinitions } from "../game/world/tileDefinitions";
@@ -72,6 +73,10 @@ const SURFACE_VENDOR_PLOT = {
 const SURFACE_WORKSHOP_PLOT = {
   startX: 51,
   endX: 57,
+} as const;
+const SURFACE_BASE_CLEAR_ZONE = {
+  startX: Math.max(0, SURFACE_VENDOR_PLOT.startX - 1),
+  endX: Math.min(WORLD_WIDTH_TILES - 1, SURFACE_WORKSHOP_PLOT.endX + 1),
 } as const;
 
 export class MineScene extends Phaser.Scene {
@@ -371,61 +376,28 @@ export class MineScene extends Phaser.Scene {
   }
 
   private prepareSurfaceSafeZone() {
-    const airZones = [
-      {
-        startX: SURFACE_RETURN_TILE.x - SURFACE_HUB_CLEAR_HALF_WIDTH,
-        endX: SURFACE_RETURN_TILE.x + SURFACE_HUB_CLEAR_HALF_WIDTH,
-      },
-      SURFACE_VENDOR_PLOT,
-      SURFACE_WORKSHOP_PLOT,
-    ];
-
     for (let y = 0; y <= SURFACE_ROW - 1; y += 1) {
-      for (const zone of airZones) {
-        for (let x = zone.startX; x <= zone.endX; x += 1) {
-          if (this.worldGrid[y]?.[x]) {
-            this.worldGrid[y][x] = { kind: "empty" };
-          }
+      for (let x = SURFACE_BASE_CLEAR_ZONE.startX; x <= SURFACE_BASE_CLEAR_ZONE.endX; x += 1) {
+        if (this.worldGrid[y]?.[x]) {
+          this.worldGrid[y][x] = { kind: "empty" };
         }
       }
     }
   }
 
   private restoreSurfaceHubFloor() {
-    const floorZones = [
-      {
-        startX: SURFACE_RETURN_TILE.x - SURFACE_HUB_PLATFORM_HALF_WIDTH,
-        endX: SURFACE_RETURN_TILE.x + SURFACE_HUB_PLATFORM_HALF_WIDTH,
-      },
-      SURFACE_VENDOR_PLOT,
-      SURFACE_WORKSHOP_PLOT,
-    ];
-
-    for (const zone of floorZones) {
-      for (let x = zone.startX; x <= zone.endX; x += 1) {
-        if (this.worldGrid[SURFACE_ROW]?.[x]) {
-          this.worldGrid[SURFACE_ROW][x] = { kind: "stone" };
-        }
+    for (let x = SURFACE_BASE_CLEAR_ZONE.startX; x <= SURFACE_BASE_CLEAR_ZONE.endX; x += 1) {
+      if (this.worldGrid[SURFACE_ROW]?.[x]) {
+        this.worldGrid[SURFACE_ROW][x] = { kind: "stone" };
       }
     }
   }
 
   private restoreSurfaceHub() {
-    const airZones = [
-      {
-        startX: SURFACE_RETURN_TILE.x - SURFACE_HUB_CLEAR_HALF_WIDTH,
-        endX: SURFACE_RETURN_TILE.x + SURFACE_HUB_CLEAR_HALF_WIDTH,
-      },
-      SURFACE_VENDOR_PLOT,
-      SURFACE_WORKSHOP_PLOT,
-    ];
-
     for (let y = 0; y <= SURFACE_ROW - 1; y += 1) {
-      for (const zone of airZones) {
-        for (let x = zone.startX; x <= zone.endX; x += 1) {
-          if (this.worldGrid[y]?.[x]) {
-            this.worldGrid[y][x] = { kind: "empty" };
-          }
+      for (let x = SURFACE_BASE_CLEAR_ZONE.startX; x <= SURFACE_BASE_CLEAR_ZONE.endX; x += 1) {
+        if (this.worldGrid[y]?.[x]) {
+          this.worldGrid[y][x] = { kind: "empty" };
         }
       }
     }
