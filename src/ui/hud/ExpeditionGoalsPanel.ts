@@ -49,7 +49,7 @@ export class ExpeditionGoalsPanel {
 
     this.scope = createHudScope("game-hud-scope--missions");
 
-    this.toggleButton = createHudButton("MISSOES", "missions", "accent");
+    this.toggleButton = createHudButton("MISSÕES", "missions", "accent");
     setHudRect(this.toggleButton, layout.missionButton);
     this.toggleButton.addEventListener("click", (event) => {
       event.preventDefault();
@@ -57,7 +57,7 @@ export class ExpeditionGoalsPanel {
       this.setOpen(!this.isOpen);
     });
 
-    this.panel = createHudPanel("MISSOES", "down", "accent");
+    this.panel = createHudPanel("MISSÕES", "down", "accent");
     setHudRect(this.panel, layout.missionPanel);
 
     const closeButton = createHudIconButton("close");
@@ -76,7 +76,7 @@ export class ExpeditionGoalsPanel {
     this.activeDescription = createHudElement(
       "div",
       "game-hud-mission__description",
-      "Atinga a proxima meta para acelerar a expedicao.",
+      "Atinga a próxima meta para acelerar a expedição.",
     );
 
     const progressHeader = createHudElement("div", "game-hud-mission__progress-row");
@@ -95,7 +95,7 @@ export class ExpeditionGoalsPanel {
     this.rewardText = createHudElement("div", "game-hud-reward__value", "Combo +0.20s");
     rewardCard.append(this.rewardText);
 
-    this.perkText = createHudElement("div", "game-hud-mission__foot", "Bonus atual: sem perks ativos");
+    this.perkText = createHudElement("div", "game-hud-mission__foot", "Bônus atual: sem bônus ativos");
     this.nextGoalText = createHudElement("div", "game-hud-mission__foot game-hud-mission__foot--muted", "Depois: continue cavando");
 
     body.append(
@@ -122,12 +122,12 @@ export class ExpeditionGoalsPanel {
     const nextGoal = snapshot.nextGoal;
 
     this.overviewText.textContent = snapshot.progressLabel;
-    this.activeTitle.textContent = activeGoal?.title ?? "Ciclo concluido";
+    this.activeTitle.textContent = activeGoal?.title ?? "Ciclo concluído";
     this.activeDescription.textContent = activeGoal?.description
-      ?? "Voce concluiu as metas atuais. Explore mais fundo para o proximo ciclo.";
+      ?? "Você concluiu as metas atuais. Explore mais fundo para o próximo ciclo.";
     this.progressValue.textContent = activeGoal ? `${activeGoal.current}/${activeGoal.target}` : "MAX";
     this.rewardText.textContent = activeGoal?.rewardLabel ?? "Ciclo completo";
-    this.perkText.textContent = `Bonus atual: ${snapshot.perkSummary}`;
+    this.perkText.textContent = `Bônus atual: ${snapshot.perkSummary}`;
     this.nextGoalText.textContent = nextGoal
       ? `Depois: ${nextGoal.title}`
       : "Depois: nenhuma meta pendente";

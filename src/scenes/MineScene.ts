@@ -1555,7 +1555,7 @@ export class MineScene extends Phaser.Scene {
     }
 
     if (this.isAtSurface()) {
-      this.showSurfaceToast("Voce ja esta na base.");
+      this.showSurfaceToast("Você já está na base.");
       return false;
     }
 
@@ -1590,7 +1590,7 @@ export class MineScene extends Phaser.Scene {
       camera.centerOn(this.player!.sprite.x, this.player!.sprite.y);
       camera.fadeIn(220, 7, 14, 22);
       this.surfaceReturnLocked = false;
-      this.showSurfaceToast("Base segura alcancada.");
+      this.showSurfaceToast("Base segura alcançada.");
     });
     camera.fadeOut(180, 7, 14, 22);
 

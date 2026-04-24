@@ -104,7 +104,7 @@ export class MineHud {
     const backpackBody = createHudElement("div", "game-hud-panel__body");
     const resourceGrid = createHudElement("div", "game-hud-resource-grid");
 
-    const coal = createHudResourceSlot("Carvao", "resource-coal");
+    const coal = createHudResourceSlot("Carvão", "resource-coal");
     const iron = createHudResourceSlot("Ferro", "resource-iron");
     const gold = createHudResourceSlot("Ouro", "resource-gold");
     const diamond = createHudResourceSlot("Diamante", "resource-diamond");

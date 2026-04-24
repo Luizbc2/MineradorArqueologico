@@ -77,9 +77,9 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
   },
   {
     id: "collect-coal",
-    title: "Pulmao da Mina",
-    description: "Colete 8 unidades de carvao.",
-    rewardLabel: "Mineracao +6%",
+    title: "Pulmão da Mina",
+    description: "Colete 8 unidades de carvão.",
+    rewardLabel: "Mineração +6%",
     type: "resource",
     resource: "coal",
     target: 8,
@@ -88,7 +88,7 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
   {
     id: "open-chest",
     title: "Olho de Curador",
-    description: "Abra 1 bau arqueologico.",
+    description: "Abra 1 baú arqueológico.",
     rewardLabel: "Brilho raro +15%",
     type: "chest",
     target: 1,
@@ -96,7 +96,7 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
   },
   {
     id: "find-cards",
-    title: "Memoria Viva",
+    title: "Memória Viva",
     description: "Encontre 3 cards do codex.",
     rewardLabel: "Combo +0.20s",
     type: "card",
@@ -115,8 +115,8 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
   {
     id: "upgrade-pickaxe",
     title: "Ferramenta Firme",
-    description: "Leve a picareta ao nivel 2.",
-    rewardLabel: "Mineracao +8%",
+    description: "Leve a picareta ao nível 2.",
+    rewardLabel: "Mineração +8%",
     type: "pickaxe",
     target: 2,
     perk: { miningSpeedBonus: 0.08 },
@@ -295,7 +295,7 @@ function buildPerkSummary(perks: ExpeditionPerks) {
   }
 
   if (perks.miningSpeedBonus > 0) {
-    parts.push(`Miner +${Math.round(perks.miningSpeedBonus * 100)}%`);
+    parts.push(`Mineração +${Math.round(perks.miningSpeedBonus * 100)}%`);
   }
 
   if (perks.moveTempoBonus > 0) {
@@ -303,8 +303,8 @@ function buildPerkSummary(perks: ExpeditionPerks) {
   }
 
   if (perks.rareGlowBonus > 0) {
-    parts.push(`Glow +${Math.round(perks.rareGlowBonus * 100)}%`);
+    parts.push(`Brilho +${Math.round(perks.rareGlowBonus * 100)}%`);
   }
 
-  return parts.length > 0 ? parts.join(" • ") : "Sem perks ativos";
+  return parts.length > 0 ? parts.join(" • ") : "Sem bônus ativos";
 }

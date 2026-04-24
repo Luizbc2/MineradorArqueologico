@@ -21,21 +21,21 @@ export class PauseOverlay {
 
     const card = createHudElement("div", "game-modal-card game-modal-card--pause");
     const accent = createHudElement("div", "game-modal-card__accent");
-    const title = createHudElement("h2", "game-modal-card__title", "PAUSA DA EXPEDICAO");
+    const title = createHudElement("h2", "game-modal-card__title", "PAUSA DA EXPEDIÇÃO");
     const subtitle = createHudElement(
       "p",
       "game-modal-card__subtitle",
-      "Respire, confira a rota e volte para o tunel quando quiser.",
+      "Respire, confira a rota e volte para o túnel quando quiser.",
     );
 
     const controls = createHudElement("section", "game-modal-section");
-    controls.append(createHudElement("div", "game-modal-section__title", "ATALHOS RAPIDOS"));
+    controls.append(createHudElement("div", "game-modal-section__title", "ATALHOS RÁPIDOS"));
 
     const controlsList = createHudElement("div", "game-modal-controls");
     controlsList.append(
-      createPauseShortcut("ESC", "pausa ou retoma a expedicao"),
-      createPauseShortcut("E", "interage com bau ou registro"),
-      createPauseShortcut("U", "abre a forja na superficie"),
+      createPauseShortcut("ESC", "pausa ou retoma a expedição"),
+      createPauseShortcut("E", "interage com baú ou registro"),
+      createPauseShortcut("U", "abre a forja na superfície"),
       createPauseShortcut("R", "retorna para a base segura"),
     );
     controls.append(controlsList);
@@ -43,7 +43,7 @@ export class PauseOverlay {
     const roadmap = createHudElement(
       "div",
       "game-modal-note",
-      "Configuracoes e opcoes avancadas chegam no proximo passo.",
+      "Configurações e opções avançadas chegam no próximo passo.",
     );
 
     const actions = createHudElement("div", "game-modal-actions");
@@ -55,7 +55,7 @@ export class PauseOverlay {
     const hint = createHudElement(
       "div",
       "game-modal-hint",
-      "Pressione ESC para voltar para a expedicao",
+      "Pressione ESC para voltar para a expedição",
     );
 
     card.append(accent, title, subtitle, controls, roadmap, actions, hint);

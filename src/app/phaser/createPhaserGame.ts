@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { PHASER_ROOT_ID, phaserGameConfig } from "./gameConfig";
 
 function applyRootStyles(root: HTMLElement) {
-  root.setAttribute("aria-label", "Nova area jogavel Phaser");
+  root.setAttribute("aria-label", "Nova área jogável Phaser");
   root.style.position = "fixed";
   root.style.inset = "0";
   root.style.width = "100vw";

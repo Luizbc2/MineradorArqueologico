@@ -22,7 +22,7 @@ const tileToResourceMap: Partial<Record<TileKind, ResourceKind>> = {
 
 const resourceMetaMap: Record<ResourceKind, ResourceMeta> = {
   coal: {
-    label: "Carvao",
+    label: "Carvão",
     tier: "common",
     value: 1,
     accent: "#cfd9e2",
@@ -77,6 +77,6 @@ export function getResourceTierLabel(tier: ResourceTier): string {
     case "rare":
       return "Raro";
     case "legendary":
-      return "Lendario";
+      return "Lendário";
   }
 }

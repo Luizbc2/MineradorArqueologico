@@ -75,7 +75,7 @@ export class ArchaeologyCardOverlay {
     const title = scene.add.text(
       centerX,
       panelY + 44,
-      "REGISTRO ARQUEOLOGICO",
+      "REGISTRO ARQUEOLÓGICO",
       makeGameTextStyle({
         family: "display",
         color: "#fff7db",
@@ -89,7 +89,7 @@ export class ArchaeologyCardOverlay {
     const subtitle = scene.add.text(
       centerX,
       panelY + 70,
-      "Fragmento recuperado do codex subterraneo",
+      "Fragmento recuperado do códex subterrâneo",
       makeGameTextStyle({
         color: "#cde8df",
         fontSize: "14px",
@@ -144,7 +144,7 @@ export class ArchaeologyCardOverlay {
     this.closeButtonLabel = scene.add.text(
       0,
       -13,
-      "VOLTAR AO TUNEL",
+      "VOLTAR AO TÚNEL",
       makeGameTextStyle({
         family: "display",
         color: gameTheme.colors.textDark,

@@ -78,7 +78,7 @@ export class UpgradeOverlay {
     const subtitle = scene.add.text(
       centerX,
       panelY + 58,
-      "Lapide a ferramenta para cavar mais rapido e mais fundo",
+      "Aprimore a ferramenta para cavar mais rápido e mais fundo",
       makeGameTextStyle({
         color: "#d7e8f2",
         fontSize: "14px",
@@ -105,7 +105,7 @@ export class UpgradeOverlay {
     this.descriptionText = scene.add.text(
       centerX,
       panelY + 102,
-      "Cada nivel reduz o tempo de escavacao e melhora o ritmo da expedicao.",
+      "Cada nível reduz o tempo de escavação e melhora o ritmo da expedição.",
       makeGameTextStyle({
         color: gameTheme.colors.textMuted,
         fontSize: "15px",
@@ -297,7 +297,7 @@ export class UpgradeOverlay {
 
     this.levelText.setText(`LV ${snapshot.level}  ->  LV ${snapshot.level + 1}`);
     this.currentPowerText.setText(`ATUAL ${currentSpeed}%`);
-    this.nextPowerText.setText(`PROXIMO ${nextSpeed}%`);
+    this.nextPowerText.setText(`PRÓXIMO ${nextSpeed}%`);
     this.costIronText.setText(`FERRO ${snapshot.cost.iron}`);
     this.costGoldText.setText(`OURO ${snapshot.cost.gold}`);
     this.costDiamondText.setText(`DIA ${snapshot.cost.diamond}`);
