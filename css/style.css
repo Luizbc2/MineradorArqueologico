@@ -729,12 +729,6 @@ body { image-rendering: auto; }
   object-fit: contain;
 }
 
-.pickaxe-image--copper { filter: sepia(0.75) saturate(1.9) hue-rotate(338deg) brightness(1.04); }
-.pickaxe-image--gold { filter: sepia(0.95) saturate(2) hue-rotate(8deg) brightness(1.25); }
-.pickaxe-image--diamond { filter: saturate(1.8) hue-rotate(142deg) brightness(1.25); }
-.pickaxe-image--obsidian { filter: saturate(1.4) hue-rotate(235deg) brightness(0.74); }
-.pickaxe-image--ancientCrystal { filter: saturate(1.9) hue-rotate(118deg) brightness(1.26); }
-
 .game-modal-pickaxe-card__stats {
   display: grid;
   grid-template-columns: 1fr 1fr;

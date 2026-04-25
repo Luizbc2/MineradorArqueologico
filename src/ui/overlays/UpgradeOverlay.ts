@@ -1,5 +1,11 @@
 import Phaser from "phaser";
+import pickAncientCrystalUrl from "../../assets/pickaxes/pick-ancient-crystal.png";
+import pickCopperUrl from "../../assets/pickaxes/pick-copper.png";
+import pickDiamondUrl from "../../assets/pickaxes/pick-diamond.png";
+import pickGoldUrl from "../../assets/pickaxes/pick-gold.png";
+import pickIronUrl from "../../assets/pickaxes/pick-iron.png";
 import pickMetalUrl from "../../assets/pickaxes/pick-metal.png";
+import pickObsidianUrl from "../../assets/pickaxes/pick-obsidian.png";
 import pickStoneUrl from "../../assets/pickaxes/pick-stone.png";
 import pickWoodUrl from "../../assets/pickaxes/pick-wood.png";
 import type { PickaxeDefinition, PickaxeId } from "../../game/progression/pickaxeCatalog";
@@ -223,12 +229,23 @@ function getActionLabel(line: PickaxeShopLine) {
 }
 
 function getPickaxeImageUrl(id: PickaxeId) {
-  if (id === "wood") {
-    return pickWoodUrl;
-  }
-
-  if (id === "stone") {
-    return pickStoneUrl;
+  switch (id) {
+    case "wood":
+      return pickWoodUrl;
+    case "stone":
+      return pickStoneUrl;
+    case "copper":
+      return pickCopperUrl;
+    case "iron":
+      return pickIronUrl;
+    case "gold":
+      return pickGoldUrl;
+    case "diamond":
+      return pickDiamondUrl;
+    case "obsidian":
+      return pickObsidianUrl;
+    case "ancientCrystal":
+      return pickAncientCrystalUrl;
   }
 
   return pickMetalUrl;
