@@ -21,8 +21,8 @@ export type UpgradeDefinition = {
 export const upgradeCatalog: Record<UpgradeId, UpgradeDefinition> = {
   power: {
     id: "power",
-    name: "Reforço de Impacto",
-    description: "Aumenta a força final da picareta equipada.",
+    name: "Núcleo de Impacto",
+    description: "Instala um contrapeso na cabeça da picareta para rachar blocos duros com menos golpes.",
     baseCost: 120,
     growth: 1.45,
     effectKind: "flatPower",
@@ -31,8 +31,8 @@ export const upgradeCatalog: Record<UpgradeId, UpgradeDefinition> = {
   },
   speed: {
     id: "speed",
-    name: "Ritmo de Escavação",
-    description: "Aumenta a velocidade final de mineração.",
+    name: "Cabo Balanceado",
+    description: "Ajusta a pegada e o peso do cabo para acelerar o ritmo de escavação sem perder controle.",
     baseCost: 160,
     growth: 1.5,
     effectKind: "speedMultiplier",
