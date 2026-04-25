@@ -9,6 +9,8 @@ import pickObsidianUrl from "../../assets/pickaxes/pick-obsidian.png";
 import pickStoneUrl from "../../assets/pickaxes/pick-stone.png";
 import pickWoodUrl from "../../assets/pickaxes/pick-wood.png";
 import type { PickaxeDefinition, PickaxeId } from "../../game/progression/pickaxeCatalog";
+import { getUpgradeList } from "../../game/progression/upgradeCatalog";
+import type { UpgradeDefinition } from "../../game/progression/upgradeCatalog";
 import { createHudElement, createHudScope } from "../hud/domHud";
 
 type PickaxeShopLine = {
@@ -29,6 +31,7 @@ type OverlaySnapshot = {
 };
 
 const CARDS_PER_PAGE = 3;
+type WorkshopTab = "pickaxes" | "upgrades";
 
 export class UpgradeOverlay {
   private readonly container: Phaser.GameObjects.Container;
@@ -40,7 +43,13 @@ export class UpgradeOverlay {
   private readonly pageText: HTMLDivElement;
   private readonly previousButton: HTMLButtonElement;
   private readonly nextButton: HTMLButtonElement;
+  private readonly pickaxesTab: HTMLButtonElement;
+  private readonly upgradesTab: HTMLButtonElement;
+  private readonly pickaxesPanel: HTMLDivElement;
+  private readonly upgradesPanel: HTMLDivElement;
+  private readonly upgradesBody: HTMLDivElement;
   private readonly closeButton: HTMLButtonElement;
+  private activeTab: WorkshopTab = "pickaxes";
   private pageIndex = 0;
   private snapshot?: OverlaySnapshot;
 
@@ -53,7 +62,7 @@ export class UpgradeOverlay {
 
     const card = createHudElement("div", "game-modal-card game-modal-card--workshop");
     const accent = createHudElement("div", "game-modal-card__accent");
-    const title = createHudElement("h2", "game-modal-card__title", "CATÁLOGO DE PICARETAS");
+    const title = createHudElement("h2", "game-modal-card__title", "OFICINA");
 
     const meta = createHudElement("div", "game-modal-workshop-meta");
     const coins = createHudElement("div", "game-modal-workshop-meta__item");
@@ -67,6 +76,12 @@ export class UpgradeOverlay {
     depth.append(this.depthValue);
     meta.append(coins, depth);
 
+    const tabs = createHudElement("div", "game-modal-workshop-tabs");
+    this.pickaxesTab = createWorkshopTabButton("PICARETAS");
+    this.upgradesTab = createWorkshopTabButton("UPGRADES");
+    tabs.append(this.pickaxesTab, this.upgradesTab);
+
+    this.pickaxesPanel = createHudElement("div", "game-modal-workshop-panel") as HTMLDivElement;
     const carousel = createHudElement("div", "game-modal-workshop-carousel");
     this.previousButton = createArrowButton("<");
     this.carouselBody = createHudElement("div", "game-modal-workshop-carousel__body") as HTMLDivElement;
@@ -74,6 +89,11 @@ export class UpgradeOverlay {
     carousel.append(this.previousButton, this.carouselBody, this.nextButton);
 
     this.pageText = createHudElement("div", "game-modal-workshop-page", "1/1");
+    this.pickaxesPanel.append(carousel, this.pageText);
+
+    this.upgradesPanel = createHudElement("div", "game-modal-workshop-panel") as HTMLDivElement;
+    this.upgradesBody = createHudElement("div", "game-modal-upgrade-list") as HTMLDivElement;
+    this.upgradesPanel.append(this.upgradesBody);
 
     const actions = createHudElement("div", "game-modal-actions game-modal-actions--center");
     this.closeButton = createWorkshopButton("FECHAR", "secondary");
@@ -85,12 +105,15 @@ export class UpgradeOverlay {
       "Use E ou ESC para sair da oficina",
     );
 
-    card.append(accent, title, meta, carousel, this.pageText, actions, hint);
+    card.append(accent, title, meta, tabs, this.pickaxesPanel, this.upgradesPanel, actions, hint);
     this.overlay.append(card);
     this.scope.append(this.overlay);
 
+    this.pickaxesTab.onclick = () => this.setActiveTab("pickaxes");
+    this.upgradesTab.onclick = () => this.setActiveTab("upgrades");
     this.previousButton.onclick = () => this.changePage(-1);
     this.nextButton.onclick = () => this.changePage(1);
+    this.renderTabs();
   }
 
   getRoot() {
@@ -130,6 +153,12 @@ export class UpgradeOverlay {
   private renderSnapshot(snapshot: OverlaySnapshot) {
     this.coinsValue.textContent = formatNumber(snapshot.coins);
     this.depthValue.textContent = `${formatNumber(snapshot.maxDepthReached)}m`;
+    this.renderTabs();
+    this.renderPickaxes(snapshot);
+    this.renderUpgrades();
+  }
+
+  private renderPickaxes(snapshot: OverlaySnapshot) {
     this.carouselBody.replaceChildren();
 
     const pageStart = this.pageIndex * CARDS_PER_PAGE;
@@ -143,6 +172,26 @@ export class UpgradeOverlay {
     this.pageText.textContent = `${this.pageIndex + 1}/${totalPages}`;
     this.previousButton.disabled = this.pageIndex <= 0;
     this.nextButton.disabled = this.pageIndex >= totalPages - 1;
+  }
+
+  private renderUpgrades() {
+    this.upgradesBody.replaceChildren();
+
+    for (const upgrade of getUpgradeList()) {
+      this.upgradesBody.append(createUpgradeRow(upgrade));
+    }
+  }
+
+  private setActiveTab(tab: WorkshopTab) {
+    this.activeTab = tab;
+    this.renderTabs();
+  }
+
+  private renderTabs() {
+    this.pickaxesTab.classList.toggle("is-active", this.activeTab === "pickaxes");
+    this.upgradesTab.classList.toggle("is-active", this.activeTab === "upgrades");
+    this.pickaxesPanel.hidden = this.activeTab !== "pickaxes";
+    this.upgradesPanel.hidden = this.activeTab !== "upgrades";
   }
 
   private getLastPage(snapshot: OverlaySnapshot) {
@@ -202,6 +251,13 @@ function createArrowButton(label: string) {
   return button;
 }
 
+function createWorkshopTabButton(label: string) {
+  const button = createHudElement("button", "game-modal-workshop-tab") as HTMLButtonElement;
+  button.type = "button";
+  button.textContent = label;
+  return button;
+}
+
 function createWorkshopButton(label: string, tone: "primary" | "secondary") {
   const button = createHudElement(
     "button",
@@ -210,6 +266,35 @@ function createWorkshopButton(label: string, tone: "primary" | "secondary") {
   button.type = "button";
   button.textContent = label;
   return button;
+}
+
+function createUpgradeRow(upgrade: UpgradeDefinition) {
+  const row = createHudElement("article", "game-modal-upgrade-row");
+  const copy = createHudElement("div", "game-modal-upgrade-row__copy");
+  const title = createHudElement("h3", "game-modal-upgrade-row__title", upgrade.name);
+  const description = createHudElement("p", "game-modal-upgrade-row__description", upgrade.description);
+  const effect = createHudElement("div", "game-modal-upgrade-row__effect", formatUpgradeEffect(upgrade));
+  copy.append(title, description, effect);
+
+  const meta = createHudElement("div", "game-modal-upgrade-row__meta");
+  meta.append(
+    createHudElement("span", "", `NÍVEL 0/${upgrade.maxLevel}`),
+    createHudElement("strong", "", `${formatNumber(upgrade.baseCost)} moedas`),
+  );
+
+  const action = createWorkshopButton("EM BREVE", "secondary");
+  action.disabled = true;
+
+  row.append(copy, meta, action);
+  return row;
+}
+
+function formatUpgradeEffect(upgrade: UpgradeDefinition) {
+  if (upgrade.effectKind === "flatPower") {
+    return `+${formatNumber(upgrade.effectPerLevel)} força por nível`;
+  }
+
+  return `+${Math.round(upgrade.effectPerLevel * 100)}% velocidade por nível`;
 }
 
 function getActionLabel(line: PickaxeShopLine) {

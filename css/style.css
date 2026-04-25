@@ -641,6 +641,30 @@ body { image-rendering: auto; }
   color: #fffaf0;
 }
 
+.game-modal-workshop-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.game-modal-workshop-tab {
+  min-height: 38px;
+  border: 2px solid rgba(86, 70, 51, 0.86);
+  background: rgba(20, 16, 12, 0.88);
+  color: #ab987c;
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.game-modal-workshop-tab.is-active {
+  border-color: rgba(231, 189, 99, 0.95);
+  background: rgba(52, 38, 21, 0.92);
+  color: #fffaf0;
+}
+
 .game-modal-workshop-carousel {
   display: grid;
   grid-template-columns: 44px minmax(0, 1fr) 44px;
@@ -763,6 +787,78 @@ body { image-rendering: auto; }
   line-height: 1;
   font-weight: 800;
   color: #ab987c;
+}
+
+.game-modal-upgrade-list {
+  display: grid;
+  gap: 12px;
+  min-height: 362px;
+}
+
+.game-modal-upgrade-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 138px 132px;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border: 2px solid rgba(86, 70, 51, 0.86);
+  background: rgba(20, 16, 12, 0.88);
+}
+
+.game-modal-upgrade-row__copy {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.game-modal-upgrade-row__title {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.1;
+  font-weight: 800;
+  color: #f5efdf;
+}
+
+.game-modal-upgrade-row__description {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.28;
+  font-weight: 600;
+  color: #d3c4ad;
+}
+
+.game-modal-upgrade-row__effect {
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 800;
+  color: #b8f7fa;
+}
+
+.game-modal-upgrade-row__meta {
+  display: grid;
+  gap: 8px;
+  text-align: right;
+}
+
+.game-modal-upgrade-row__meta span {
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 800;
+  color: #ffe39b;
+}
+
+.game-modal-upgrade-row__meta strong {
+  font-size: 17px;
+  line-height: 1.12;
+  font-weight: 800;
+  color: #fffaf0;
+}
+
+.game-modal-upgrade-row .game-modal-button {
+  min-width: 0;
+  width: 100%;
+  min-height: 40px;
+  font-size: 14px;
 }
 
 .game-hud-mission__progress-row {
