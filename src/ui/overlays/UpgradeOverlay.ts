@@ -19,39 +19,41 @@ type OverlaySnapshot = {
   onClose: () => void;
 };
 
-const PANEL_WIDTH = 640;
-const PANEL_HEIGHT = 520;
-const ROW_WIDTH = 584;
-const ROW_HEIGHT = 36;
-const ROW_GAP = 41;
-const COLUMN_X = {
-  name: 12,
-  power: 326,
-  price: 414,
-  action: 526,
-} as const;
+const PANEL_WIDTH = 760;
+const PANEL_HEIGHT = 540;
+const CARD_WIDTH = 204;
+const CARD_HEIGHT = 320;
+const CARD_GAP = 18;
+const CARDS_PER_PAGE = 3;
 
 export class UpgradeOverlay {
   private readonly container: Phaser.GameObjects.Container;
   private readonly panelRoot: Phaser.GameObjects.Container;
-  private readonly listRoot: Phaser.GameObjects.Container;
+  private readonly carouselRoot: Phaser.GameObjects.Container;
   private readonly coinsText: Phaser.GameObjects.Text;
   private readonly depthText: Phaser.GameObjects.Text;
+  private readonly pageText: Phaser.GameObjects.Text;
+  private readonly previousButton: Phaser.GameObjects.Container;
+  private readonly previousButtonHitArea: Phaser.GameObjects.Rectangle;
+  private readonly previousButtonBody: Phaser.GameObjects.Rectangle;
+  private readonly nextButton: Phaser.GameObjects.Container;
+  private readonly nextButtonHitArea: Phaser.GameObjects.Rectangle;
+  private readonly nextButtonBody: Phaser.GameObjects.Rectangle;
   private readonly closeButton: Phaser.GameObjects.Container;
   private readonly closeButtonHitArea: Phaser.GameObjects.Rectangle;
   private readonly closeButtonBody: Phaser.GameObjects.Rectangle;
   private readonly scene: Phaser.Scene;
-  private rowRoots: Phaser.GameObjects.Container[] = [];
+  private cardRoots: Phaser.GameObjects.Container[] = [];
+  private pageIndex = 0;
+  private snapshot?: OverlaySnapshot;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
 
     const viewportWidth = scene.scale.width;
     const viewportHeight = scene.scale.height;
-    const panelWidth = PANEL_WIDTH;
-    const panelHeight = PANEL_HEIGHT;
-    const panelX = (viewportWidth - panelWidth) / 2;
-    const panelY = (viewportHeight - panelHeight) / 2 - 4;
+    const panelX = (viewportWidth - PANEL_WIDTH) / 2;
+    const panelY = (viewportHeight - PANEL_HEIGHT) / 2 - 4;
     const centerX = viewportWidth / 2;
 
     const scrim = scene.add.rectangle(0, 0, viewportWidth, viewportHeight, gameTheme.colors.bgTop, 0.9);
@@ -60,69 +62,115 @@ export class UpgradeOverlay {
     const chrome = createPanelChrome(scene, {
       x: panelX,
       y: panelY,
-      width: panelWidth,
-      height: panelHeight,
+      width: PANEL_WIDTH,
+      height: PANEL_HEIGHT,
       accentColor: gameTheme.colors.accent,
     });
 
     const title = scene.add.text(
       centerX,
-      panelY + 33,
+      panelY + 35,
       "CATALOGO DE PICARETAS",
       makeGameTextStyle({
         family: "display",
         color: "#ffe7b0",
-        fontSize: "25px",
+        fontSize: "26px",
         fontStyle: "800",
         strokeThickness: 5,
+        resolution: 6,
       }),
     );
     title.setOrigin(0.5);
 
     this.coinsText = scene.add.text(
-      panelX + 30,
-      panelY + 62,
+      panelX + 34,
+      panelY + 68,
       "",
       makeGameTextStyle({
         family: "display",
         color: "#ffe28a",
-        fontSize: "14px",
+        fontSize: "15px",
         fontStyle: "800",
         strokeThickness: 2,
+        resolution: 6,
       }),
     );
 
     this.depthText = scene.add.text(
-      panelX + panelWidth - 30,
-      panelY + 62,
+      panelX + PANEL_WIDTH - 34,
+      panelY + 68,
       "",
       makeGameTextStyle({
         family: "display",
         color: "#b8f7fa",
-        fontSize: "14px",
+        fontSize: "15px",
         fontStyle: "800",
         strokeThickness: 2,
+        resolution: 6,
       }),
     );
     this.depthText.setOrigin(1, 0);
 
-    const headerStyle = makeGameTextStyle({
-      family: "display",
-      color: gameTheme.colors.textSoft,
-      fontSize: "12px",
-      fontStyle: "800",
-      strokeThickness: 2,
-      resolution: 6,
-    });
-    const nameHeader = scene.add.text(panelX + 40, panelY + 94, "PICARETA", headerStyle);
-    const powerHeader = scene.add.text(panelX + 28 + COLUMN_X.power, panelY + 94, "FORCA", headerStyle);
-    powerHeader.setOrigin(0.5, 0);
-    const priceHeader = scene.add.text(panelX + 28 + COLUMN_X.price, panelY + 94, "PRECO", headerStyle);
-    priceHeader.setOrigin(0.5, 0);
-    const statusHeader = scene.add.text(panelX + 28 + COLUMN_X.action, panelY + 94, "STATUS", headerStyle);
-    statusHeader.setOrigin(0.5, 0);
+    this.carouselRoot = scene.add.container(0, 0);
 
-    this.listRoot = scene.add.container(0, 0);
+    this.previousButtonBody = scene.add.rectangle(0, 0, 44, 58, gameTheme.colors.panelRaised, 1);
+    this.previousButtonBody.setStrokeStyle(2, gameTheme.colors.border, 0.9);
+    const previousLabel = scene.add.text(
+      0,
+      -18,
+      "<",
+      makeGameTextStyle({
+        family: "display",
+        color: gameTheme.colors.text,
+        fontSize: "28px",
+        fontStyle: "800",
+        resolution: 6,
+      }),
+    );
+    previousLabel.setOrigin(0.5, 0);
+    this.previousButton = scene.add.container(panelX + 28, panelY + 244, [
+      this.previousButtonBody,
+      previousLabel,
+    ]);
+    this.previousButtonHitArea = this.previousButtonBody;
+    this.previousButtonHitArea.setInteractive({ useHandCursor: true });
+
+    this.nextButtonBody = scene.add.rectangle(0, 0, 44, 58, gameTheme.colors.panelRaised, 1);
+    this.nextButtonBody.setStrokeStyle(2, gameTheme.colors.border, 0.9);
+    const nextLabel = scene.add.text(
+      0,
+      -18,
+      ">",
+      makeGameTextStyle({
+        family: "display",
+        color: gameTheme.colors.text,
+        fontSize: "28px",
+        fontStyle: "800",
+        resolution: 6,
+      }),
+    );
+    nextLabel.setOrigin(0.5, 0);
+    this.nextButton = scene.add.container(panelX + PANEL_WIDTH - 28, panelY + 244, [
+      this.nextButtonBody,
+      nextLabel,
+    ]);
+    this.nextButtonHitArea = this.nextButtonBody;
+    this.nextButtonHitArea.setInteractive({ useHandCursor: true });
+
+    this.pageText = scene.add.text(
+      centerX,
+      panelY + 436,
+      "",
+      makeGameTextStyle({
+        family: "display",
+        color: gameTheme.colors.textSoft,
+        fontSize: "13px",
+        fontStyle: "800",
+        strokeThickness: 2,
+        resolution: 6,
+      }),
+    );
+    this.pageText.setOrigin(0.5, 0);
 
     this.closeButtonBody = scene.add.rectangle(0, 0, 150, 42, gameTheme.colors.panelRaised, 1);
     this.closeButtonBody.setStrokeStyle(2, gameTheme.colors.border, 0.9);
@@ -135,10 +183,11 @@ export class UpgradeOverlay {
         color: gameTheme.colors.text,
         fontSize: "16px",
         fontStyle: "800",
+        resolution: 6,
       }),
     );
     closeButtonLabel.setOrigin(0.5, 0);
-    this.closeButton = scene.add.container(centerX - 75, panelY + 472, [
+    this.closeButton = scene.add.container(centerX - 75, panelY + 468, [
       this.closeButtonBody,
       closeButtonLabel,
     ]);
@@ -147,13 +196,14 @@ export class UpgradeOverlay {
 
     const hint = scene.add.text(
       centerX,
-      panelY + 503,
+      panelY + 502,
       "Use E ou ESC para sair da oficina",
       makeGameTextStyle({
         color: gameTheme.colors.textSoft,
         fontSize: "13px",
         fontStyle: "600",
         strokeThickness: 2,
+        resolution: 6,
       }),
     );
     hint.setOrigin(0.5);
@@ -163,11 +213,10 @@ export class UpgradeOverlay {
       title,
       this.coinsText,
       this.depthText,
-      nameHeader,
-      powerHeader,
-      priceHeader,
-      statusHeader,
-      this.listRoot,
+      this.carouselRoot,
+      this.previousButton,
+      this.nextButton,
+      this.pageText,
       this.closeButton,
       hint,
     ]);
@@ -178,6 +227,10 @@ export class UpgradeOverlay {
     this.container.setVisible(false);
     this.container.setAlpha(0);
 
+    this.previousButtonHitArea.on("pointerover", () => this.setArrowState("previous", true));
+    this.previousButtonHitArea.on("pointerout", () => this.setArrowState("previous", false));
+    this.nextButtonHitArea.on("pointerover", () => this.setArrowState("next", true));
+    this.nextButtonHitArea.on("pointerout", () => this.setArrowState("next", false));
     this.closeButtonHitArea.on("pointerover", () => this.setCloseButtonState(true));
     this.closeButtonHitArea.on("pointerout", () => this.setCloseButtonState(false));
   }
@@ -187,11 +240,17 @@ export class UpgradeOverlay {
   }
 
   show(snapshot: OverlaySnapshot) {
+    this.snapshot = snapshot;
+    this.pageIndex = Phaser.Math.Clamp(this.pageIndex, 0, this.getLastPage(snapshot));
     this.coinsText.setText(`MOEDAS ${snapshot.coins}`);
     this.depthText.setText(`PROFUNDIDADE ${snapshot.maxDepthReached}m`);
-    this.renderRows(snapshot);
+    this.renderCards(snapshot);
 
+    this.previousButtonHitArea.removeAllListeners("pointerup");
+    this.nextButtonHitArea.removeAllListeners("pointerup");
     this.closeButtonHitArea.removeAllListeners("pointerup");
+    this.previousButtonHitArea.on("pointerup", () => this.changePage(-1));
+    this.nextButtonHitArea.on("pointerup", () => this.changePage(1));
     this.closeButtonHitArea.on("pointerup", snapshot.onClose);
 
     this.setCloseButtonState(false);
@@ -215,105 +274,172 @@ export class UpgradeOverlay {
     return this.container.visible;
   }
 
-  private renderRows(snapshot: OverlaySnapshot) {
-    for (const row of this.rowRoots) {
-      row.destroy(true);
+  private changePage(direction: -1 | 1) {
+    if (!this.snapshot) {
+      return;
     }
 
-    this.rowRoots = [];
+    this.pageIndex = Phaser.Math.Clamp(
+      this.pageIndex + direction,
+      0,
+      this.getLastPage(this.snapshot),
+    );
+    this.renderCards(this.snapshot);
+  }
+
+  private renderCards(snapshot: OverlaySnapshot) {
+    for (const card of this.cardRoots) {
+      card.destroy(true);
+    }
+
+    this.cardRoots = [];
 
     const panelX = (this.scene.scale.width - PANEL_WIDTH) / 2;
-    const startY = (this.scene.scale.height - PANEL_HEIGHT) / 2 + 120;
+    const panelY = (this.scene.scale.height - PANEL_HEIGHT) / 2 - 4;
+    const startX = panelX + 70;
+    const startY = panelY + 102;
+    const pageStart = this.pageIndex * CARDS_PER_PAGE;
+    const visibleLines = snapshot.pickaxes.slice(pageStart, pageStart + CARDS_PER_PAGE);
 
-    snapshot.pickaxes.forEach((line, index) => {
-      const y = startY + index * ROW_GAP;
-      const row = this.createPickaxeRow(panelX + 28, y, line, snapshot);
-      this.applyRowCameraFilter(row);
-      this.listRoot.add(row);
-      this.rowRoots.push(row);
+    visibleLines.forEach((line, index) => {
+      const x = startX + index * (CARD_WIDTH + CARD_GAP);
+      const card = this.createPickaxeCard(x, startY, line, snapshot);
+      this.applyCardCameraFilter(card);
+      this.carouselRoot.add(card);
+      this.cardRoots.push(card);
     });
+
+    const totalPages = this.getLastPage(snapshot) + 1;
+    this.pageText.setText(`${this.pageIndex + 1}/${totalPages}`);
+    this.setArrowEnabled("previous", this.pageIndex > 0);
+    this.setArrowEnabled("next", this.pageIndex < totalPages - 1);
   }
 
-  private applyRowCameraFilter(row: Phaser.GameObjects.Container) {
-    row.cameraFilter = this.listRoot.cameraFilter;
+  private applyCardCameraFilter(card: Phaser.GameObjects.Container) {
+    card.cameraFilter = this.carouselRoot.cameraFilter;
 
-    for (const child of row.list) {
-      child.cameraFilter = this.listRoot.cameraFilter;
+    for (const child of card.list) {
+      child.cameraFilter = this.carouselRoot.cameraFilter;
     }
   }
 
-  private createPickaxeRow(
+  private createPickaxeCard(
     x: number,
     y: number,
     line: PickaxeShopLine,
     snapshot: OverlaySnapshot,
   ) {
-    const bodyColor = line.equipped
-      ? 0x3d3422
+    const borderColor = line.equipped
+      ? gameTheme.colors.accent
       : line.owned
-        ? 0x28332a
-        : line.locked
-          ? 0x171313
-          : gameTheme.colors.panelDeep;
-    const body = this.scene.add.rectangle(0, 0, ROW_WIDTH, ROW_HEIGHT, bodyColor, 0.96);
+        ? gameTheme.colors.success
+        : gameTheme.colors.borderSoft;
+    const bodyColor = line.locked ? 0x171313 : gameTheme.colors.panelDeep;
+    const body = this.scene.add.rectangle(0, 0, CARD_WIDTH, CARD_HEIGHT, bodyColor, line.locked ? 0.72 : 0.98);
     body.setOrigin(0);
-    body.setStrokeStyle(1, line.equipped ? gameTheme.colors.accent : gameTheme.colors.borderSoft, 0.8);
+    body.setStrokeStyle(2, borderColor, line.locked ? 0.38 : 0.92);
 
-    const name = this.scene.add.text(
-      COLUMN_X.name,
-      8,
+    const title = this.scene.add.text(
+      CARD_WIDTH / 2,
+      16,
       line.pickaxe.name,
       makeGameTextStyle({
         family: "display",
-        color: line.locked ? "#7f7468" : gameTheme.colors.text,
-        fontSize: "14px",
+        color: line.locked ? "#8d8170" : gameTheme.colors.text,
+        fontSize: "15px",
+        fontStyle: "800",
+        align: "center",
+        wordWrapWidth: CARD_WIDTH - 24,
+        strokeThickness: 3,
+        resolution: 6,
+      }),
+    );
+    title.setOrigin(0.5, 0);
+
+    const tierText = this.scene.add.text(
+      CARD_WIDTH / 2,
+      58,
+      `TIER ${line.pickaxe.tier}`,
+      makeGameTextStyle({
+        family: "display",
+        color: line.locked ? "#766b60" : "#ffe28a",
+        fontSize: "12px",
         fontStyle: "800",
         strokeThickness: 2,
         resolution: 6,
       }),
     );
+    tierText.setOrigin(0.5, 0);
 
-    const power = this.scene.add.text(
-      COLUMN_X.power,
-      8,
+    const art = this.createPickaxeArt(CARD_WIDTH / 2, 147, line.pickaxe.id, line.locked);
+
+    const powerLabel = this.scene.add.text(
+      36,
+      222,
+      "FORCA",
+      makeGameTextStyle({
+        family: "display",
+        color: gameTheme.colors.textSoft,
+        fontSize: "11px",
+        fontStyle: "800",
+        strokeThickness: 2,
+        resolution: 6,
+      }),
+    );
+    const powerValue = this.scene.add.text(
+      36,
+      240,
       String(line.pickaxe.power),
       makeGameTextStyle({
         family: "display",
-        color: line.locked ? "#7f7468" : "#ffe28a",
-        fontSize: "14px",
+        color: line.locked ? "#8d8170" : "#ffe28a",
+        fontSize: "20px",
+        fontStyle: "800",
+        strokeThickness: 3,
+        resolution: 6,
+      }),
+    );
+
+    const priceLabel = this.scene.add.text(
+      CARD_WIDTH - 36,
+      222,
+      "PRECO",
+      makeGameTextStyle({
+        family: "display",
+        color: gameTheme.colors.textSoft,
+        fontSize: "11px",
         fontStyle: "800",
         strokeThickness: 2,
         resolution: 6,
       }),
     );
-    power.setOrigin(0.5, 0);
-
-    const price = this.scene.add.text(
-      COLUMN_X.price,
-      8,
+    priceLabel.setOrigin(1, 0);
+    const priceValue = this.scene.add.text(
+      CARD_WIDTH - 36,
+      240,
       String(line.pickaxe.cost),
       makeGameTextStyle({
         family: "display",
         color: line.canBuy ? "#ffe28a" : gameTheme.colors.textSoft,
-        fontSize: "14px",
+        fontSize: "20px",
         fontStyle: "800",
-        strokeThickness: 2,
+        strokeThickness: 3,
         resolution: 6,
       }),
     );
-    price.setOrigin(0.5, 0);
+    priceValue.setOrigin(1, 0);
 
     const action = getActionLabel(line);
-    const actionBody = this.scene.add.rectangle(COLUMN_X.action, 18, 108, 26, getActionFill(line), line.locked ? 0.38 : 1);
-    actionBody.setStrokeStyle(1, getActionStroke(line), line.locked ? 0.35 : 0.8);
+    const actionBody = this.scene.add.rectangle(CARD_WIDTH / 2, 292, 160, 34, getActionFill(line), line.locked ? 0.38 : 1);
+    actionBody.setStrokeStyle(2, getActionStroke(line), line.locked ? 0.35 : 0.86);
     const actionText = this.scene.add.text(
-      COLUMN_X.action,
-      11,
+      CARD_WIDTH / 2,
+      282,
       action,
       makeGameTextStyle({
         family: "display",
         color: line.canBuy || line.owned ? gameTheme.colors.textDark : "#b9aa91",
-        fontSize: "12px",
+        fontSize: "13px",
         fontStyle: "800",
         resolution: 6,
       }),
@@ -334,12 +460,58 @@ export class UpgradeOverlay {
 
     return this.scene.add.container(x, y, [
       body,
-      name,
-      power,
-      price,
+      title,
+      tierText,
+      ...art,
+      powerLabel,
+      powerValue,
+      priceLabel,
+      priceValue,
       actionBody,
       actionText,
     ]);
+  }
+
+  private createPickaxeArt(x: number, y: number, id: PickaxeId, locked: boolean) {
+    const colors = getPickaxeColors(id, locked);
+    const glow = this.scene.add.circle(x, y, 48, colors.glow, locked ? 0.05 : 0.16);
+    const handle = this.scene.add.rectangle(x - 6, y + 8, 12, 108, colors.handle, locked ? 0.5 : 1);
+    handle.setAngle(34);
+    handle.setStrokeStyle(1, 0x120d09, 0.6);
+    const grip = this.scene.add.rectangle(x - 25, y + 55, 14, 24, colors.grip, locked ? 0.5 : 1);
+    grip.setAngle(34);
+    const head = this.scene.add.rectangle(x + 30, y - 40, 74, 16, colors.head, locked ? 0.5 : 1);
+    head.setAngle(-16);
+    head.setStrokeStyle(2, colors.stroke, locked ? 0.38 : 0.82);
+    const beak = this.scene.add.rectangle(x + 65, y - 46, 28, 12, colors.edge, locked ? 0.5 : 1);
+    beak.setAngle(-16);
+    const spike = this.scene.add.rectangle(x - 4, y - 28, 34, 12, colors.edge, locked ? 0.5 : 1);
+    spike.setAngle(-16);
+    const gem = this.scene.add.circle(x + 24, y - 22, 7, colors.gem, locked ? 0.45 : 0.95);
+    gem.setStrokeStyle(2, colors.stroke, locked ? 0.35 : 0.75);
+
+    return [glow, handle, grip, head, beak, spike, gem];
+  }
+
+  private getLastPage(snapshot: OverlaySnapshot) {
+    return Math.max(0, Math.ceil(snapshot.pickaxes.length / CARDS_PER_PAGE) - 1);
+  }
+
+  private setArrowEnabled(kind: "previous" | "next", enabled: boolean) {
+    const body = kind === "previous" ? this.previousButtonBody : this.nextButtonBody;
+    const button = kind === "previous" ? this.previousButton : this.nextButton;
+    body.disableInteractive();
+
+    if (enabled) {
+      body.setInteractive({ useHandCursor: true });
+    }
+
+    button.setAlpha(enabled ? 1 : 0.38);
+  }
+
+  private setArrowState(kind: "previous" | "next", hovered: boolean) {
+    const body = kind === "previous" ? this.previousButtonBody : this.nextButtonBody;
+    body.setFillStyle(hovered ? 0x31465f : gameTheme.colors.panelRaised, 1);
   }
 
   private setCloseButtonState(hovered: boolean) {
@@ -386,4 +558,101 @@ function getActionStroke(line: PickaxeShopLine) {
   }
 
   return gameTheme.colors.borderSoft;
+}
+
+function getPickaxeColors(id: PickaxeId, locked: boolean) {
+  if (locked) {
+    return {
+      handle: 0x3a332d,
+      grip: 0x27211d,
+      head: 0x5d5852,
+      edge: 0x79716a,
+      gem: 0x5f5750,
+      glow: 0x5b5248,
+      stroke: 0x2a241f,
+    };
+  }
+
+  switch (id) {
+    case "wood":
+      return {
+        handle: 0x8b5a2b,
+        grip: 0x4b3020,
+        head: 0x9a6a3b,
+        edge: 0xc08a4d,
+        gem: 0xd8b06a,
+        glow: 0xc08a4d,
+        stroke: 0x5a351b,
+      };
+    case "stone":
+      return {
+        handle: 0x7c5631,
+        grip: 0x51351f,
+        head: 0x87909a,
+        edge: 0xb6c0c8,
+        gem: 0xcfd9e2,
+        glow: 0x87909a,
+        stroke: 0x4c5662,
+      };
+    case "copper":
+      return {
+        handle: 0x79502c,
+        grip: 0x4b2d1c,
+        head: 0xc8753f,
+        edge: 0xf0a060,
+        gem: 0xffc184,
+        glow: 0xc8753f,
+        stroke: 0x6d3922,
+      };
+    case "iron":
+      return {
+        handle: 0x79502c,
+        grip: 0x3d2a20,
+        head: 0xbfc9d8,
+        edge: 0xe6eef6,
+        gem: 0xd49a63,
+        glow: 0xbfc9d8,
+        stroke: 0x5c697a,
+      };
+    case "gold":
+      return {
+        handle: 0x7c5631,
+        grip: 0x4b3020,
+        head: 0xf3c55d,
+        edge: 0xffe28a,
+        gem: 0xfff1aa,
+        glow: 0xf3c55d,
+        stroke: 0x8f6b20,
+      };
+    case "diamond":
+      return {
+        handle: 0x60442a,
+        grip: 0x2c2d3d,
+        head: 0x89dff5,
+        edge: 0xc8fbff,
+        gem: 0xffffff,
+        glow: 0x89dff5,
+        stroke: 0x2c7288,
+      };
+    case "obsidian":
+      return {
+        handle: 0x4c3844,
+        grip: 0x241a27,
+        head: 0x5b4b78,
+        edge: 0xa38bd6,
+        gem: 0xe99bff,
+        glow: 0xa38bd6,
+        stroke: 0x21182e,
+      };
+    case "ancientCrystal":
+      return {
+        handle: 0x38555c,
+        grip: 0x27353b,
+        head: 0x7effda,
+        edge: 0xe3fff5,
+        gem: 0xffef8a,
+        glow: 0x7effda,
+        stroke: 0x1f8170,
+      };
+  }
 }
