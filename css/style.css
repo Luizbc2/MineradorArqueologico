@@ -383,6 +383,10 @@ body { image-rendering: auto; }
   width: min(620px, calc(100vw - 48px));
 }
 
+.game-modal-card--workshop {
+  width: min(860px, calc(100vw - 48px));
+}
+
 .game-modal-card__accent {
   height: 5px;
   margin: -12px 0 22px;
@@ -557,6 +561,11 @@ body { image-rendering: auto; }
   margin-bottom: 16px;
 }
 
+.game-modal-actions--center {
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
 .game-modal-button {
   min-width: 176px;
   min-height: 48px;
@@ -594,6 +603,171 @@ body { image-rendering: auto; }
   font-size: 15px;
   line-height: 1.35;
   font-weight: 600;
+  color: #ab987c;
+}
+
+.game-modal-hint--center {
+  text-align: center;
+}
+
+.game-modal-workshop-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.game-modal-workshop-meta__item {
+  display: grid;
+  gap: 4px;
+}
+
+.game-modal-workshop-meta__item:last-child {
+  text-align: right;
+}
+
+.game-modal-workshop-meta__item span,
+.game-modal-pickaxe-card__stat span {
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 800;
+  color: #ffe39b;
+}
+
+.game-modal-workshop-meta__item strong {
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 800;
+  color: #fffaf0;
+}
+
+.game-modal-workshop-carousel {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.game-modal-workshop-arrow {
+  width: 44px;
+  height: 64px;
+  border: 2px solid rgba(139, 115, 79, 0.95);
+  background: rgba(49, 38, 29, 0.96);
+  color: #f5efdf;
+  font-size: 28px;
+  line-height: 1;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.game-modal-workshop-arrow:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.game-modal-workshop-arrow:disabled {
+  opacity: 0.34;
+  cursor: default;
+}
+
+.game-modal-workshop-carousel__body {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  min-height: 324px;
+}
+
+.game-modal-pickaxe-card {
+  display: grid;
+  grid-template-rows: auto auto 132px auto auto;
+  gap: 10px;
+  min-width: 0;
+  padding: 18px;
+  border: 2px solid rgba(86, 70, 51, 0.86);
+  background: rgba(20, 16, 12, 0.88);
+}
+
+.game-modal-pickaxe-card.is-equipped {
+  border-color: rgba(231, 189, 99, 0.98);
+  background: rgba(52, 38, 21, 0.88);
+}
+
+.game-modal-pickaxe-card.is-locked {
+  opacity: 0.62;
+}
+
+.game-modal-pickaxe-card__title {
+  min-height: 40px;
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.12;
+  font-weight: 800;
+  text-align: center;
+  color: #f5efdf;
+}
+
+.game-modal-pickaxe-card__tier {
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 800;
+  text-align: center;
+  color: #ffe39b;
+}
+
+.game-modal-pickaxe-card__art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 132px;
+  background: radial-gradient(circle at center, rgba(231, 189, 99, 0.16), rgba(20, 16, 12, 0) 66%);
+}
+
+.game-modal-pickaxe-card__image {
+  width: 116px;
+  height: 116px;
+  image-rendering: pixelated;
+  object-fit: contain;
+}
+
+.pickaxe-image--copper { filter: sepia(0.75) saturate(1.9) hue-rotate(338deg) brightness(1.04); }
+.pickaxe-image--gold { filter: sepia(0.95) saturate(2) hue-rotate(8deg) brightness(1.25); }
+.pickaxe-image--diamond { filter: saturate(1.8) hue-rotate(142deg) brightness(1.25); }
+.pickaxe-image--obsidian { filter: saturate(1.4) hue-rotate(235deg) brightness(0.74); }
+.pickaxe-image--ancientCrystal { filter: saturate(1.9) hue-rotate(118deg) brightness(1.26); }
+
+.game-modal-pickaxe-card__stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.game-modal-pickaxe-card__stat {
+  display: grid;
+  gap: 5px;
+}
+
+.game-modal-pickaxe-card__stat:last-child {
+  text-align: right;
+}
+
+.game-modal-pickaxe-card__stat strong {
+  font-size: 28px;
+  line-height: 1;
+  font-weight: 800;
+  color: #fffaf0;
+}
+
+.game-modal-pickaxe-card .game-modal-button {
+  width: 100%;
+  min-width: 0;
+}
+
+.game-modal-workshop-page {
+  margin: -4px 0 10px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 800;
   color: #ab987c;
 }
 

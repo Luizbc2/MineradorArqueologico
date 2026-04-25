@@ -19,3 +19,8 @@ Regra desta fase:
 - manter o jogo atual funcionando
 - migrar um sistema por vez
 - evitar commit grande que misture arquitetura com gameplay
+
+Regra de UI:
+- menus, overlays, HUDs e qualquer interface com texto devem usar DOM/HTML/CSS via `src/ui/hud/domHud.ts`
+- Phaser deve ficar para mundo, gameplay, efeitos, sprites e cenas
+- usar texto Phaser apenas para feedback curto dentro do mundo, como toast, dano, coleta ou labels temporárias
