@@ -2,10 +2,16 @@ import Phaser from "phaser";
 import {
   createArchaeologyDeck,
 } from "../game/archaeology/archaeologyCards";
+import { getPickaxeList } from "../game/progression/pickaxeCatalog";
+import type { PickaxeId } from "../game/progression/pickaxeCatalog";
 import {
-  canAffordPickaxeUpgrade,
-  getPickaxeUpgradeCost,
-} from "../game/progression/pickaxeUpgrade";
+  buyPickaxe,
+  canUnlockPickaxe,
+  createPickaxeOwnershipState,
+  equipPickaxe,
+  getEquippedPickaxe,
+  ownsPickaxe,
+} from "../game/progression/pickaxeState";
 import {
   createExpeditionProgression,
 } from "../game/progression/expeditionGoals";
@@ -100,9 +106,10 @@ export class MineScene extends Phaser.Scene {
   private readonly expeditionProgression = createExpeditionProgression();
   private progressionSnapshot: ExpeditionProgressionSnapshot = this.expeditionProgression.getSnapshot();
   private inventory: ResourceInventory = createResourceInventory();
+  private pickaxeState = createPickaxeOwnershipState();
   private coins = 0;
   private energy = 100;
-  private pickaxeLevel = 1;
+  private maxDepthReached = 0;
   private groundLayer?: Phaser.GameObjects.Graphics;
   private groundDirty = true;
   private lastGroundWindow?: {
@@ -1231,11 +1238,15 @@ export class MineScene extends Phaser.Scene {
       return false;
     }
 
-    const required =
-      (tileDefinitions[tile.kind].hardness * 0.35) /
-      (1 +
-        (this.pickaxeLevel - 1) * 0.25 +
-        this.progressionSnapshot.perks.miningSpeedBonus);
+    const equippedPickaxe = getEquippedPickaxe(this.pickaxeState);
+    const speedMultiplier =
+      equippedPickaxe.baseSpeed *
+      (1 + this.progressionSnapshot.perks.miningSpeedBonus);
+    const required = Math.max(
+      0.08,
+      (tileDefinitions[tile.kind].hardness * 6) /
+        (equippedPickaxe.power * speedMultiplier),
+    );
 
     if (
       !this.miningTarget ||
@@ -1860,11 +1871,15 @@ export class MineScene extends Phaser.Scene {
       return;
     }
 
+    const currentDepth = this.getSurfaceDepth(this.player.position.y);
+    this.maxDepthReached = Math.max(this.maxDepthReached, currentDepth);
+    const equippedPickaxe = getEquippedPickaxe(this.pickaxeState);
+
     this.hud.update({
-      depth: this.getSurfaceDepth(this.player.position.y),
+      depth: currentDepth,
       coins: this.coins,
       energy: this.energy,
-      pickaxeLevel: this.pickaxeLevel,
+      pickaxeLevel: equippedPickaxe.tier,
       cardsFound: this.archaeologyDeck.collectedCount,
       cardsTotal: this.archaeologyDeck.totalCount,
       comboCount: this.rewardComboCount,
@@ -2210,37 +2225,70 @@ export class MineScene extends Phaser.Scene {
       return;
     }
 
-    const nextLevel = this.pickaxeLevel + 1;
-    const cost = getPickaxeUpgradeCost(nextLevel);
-    const canUpgrade = canAffordPickaxeUpgrade(this.inventory, cost);
-
     this.upgradeOverlay?.show({
-      level: this.pickaxeLevel,
-      cost,
-      canUpgrade,
-      onUpgrade: () => this.applyPickaxeUpgrade(),
+      coins: this.coins,
+      maxDepthReached: this.maxDepthReached,
+      pickaxes: this.getPickaxeShopLines(),
+      onBuy: (id) => this.handlePickaxeBuy(id),
+      onEquip: (id) => this.handlePickaxeEquip(id),
       onClose: () => this.closeUpgradeOverlay(),
     });
     this.updateSurfacePrompt();
   }
 
-  private applyPickaxeUpgrade() {
-    const nextLevel = this.pickaxeLevel + 1;
-    const cost = getPickaxeUpgradeCost(nextLevel);
+  private getPickaxeShopLines() {
+    return getPickaxeList().map((pickaxe) => {
+      const owned = ownsPickaxe(this.pickaxeState, pickaxe.id);
+      const equipped = this.pickaxeState.equipped === pickaxe.id;
+      const locked = !canUnlockPickaxe(pickaxe.id, this.maxDepthReached);
 
-    if (!canAffordPickaxeUpgrade(this.inventory, cost)) {
-      this.toggleUpgradeOverlay();
+      return {
+        pickaxe,
+        owned,
+        equipped,
+        locked,
+        canBuy: !owned && !locked && this.coins >= pickaxe.cost,
+      };
+    });
+  }
+
+  private refreshUpgradeOverlay() {
+    this.upgradeOverlay?.show({
+      coins: this.coins,
+      maxDepthReached: this.maxDepthReached,
+      pickaxes: this.getPickaxeShopLines(),
+      onBuy: (id) => this.handlePickaxeBuy(id),
+      onEquip: (id) => this.handlePickaxeEquip(id),
+      onClose: () => this.closeUpgradeOverlay(),
+    });
+  }
+
+  private handlePickaxeBuy(id: PickaxeId) {
+    const result = buyPickaxe(this.pickaxeState, id, this.coins, this.maxDepthReached);
+
+    if (!result.ok) {
+      this.showSurfaceToast(getPickaxePurchaseFailureMessage(result.reason));
+      this.refreshUpgradeOverlay();
       return;
     }
 
-    this.inventory.iron -= cost.iron;
-    this.inventory.gold -= cost.gold;
-    this.inventory.diamond -= cost.diamond;
-    this.pickaxeLevel = nextLevel;
-    this.syncExpeditionProgress(this.expeditionProgression.applyPickaxeLevel(this.pickaxeLevel));
+    this.pickaxeState = result.state;
+    this.coins = result.coins;
+    this.syncExpeditionProgress(this.expeditionProgression.applyPickaxeLevel(result.pickaxe.tier));
     this.audioDirector?.playUpgrade();
     this.updateHud();
-    this.toggleUpgradeOverlay();
+    this.showSurfaceToast(`${result.pickaxe.name} equipada.`);
+    this.refreshUpgradeOverlay();
+  }
+
+  private handlePickaxeEquip(id: PickaxeId) {
+    this.pickaxeState = equipPickaxe(this.pickaxeState, id);
+    const equippedPickaxe = getEquippedPickaxe(this.pickaxeState);
+    this.syncExpeditionProgress(this.expeditionProgression.applyPickaxeLevel(equippedPickaxe.tier));
+    this.audioDirector?.playUpgrade();
+    this.updateHud();
+    this.showSurfaceToast(`${equippedPickaxe.name} equipada.`);
+    this.refreshUpgradeOverlay();
   }
 
   private closeUpgradeOverlay() {
@@ -2435,5 +2483,18 @@ export class MineScene extends Phaser.Scene {
 
   private getFixedUiScale(scale: number) {
     return scale;
+  }
+}
+
+function getPickaxePurchaseFailureMessage(
+  reason: "already-owned" | "locked" | "not-enough-coins",
+) {
+  switch (reason) {
+    case "already-owned":
+      return "Essa picareta ja esta na mochila.";
+    case "locked":
+      return "Desca mais fundo para liberar essa picareta.";
+    case "not-enough-coins":
+      return "Moedas insuficientes.";
   }
 }

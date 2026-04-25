@@ -1,45 +1,45 @@
 import Phaser from "phaser";
-import type { PickaxeUpgradeCost } from "../../game/progression/pickaxeUpgrade";
+import type { PickaxeDefinition, PickaxeId } from "../../game/progression/pickaxeCatalog";
 import { createPanelChrome, gameTheme, makeGameTextStyle } from "../theme/gameTheme";
 
+type PickaxeShopLine = {
+  pickaxe: PickaxeDefinition;
+  owned: boolean;
+  equipped: boolean;
+  locked: boolean;
+  canBuy: boolean;
+};
+
 type OverlaySnapshot = {
-  level: number;
-  cost: PickaxeUpgradeCost;
-  canUpgrade: boolean;
-  onUpgrade: () => void;
+  coins: number;
+  maxDepthReached: number;
+  pickaxes: PickaxeShopLine[];
+  onBuy: (id: PickaxeId) => void;
+  onEquip: (id: PickaxeId) => void;
   onClose: () => void;
 };
 
 export class UpgradeOverlay {
   private readonly container: Phaser.GameObjects.Container;
   private readonly panelRoot: Phaser.GameObjects.Container;
-  private readonly levelText: Phaser.GameObjects.Text;
-  private readonly descriptionText: Phaser.GameObjects.Text;
-  private readonly currentPowerText: Phaser.GameObjects.Text;
-  private readonly nextPowerText: Phaser.GameObjects.Text;
-  private readonly costIronText: Phaser.GameObjects.Text;
-  private readonly costGoldText: Phaser.GameObjects.Text;
-  private readonly costDiamondText: Phaser.GameObjects.Text;
-  private readonly upgradeButton: Phaser.GameObjects.Container;
-  private readonly upgradeButtonHitArea: Phaser.GameObjects.Rectangle;
-  private readonly upgradeButtonBody: Phaser.GameObjects.Rectangle;
-  private readonly upgradeButtonGlow: Phaser.GameObjects.Rectangle;
-  private readonly upgradeButtonLabel: Phaser.GameObjects.Text;
+  private readonly listRoot: Phaser.GameObjects.Container;
+  private readonly coinsText: Phaser.GameObjects.Text;
+  private readonly depthText: Phaser.GameObjects.Text;
   private readonly closeButton: Phaser.GameObjects.Container;
   private readonly closeButtonHitArea: Phaser.GameObjects.Rectangle;
   private readonly closeButtonBody: Phaser.GameObjects.Rectangle;
-  private readonly closeButtonLabel: Phaser.GameObjects.Text;
   private readonly scene: Phaser.Scene;
+  private rowRoots: Phaser.GameObjects.Container[] = [];
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
 
     const viewportWidth = scene.scale.width;
     const viewportHeight = scene.scale.height;
-    const panelWidth = 540;
-    const panelHeight = 320;
+    const panelWidth = 584;
+    const panelHeight = 500;
     const panelX = (viewportWidth - panelWidth) / 2;
-    const panelY = (viewportHeight - panelHeight) / 2 - 10;
+    const panelY = (viewportHeight - panelHeight) / 2 - 4;
     const centerX = viewportWidth / 2;
 
     const scrim = scene.add.rectangle(0, 0, viewportWidth, viewportHeight, gameTheme.colors.bgTop, 0.9);
@@ -53,201 +53,90 @@ export class UpgradeOverlay {
       accentColor: gameTheme.colors.accent,
     });
 
-    const forgePanel = scene.add.rectangle(panelX + 24, panelY + 40, panelWidth - 48, 96, gameTheme.colors.panelDeep, 0.96);
-    forgePanel.setOrigin(0);
-    forgePanel.setStrokeStyle(1, gameTheme.colors.borderSoft, 0.82);
-
-    const costPanel = scene.add.rectangle(panelX + 24, panelY + 152, panelWidth - 48, 76, gameTheme.colors.panelDeep, 0.96);
-    costPanel.setOrigin(0);
-    costPanel.setStrokeStyle(1, gameTheme.colors.borderSoft, 0.82);
-
     const title = scene.add.text(
       centerX,
-      panelY + 32,
-      "FORJA DA PICARETA",
+      panelY + 33,
+      "CATALOGO DE PICARETAS",
       makeGameTextStyle({
         family: "display",
         color: "#ffe7b0",
-        fontSize: "26px",
+        fontSize: "25px",
         fontStyle: "800",
         strokeThickness: 5,
       }),
     );
     title.setOrigin(0.5);
 
-    const subtitle = scene.add.text(
-      centerX,
-      panelY + 58,
-      "Aprimore a ferramenta para cavar mais rápido e mais fundo",
-      makeGameTextStyle({
-        color: "#d7e8f2",
-        fontSize: "14px",
-        fontStyle: "700",
-        strokeThickness: 2,
-      }),
-    );
-    subtitle.setOrigin(0.5);
-
-    this.levelText = scene.add.text(
-      centerX,
-      panelY + 76,
-      "",
-      makeGameTextStyle({
-        family: "display",
-        color: gameTheme.colors.text,
-        fontSize: "23px",
-        fontStyle: "800",
-        strokeThickness: 4,
-      }),
-    );
-    this.levelText.setOrigin(0.5);
-
-    this.descriptionText = scene.add.text(
-      centerX,
-      panelY + 102,
-      "Cada nível reduz o tempo de escavação e melhora o ritmo da expedição.",
-      makeGameTextStyle({
-        color: gameTheme.colors.textMuted,
-        fontSize: "15px",
-        align: "center",
-        wordWrapWidth: 330,
-      }),
-    );
-    this.descriptionText.setOrigin(0.5, 0);
-
-    this.currentPowerText = scene.add.text(
-      centerX - 108,
-      panelY + 158,
-      "",
-      makeGameTextStyle({
-        family: "display",
-        color: "#dff9f0",
-        fontSize: "14px",
-        fontStyle: "800",
-        strokeThickness: 2,
-      }),
-    );
-    this.currentPowerText.setOrigin(0.5, 0);
-
-    this.nextPowerText = scene.add.text(
-      centerX + 108,
-      panelY + 158,
-      "",
-      makeGameTextStyle({
-        family: "display",
-        color: "#ffe39b",
-        fontSize: "14px",
-        fontStyle: "800",
-        strokeThickness: 2,
-      }),
-    );
-    this.nextPowerText.setOrigin(0.5, 0);
-
-    const ironChip = scene.add.rectangle(centerX - 156, panelY + 197, 96, 22, 0x251b13, 0.98);
-    ironChip.setOrigin(0);
-    ironChip.setStrokeStyle(1, 0x6a4e36, 0.8);
-    const goldChip = scene.add.rectangle(centerX - 48, panelY + 197, 96, 22, 0x31260d, 0.98);
-    goldChip.setOrigin(0);
-    goldChip.setStrokeStyle(1, 0x7d6731, 0.8);
-    const diamondChip = scene.add.rectangle(centerX + 60, panelY + 197, 96, 22, 0x102734, 0.98);
-    diamondChip.setOrigin(0);
-    diamondChip.setStrokeStyle(1, 0x38657b, 0.8);
-
-    this.costIronText = scene.add.text(
-      centerX - 108,
-      panelY + 199,
-      "",
-      makeGameTextStyle({
-        family: "display",
-        color: "#f0c79f",
-        fontSize: "12px",
-        fontStyle: "800",
-        strokeThickness: 2,
-      }),
-    );
-    this.costIronText.setOrigin(0.5, 0);
-
-    this.costGoldText = scene.add.text(
-      centerX,
-      panelY + 199,
+    this.coinsText = scene.add.text(
+      panelX + 30,
+      panelY + 62,
       "",
       makeGameTextStyle({
         family: "display",
         color: "#ffe28a",
-        fontSize: "12px",
+        fontSize: "14px",
         fontStyle: "800",
         strokeThickness: 2,
       }),
     );
-    this.costGoldText.setOrigin(0.5, 0);
 
-    this.costDiamondText = scene.add.text(
-      centerX + 108,
-      panelY + 199,
+    this.depthText = scene.add.text(
+      panelX + panelWidth - 30,
+      panelY + 62,
       "",
       makeGameTextStyle({
         family: "display",
         color: "#b8f7fa",
+        fontSize: "14px",
+        fontStyle: "800",
+        strokeThickness: 2,
+      }),
+    );
+    this.depthText.setOrigin(1, 0);
+
+    const header = scene.add.text(
+      panelX + 32,
+      panelY + 91,
+      "PICARETA                         FORCA     PRECO",
+      makeGameTextStyle({
+        family: "display",
+        color: gameTheme.colors.textSoft,
         fontSize: "12px",
         fontStyle: "800",
         strokeThickness: 2,
       }),
     );
-    this.costDiamondText.setOrigin(0.5, 0);
 
-    this.upgradeButtonBody = scene.add.rectangle(0, 0, 164, 46, 0xe8cb79, 1);
-    this.upgradeButtonBody.setStrokeStyle(2, 0x6f531c, 0.88);
-    this.upgradeButtonGlow = scene.add.rectangle(0, 0, 164, 46, 0xffefb6, 0.08);
-    this.upgradeButtonLabel = scene.add.text(
-      0,
-      -13,
-      "EVOLUIR",
-      makeGameTextStyle({
-        family: "display",
-        color: gameTheme.colors.textDark,
-        fontSize: "18px",
-        fontStyle: "800",
-        strokeThickness: 0,
-      }),
-    );
-    this.upgradeButtonLabel.setOrigin(0.5, 0);
-    this.upgradeButton = scene.add.container(centerX - 82, panelY + 268, [
-      this.upgradeButtonGlow,
-      this.upgradeButtonBody,
-      this.upgradeButtonLabel,
-    ]);
-    this.upgradeButtonHitArea = this.upgradeButtonBody;
-    this.upgradeButtonHitArea.setInteractive({ useHandCursor: true });
+    this.listRoot = scene.add.container(0, 0);
 
-    this.closeButtonBody = scene.add.rectangle(0, 0, 140, 46, gameTheme.colors.panelRaised, 1);
+    this.closeButtonBody = scene.add.rectangle(0, 0, 150, 42, gameTheme.colors.panelRaised, 1);
     this.closeButtonBody.setStrokeStyle(2, gameTheme.colors.border, 0.9);
-    this.closeButtonLabel = scene.add.text(
+    const closeButtonLabel = scene.add.text(
       0,
-      -13,
+      -12,
       "FECHAR",
       makeGameTextStyle({
         family: "display",
         color: gameTheme.colors.text,
-        fontSize: "17px",
+        fontSize: "16px",
         fontStyle: "800",
-        strokeThickness: 0,
       }),
     );
-    this.closeButtonLabel.setOrigin(0.5, 0);
-    this.closeButton = scene.add.container(centerX + 96, panelY + 268, [
+    closeButtonLabel.setOrigin(0.5, 0);
+    this.closeButton = scene.add.container(centerX - 75, panelY + 450, [
       this.closeButtonBody,
-      this.closeButtonLabel,
+      closeButtonLabel,
     ]);
     this.closeButtonHitArea = this.closeButtonBody;
     this.closeButtonHitArea.setInteractive({ useHandCursor: true });
 
     const hint = scene.add.text(
       centerX,
-      panelY + 304,
-      "Use U ou ESC para sair da forja",
+      panelY + 482,
+      "Use E ou ESC para sair da oficina",
       makeGameTextStyle({
         color: gameTheme.colors.textSoft,
-        fontSize: "14px",
+        fontSize: "13px",
         fontStyle: "600",
         strokeThickness: 2,
       }),
@@ -256,21 +145,11 @@ export class UpgradeOverlay {
 
     this.panelRoot = scene.add.container(0, 0, [
       ...chrome,
-      forgePanel,
-      costPanel,
       title,
-      subtitle,
-      this.levelText,
-      this.descriptionText,
-      this.currentPowerText,
-      this.nextPowerText,
-      ironChip,
-      goldChip,
-      diamondChip,
-      this.costIronText,
-      this.costGoldText,
-      this.costDiamondText,
-      this.upgradeButton,
+      this.coinsText,
+      this.depthText,
+      header,
+      this.listRoot,
       this.closeButton,
       hint,
     ]);
@@ -281,8 +160,6 @@ export class UpgradeOverlay {
     this.container.setVisible(false);
     this.container.setAlpha(0);
 
-    this.upgradeButtonHitArea.on("pointerover", () => this.setUpgradeButtonState(true, true));
-    this.upgradeButtonHitArea.on("pointerout", () => this.setUpgradeButtonState(false, true));
     this.closeButtonHitArea.on("pointerover", () => this.setCloseButtonState(true));
     this.closeButtonHitArea.on("pointerout", () => this.setCloseButtonState(false));
   }
@@ -292,27 +169,13 @@ export class UpgradeOverlay {
   }
 
   show(snapshot: OverlaySnapshot) {
-    const currentSpeed = Math.round((1 + (snapshot.level - 1) * 0.25) * 100);
-    const nextSpeed = Math.round((1 + snapshot.level * 0.25) * 100);
+    this.coinsText.setText(`MOEDAS ${snapshot.coins}`);
+    this.depthText.setText(`PROFUNDIDADE ${snapshot.maxDepthReached}m`);
+    this.renderRows(snapshot);
 
-    this.levelText.setText(`LV ${snapshot.level}  ->  LV ${snapshot.level + 1}`);
-    this.currentPowerText.setText(`ATUAL ${currentSpeed}%`);
-    this.nextPowerText.setText(`PRÓXIMO ${nextSpeed}%`);
-    this.costIronText.setText(`FERRO ${snapshot.cost.iron}`);
-    this.costGoldText.setText(`OURO ${snapshot.cost.gold}`);
-    this.costDiamondText.setText(`DIA ${snapshot.cost.diamond}`);
-
-    this.upgradeButtonHitArea.removeAllListeners("pointerup");
     this.closeButtonHitArea.removeAllListeners("pointerup");
-    this.upgradeButtonHitArea.on("pointerup", snapshot.onUpgrade);
     this.closeButtonHitArea.on("pointerup", snapshot.onClose);
 
-    this.upgradeButtonHitArea.disableInteractive();
-    if (snapshot.canUpgrade) {
-      this.upgradeButtonHitArea.setInteractive({ useHandCursor: true });
-    }
-
-    this.setUpgradeButtonState(false, snapshot.canUpgrade);
     this.setCloseButtonState(false);
     this.container.setVisible(true);
     this.container.setAlpha(0);
@@ -334,17 +197,164 @@ export class UpgradeOverlay {
     return this.container.visible;
   }
 
-  private setUpgradeButtonState(hovered: boolean, enabled: boolean) {
-    const fill = enabled ? (hovered ? 0xf6dd95 : 0xe8cb79) : 0x78684a;
-    const label = enabled ? gameTheme.colors.textDark : "#d7d3ca";
-    this.upgradeButtonBody.setFillStyle(fill, 1);
-    this.upgradeButtonGlow.setAlpha(enabled ? (hovered ? 0.18 : 0.08) : 0.02);
-    this.upgradeButtonLabel.setColor(label);
-    this.upgradeButton.setAlpha(enabled ? 1 : 0.62);
+  private renderRows(snapshot: OverlaySnapshot) {
+    for (const row of this.rowRoots) {
+      row.destroy(true);
+    }
+
+    this.rowRoots = [];
+
+    const panelX = (this.scene.scale.width - 584) / 2;
+    const startY = (this.scene.scale.height - 500) / 2 + 108;
+
+    snapshot.pickaxes.forEach((line, index) => {
+      const y = startY + index * 40;
+      const row = this.createPickaxeRow(panelX + 28, y, line, snapshot);
+      this.listRoot.add(row);
+      this.rowRoots.push(row);
+    });
+  }
+
+  private createPickaxeRow(
+    x: number,
+    y: number,
+    line: PickaxeShopLine,
+    snapshot: OverlaySnapshot,
+  ) {
+    const rowWidth = 528;
+    const bodyColor = line.equipped
+      ? 0x3d3422
+      : line.owned
+        ? 0x28332a
+        : line.locked
+          ? 0x171313
+          : gameTheme.colors.panelDeep;
+    const body = this.scene.add.rectangle(0, 0, rowWidth, 34, bodyColor, 0.96);
+    body.setOrigin(0);
+    body.setStrokeStyle(1, line.equipped ? gameTheme.colors.accent : gameTheme.colors.borderSoft, 0.8);
+
+    const name = this.scene.add.text(
+      12,
+      7,
+      line.pickaxe.name,
+      makeGameTextStyle({
+        family: "display",
+        color: line.locked ? "#7f7468" : gameTheme.colors.text,
+        fontSize: "13px",
+        fontStyle: "800",
+        strokeThickness: 2,
+      }),
+    );
+
+    const power = this.scene.add.text(
+      292,
+      7,
+      String(line.pickaxe.power),
+      makeGameTextStyle({
+        family: "display",
+        color: line.locked ? "#7f7468" : "#ffe28a",
+        fontSize: "13px",
+        fontStyle: "800",
+        strokeThickness: 2,
+      }),
+    );
+    power.setOrigin(0.5, 0);
+
+    const priceLabel = line.pickaxe.cost === 0 ? "INICIAL" : `${line.pickaxe.cost}`;
+    const price = this.scene.add.text(
+      374,
+      7,
+      priceLabel,
+      makeGameTextStyle({
+        family: "display",
+        color: line.canBuy ? "#ffe28a" : gameTheme.colors.textSoft,
+        fontSize: "13px",
+        fontStyle: "800",
+        strokeThickness: 2,
+      }),
+    );
+    price.setOrigin(0.5, 0);
+
+    const action = getActionLabel(line);
+    const actionBody = this.scene.add.rectangle(454, 17, 122, 25, getActionFill(line), line.locked ? 0.38 : 1);
+    actionBody.setStrokeStyle(1, getActionStroke(line), line.locked ? 0.35 : 0.8);
+    const actionText = this.scene.add.text(
+      454,
+      10,
+      action,
+      makeGameTextStyle({
+        family: "display",
+        color: line.canBuy || line.owned ? gameTheme.colors.textDark : "#b9aa91",
+        fontSize: "11px",
+        fontStyle: "800",
+      }),
+    );
+    actionText.setOrigin(0.5, 0);
+
+    if (line.canBuy || (line.owned && !line.equipped)) {
+      actionBody.setInteractive({ useHandCursor: true });
+      actionBody.on("pointerup", () => {
+        if (line.owned) {
+          snapshot.onEquip(line.pickaxe.id);
+          return;
+        }
+
+        snapshot.onBuy(line.pickaxe.id);
+      });
+    }
+
+    return this.scene.add.container(x, y, [
+      body,
+      name,
+      power,
+      price,
+      actionBody,
+      actionText,
+    ]);
   }
 
   private setCloseButtonState(hovered: boolean) {
     this.closeButtonBody.setFillStyle(hovered ? 0x31465f : gameTheme.colors.panelRaised, 1);
     this.closeButton.setScale(hovered ? 1.02 : 1);
   }
+}
+
+function getActionLabel(line: PickaxeShopLine) {
+  if (line.equipped) {
+    return "EQUIPADA";
+  }
+
+  if (line.owned) {
+    return "EQUIPAR";
+  }
+
+  if (line.locked) {
+    return `${line.pickaxe.unlockDepth}m`;
+  }
+
+  return line.canBuy ? "COMPRAR" : "SEM MOEDAS";
+}
+
+function getActionFill(line: PickaxeShopLine) {
+  if (line.equipped) {
+    return gameTheme.colors.accent;
+  }
+
+  if (line.owned || line.canBuy) {
+    return gameTheme.colors.success;
+  }
+
+  return gameTheme.colors.panelRaised;
+}
+
+function getActionStroke(line: PickaxeShopLine) {
+  if (line.equipped) {
+    return 0x6f531c;
+  }
+
+  if (line.owned || line.canBuy) {
+    return 0x2f6942;
+  }
+
+  return gameTheme.colors.borderSoft;
 }
