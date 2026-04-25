@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import pickaxeIconUrl from "../assets/pickaxes/pick_axe_cc0.png";
 import villageHubCleanUrl from "../assets/surface/village-hub-clean-v1.png";
 
 export class PreloadScene extends Phaser.Scene {
@@ -7,6 +8,7 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   preload() {
+    this.load.image("pickaxe-icon", pickaxeIconUrl);
     this.load.image("surface-village-hub-clean", villageHubCleanUrl);
 
     this.load.once(Phaser.Loader.Events.COMPLETE, () => {
