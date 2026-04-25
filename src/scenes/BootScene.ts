@@ -6,10 +6,9 @@ export class BootScene extends Phaser.Scene {
   }
 
   create() {
-    this.prepareFonts().finally(() => {
-      this.game.events.emit("phaser:booted");
-      this.scene.start("preload");
-    });
+    this.game.events.emit("phaser:booted");
+    this.scene.start("preload");
+    void this.prepareFonts();
   }
 
   private async prepareFonts() {

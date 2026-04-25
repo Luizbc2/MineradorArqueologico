@@ -320,6 +320,12 @@ export class UpgradeOverlay {
 
     for (const child of card.list) {
       child.cameraFilter = this.carouselRoot.cameraFilter;
+
+      if (child instanceof Phaser.GameObjects.Container) {
+        for (const nestedChild of child.list) {
+          nestedChild.cameraFilter = this.carouselRoot.cameraFilter;
+        }
+      }
     }
   }
 
@@ -474,17 +480,36 @@ export class UpgradeOverlay {
 
   private createPickaxeArt(x: number, y: number, id: PickaxeId, locked: boolean) {
     const colors = getPickaxeColors(id, locked);
+    const alpha = locked ? 0.46 : 1;
     const glow = this.scene.add.circle(x, y, 54, colors.glow, locked ? 0.05 : 0.18);
     const shadow = this.scene.add.ellipse(x + 2, y + 46, 116, 18, 0x030508, locked ? 0.12 : 0.22);
-    const sprite = this.scene.add.image(x, y, `pickaxe-${id}`);
-    sprite.setOrigin(0.5);
-    sprite.setDisplaySize(122, 122);
-    sprite.setAlpha(locked ? 0.42 : 1);
+    const art = this.scene.add.container(x, y);
 
-    const gem = this.scene.add.circle(x + 24, y + 8, 7, colors.gem, locked ? 0.18 : 0.55);
-    gem.setStrokeStyle(2, colors.stroke, locked ? 0.24 : 0.75);
+    const handle = this.scene.add.rectangle(-6, 16, colors.handleWidth, colors.handleLength, colors.handle, alpha);
+    handle.setAngle(colors.handleAngle);
+    handle.setStrokeStyle(1, 0x120d09, locked ? 0.28 : 0.58);
 
-    return [glow, shadow, sprite, gem];
+    const grip = this.scene.add.rectangle(
+      colors.gripX,
+      colors.gripY,
+      colors.gripWidth,
+      colors.gripHeight,
+      colors.grip,
+      alpha,
+    );
+    grip.setAngle(colors.handleAngle);
+
+    const head = this.scene.add.polygon(0, 0, colors.headPoints, colors.head, alpha);
+    head.setStrokeStyle(2, colors.stroke, locked ? 0.32 : 0.78);
+
+    const edge = this.scene.add.polygon(0, 0, colors.edgePoints, colors.edge, alpha);
+    const gem = this.scene.add.polygon(0, 0, colors.gemPoints, colors.gem, locked ? 0.28 : 0.88);
+    gem.setStrokeStyle(2, colors.stroke, locked ? 0.2 : 0.62);
+
+    art.add([handle, grip, head, edge, gem]);
+    art.setScale(colors.scale);
+
+    return [glow, shadow, art];
   }
 
   private getLastPage(snapshot: OverlaySnapshot) {
@@ -564,6 +589,17 @@ function getPickaxeColors(id: PickaxeId, locked: boolean) {
       gem: 0x5f5750,
       glow: 0x5b5248,
       stroke: 0x2a241f,
+      handleWidth: 12,
+      handleLength: 100,
+      handleAngle: 34,
+      gripX: -24,
+      gripY: 54,
+      gripWidth: 16,
+      gripHeight: 24,
+      scale: 1,
+      headPoints: [-54, -38, -12, -54, 54, -42, 46, -24, -5, -26, -18, -8, -36, -8, -24, -28],
+      edgePoints: [42, -48, 74, -42, 56, -25, 38, -28],
+      gemPoints: [-6, -28, 8, -31, 17, -20, 6, -9, -9, -14],
     };
   }
 
@@ -577,6 +613,17 @@ function getPickaxeColors(id: PickaxeId, locked: boolean) {
         gem: 0xd8b06a,
         glow: 0xc08a4d,
         stroke: 0x5a351b,
+        handleWidth: 12,
+        handleLength: 96,
+        handleAngle: 32,
+        gripX: -24,
+        gripY: 54,
+        gripWidth: 16,
+        gripHeight: 22,
+        scale: 0.96,
+        headPoints: [-46, -36, -14, -44, 43, -36, 38, -22, -4, -22, -16, -6, -32, -7, -22, -24],
+        edgePoints: [36, -42, 58, -37, 45, -24, 32, -26],
+        gemPoints: [-6, -26, 7, -28, 15, -19, 5, -10, -8, -13],
       };
     case "stone":
       return {
@@ -587,6 +634,17 @@ function getPickaxeColors(id: PickaxeId, locked: boolean) {
         gem: 0xcfd9e2,
         glow: 0x87909a,
         stroke: 0x4c5662,
+        handleWidth: 11,
+        handleLength: 102,
+        handleAngle: 34,
+        gripX: -25,
+        gripY: 55,
+        gripWidth: 18,
+        gripHeight: 24,
+        scale: 1,
+        headPoints: [-56, -36, -17, -50, 51, -39, 63, -28, 48, -15, 1, -22, -14, -2, -34, -5, -23, -24],
+        edgePoints: [48, -42, 74, -31, 52, -17, 37, -24],
+        gemPoints: [-7, -27, 8, -31, 18, -19, 5, -7, -10, -13],
       };
     case "copper":
       return {
@@ -597,6 +655,17 @@ function getPickaxeColors(id: PickaxeId, locked: boolean) {
         gem: 0xffc184,
         glow: 0xc8753f,
         stroke: 0x6d3922,
+        handleWidth: 11,
+        handleLength: 106,
+        handleAngle: 34,
+        gripX: -25,
+        gripY: 56,
+        gripWidth: 20,
+        gripHeight: 24,
+        scale: 1.02,
+        headPoints: [-58, -35, -15, -54, 52, -44, 70, -33, 53, -13, 1, -21, -15, 3, -37, -2, -23, -25],
+        edgePoints: [51, -49, 81, -34, 56, -17, 40, -25],
+        gemPoints: [-8, -29, 9, -33, 20, -20, 6, -6, -11, -13],
       };
     case "iron":
       return {
@@ -607,6 +676,17 @@ function getPickaxeColors(id: PickaxeId, locked: boolean) {
         gem: 0xd49a63,
         glow: 0xbfc9d8,
         stroke: 0x5c697a,
+        handleWidth: 12,
+        handleLength: 112,
+        handleAngle: 35,
+        gripX: -26,
+        gripY: 58,
+        gripWidth: 22,
+        gripHeight: 26,
+        scale: 1.03,
+        headPoints: [-64, -34, -18, -58, 55, -46, 75, -33, 55, -10, 2, -19, -17, 6, -40, 1, -24, -25],
+        edgePoints: [53, -51, 86, -34, 58, -15, 39, -25],
+        gemPoints: [-8, -30, 9, -34, 21, -20, 6, -5, -12, -13],
       };
     case "gold":
       return {
@@ -617,6 +697,17 @@ function getPickaxeColors(id: PickaxeId, locked: boolean) {
         gem: 0xfff1aa,
         glow: 0xf3c55d,
         stroke: 0x8f6b20,
+        handleWidth: 12,
+        handleLength: 114,
+        handleAngle: 35,
+        gripX: -27,
+        gripY: 59,
+        gripWidth: 23,
+        gripHeight: 26,
+        scale: 1.05,
+        headPoints: [-66, -33, -20, -59, 56, -48, 80, -32, 57, -8, 4, -18, -17, 9, -43, 3, -25, -25],
+        edgePoints: [54, -53, 91, -33, 60, -12, 38, -25],
+        gemPoints: [-9, -31, 10, -36, 23, -20, 7, -4, -13, -13],
       };
     case "diamond":
       return {
@@ -627,6 +718,17 @@ function getPickaxeColors(id: PickaxeId, locked: boolean) {
         gem: 0xffffff,
         glow: 0x89dff5,
         stroke: 0x2c7288,
+        handleWidth: 12,
+        handleLength: 118,
+        handleAngle: 36,
+        gripX: -28,
+        gripY: 60,
+        gripWidth: 24,
+        gripHeight: 28,
+        scale: 1.06,
+        headPoints: [-68, -34, -21, -62, 58, -50, 83, -31, 58, -5, 5, -17, -18, 12, -45, 4, -26, -26],
+        edgePoints: [56, -56, 96, -32, 61, -10, 37, -25],
+        gemPoints: [-12, -32, 11, -38, 27, -20, 7, 0, -16, -12],
       };
     case "obsidian":
       return {
@@ -637,6 +739,17 @@ function getPickaxeColors(id: PickaxeId, locked: boolean) {
         gem: 0xe99bff,
         glow: 0xa38bd6,
         stroke: 0x21182e,
+        handleWidth: 12,
+        handleLength: 122,
+        handleAngle: 36,
+        gripX: -29,
+        gripY: 61,
+        gripWidth: 26,
+        gripHeight: 28,
+        scale: 1.08,
+        headPoints: [-70, -31, -23, -66, 59, -54, 88, -34, 61, -3, 8, -18, -19, 15, -48, 3, -25, -28],
+        edgePoints: [58, -59, 101, -35, 64, -8, 36, -25],
+        gemPoints: [-13, -34, 12, -41, 29, -20, 8, 2, -17, -12],
       };
     case "ancientCrystal":
       return {
@@ -647,6 +760,17 @@ function getPickaxeColors(id: PickaxeId, locked: boolean) {
         gem: 0xffef8a,
         glow: 0x7effda,
         stroke: 0x1f8170,
+        handleWidth: 12,
+        handleLength: 126,
+        handleAngle: 37,
+        gripX: -30,
+        gripY: 62,
+        gripWidth: 28,
+        gripHeight: 30,
+        scale: 1.1,
+        headPoints: [-73, -34, -24, -70, 60, -58, 94, -36, 63, 1, 10, -17, -20, 19, -51, 4, -26, -30],
+        edgePoints: [59, -64, 108, -37, 66, -6, 34, -25],
+        gemPoints: [-14, -36, 13, -44, 32, -20, 9, 5, -19, -12],
       };
   }
 }
