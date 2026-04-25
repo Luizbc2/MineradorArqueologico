@@ -159,7 +159,7 @@ export class UpgradeOverlay {
 
     this.pageText = scene.add.text(
       centerX,
-      panelY + 436,
+      panelY + 426,
       "",
       makeGameTextStyle({
         family: "display",
@@ -187,7 +187,7 @@ export class UpgradeOverlay {
       }),
     );
     closeButtonLabel.setOrigin(0.5, 0);
-    this.closeButton = scene.add.container(centerX - 75, panelY + 468, [
+    this.closeButton = scene.add.container(centerX, panelY + 472, [
       this.closeButtonBody,
       closeButtonLabel,
     ]);
