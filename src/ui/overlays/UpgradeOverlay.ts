@@ -476,20 +476,15 @@ export class UpgradeOverlay {
     const colors = getPickaxeColors(id, locked);
     const glow = this.scene.add.circle(x, y, 54, colors.glow, locked ? 0.05 : 0.18);
     const shadow = this.scene.add.ellipse(x + 2, y + 46, 116, 18, 0x030508, locked ? 0.12 : 0.22);
-    const sprite = this.scene.add.image(x, y, "pickaxe-icon");
+    const sprite = this.scene.add.image(x, y, `pickaxe-${id}`);
     sprite.setOrigin(0.5);
-    sprite.setDisplaySize(138, 110);
-    sprite.setAngle(-35);
-    sprite.setTint(colors.tint);
+    sprite.setDisplaySize(122, 122);
     sprite.setAlpha(locked ? 0.42 : 1);
-    sprite.setPipeline("TextureTintPipeline");
 
-    const shine = this.scene.add.rectangle(x + 22, y - 22, 56, 4, colors.edge, locked ? 0.08 : 0.36);
-    shine.setAngle(-35);
-    const gem = this.scene.add.circle(x + 24, y + 8, 7, colors.gem, locked ? 0.24 : 0.9);
+    const gem = this.scene.add.circle(x + 24, y + 8, 7, colors.gem, locked ? 0.18 : 0.55);
     gem.setStrokeStyle(2, colors.stroke, locked ? 0.24 : 0.75);
 
-    return [glow, shadow, sprite, shine, gem];
+    return [glow, shadow, sprite, gem];
   }
 
   private getLastPage(snapshot: OverlaySnapshot) {
@@ -569,7 +564,6 @@ function getPickaxeColors(id: PickaxeId, locked: boolean) {
       gem: 0x5f5750,
       glow: 0x5b5248,
       stroke: 0x2a241f,
-      tint: 0x6f6962,
     };
   }
 
@@ -583,7 +577,6 @@ function getPickaxeColors(id: PickaxeId, locked: boolean) {
         gem: 0xd8b06a,
         glow: 0xc08a4d,
         stroke: 0x5a351b,
-        tint: 0xa56f36,
       };
     case "stone":
       return {
@@ -594,7 +587,6 @@ function getPickaxeColors(id: PickaxeId, locked: boolean) {
         gem: 0xcfd9e2,
         glow: 0x87909a,
         stroke: 0x4c5662,
-        tint: 0xa5adb6,
       };
     case "copper":
       return {
@@ -605,7 +597,6 @@ function getPickaxeColors(id: PickaxeId, locked: boolean) {
         gem: 0xffc184,
         glow: 0xc8753f,
         stroke: 0x6d3922,
-        tint: 0xd78246,
       };
     case "iron":
       return {
@@ -616,7 +607,6 @@ function getPickaxeColors(id: PickaxeId, locked: boolean) {
         gem: 0xd49a63,
         glow: 0xbfc9d8,
         stroke: 0x5c697a,
-        tint: 0xd8e0ea,
       };
     case "gold":
       return {
@@ -627,7 +617,6 @@ function getPickaxeColors(id: PickaxeId, locked: boolean) {
         gem: 0xfff1aa,
         glow: 0xf3c55d,
         stroke: 0x8f6b20,
-        tint: 0xffd96a,
       };
     case "diamond":
       return {
@@ -638,7 +627,6 @@ function getPickaxeColors(id: PickaxeId, locked: boolean) {
         gem: 0xffffff,
         glow: 0x89dff5,
         stroke: 0x2c7288,
-        tint: 0xa6efff,
       };
     case "obsidian":
       return {
@@ -649,7 +637,6 @@ function getPickaxeColors(id: PickaxeId, locked: boolean) {
         gem: 0xe99bff,
         glow: 0xa38bd6,
         stroke: 0x21182e,
-        tint: 0x8f72c9,
       };
     case "ancientCrystal":
       return {
@@ -660,7 +647,6 @@ function getPickaxeColors(id: PickaxeId, locked: boolean) {
         gem: 0xffef8a,
         glow: 0x7effda,
         stroke: 0x1f8170,
-        tint: 0x94ffe3,
       };
   }
 }
