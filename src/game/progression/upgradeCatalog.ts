@@ -22,7 +22,7 @@ export const upgradeCatalog: Record<UpgradeId, UpgradeDefinition> = {
   power: {
     id: "power",
     name: "Mais Força",
-    description: "Aumenta a força da picareta para quebrar blocos mais rápido.",
+    description: "Aumenta a força da picareta para quebrar blocos mais duros.",
     baseCost: 120,
     growth: 1.45,
     effectKind: "flatPower",
