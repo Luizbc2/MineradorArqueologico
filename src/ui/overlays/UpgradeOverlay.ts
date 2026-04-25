@@ -19,6 +19,18 @@ type OverlaySnapshot = {
   onClose: () => void;
 };
 
+const PANEL_WIDTH = 640;
+const PANEL_HEIGHT = 520;
+const ROW_WIDTH = 584;
+const ROW_HEIGHT = 36;
+const ROW_GAP = 41;
+const COLUMN_X = {
+  name: 12,
+  power: 326,
+  price: 414,
+  action: 526,
+} as const;
+
 export class UpgradeOverlay {
   private readonly container: Phaser.GameObjects.Container;
   private readonly panelRoot: Phaser.GameObjects.Container;
@@ -36,8 +48,8 @@ export class UpgradeOverlay {
 
     const viewportWidth = scene.scale.width;
     const viewportHeight = scene.scale.height;
-    const panelWidth = 584;
-    const panelHeight = 500;
+    const panelWidth = PANEL_WIDTH;
+    const panelHeight = PANEL_HEIGHT;
     const panelX = (viewportWidth - panelWidth) / 2;
     const panelY = (viewportHeight - panelHeight) / 2 - 4;
     const centerX = viewportWidth / 2;
@@ -94,18 +106,21 @@ export class UpgradeOverlay {
     );
     this.depthText.setOrigin(1, 0);
 
-    const header = scene.add.text(
-      panelX + 32,
-      panelY + 91,
-      "PICARETA                         FORCA     PRECO",
-      makeGameTextStyle({
-        family: "display",
-        color: gameTheme.colors.textSoft,
-        fontSize: "12px",
-        fontStyle: "800",
-        strokeThickness: 2,
-      }),
-    );
+    const headerStyle = makeGameTextStyle({
+      family: "display",
+      color: gameTheme.colors.textSoft,
+      fontSize: "12px",
+      fontStyle: "800",
+      strokeThickness: 2,
+      resolution: 6,
+    });
+    const nameHeader = scene.add.text(panelX + 40, panelY + 94, "PICARETA", headerStyle);
+    const powerHeader = scene.add.text(panelX + 28 + COLUMN_X.power, panelY + 94, "FORCA", headerStyle);
+    powerHeader.setOrigin(0.5, 0);
+    const priceHeader = scene.add.text(panelX + 28 + COLUMN_X.price, panelY + 94, "PRECO", headerStyle);
+    priceHeader.setOrigin(0.5, 0);
+    const statusHeader = scene.add.text(panelX + 28 + COLUMN_X.action, panelY + 94, "STATUS", headerStyle);
+    statusHeader.setOrigin(0.5, 0);
 
     this.listRoot = scene.add.container(0, 0);
 
@@ -123,7 +138,7 @@ export class UpgradeOverlay {
       }),
     );
     closeButtonLabel.setOrigin(0.5, 0);
-    this.closeButton = scene.add.container(centerX - 75, panelY + 450, [
+    this.closeButton = scene.add.container(centerX - 75, panelY + 472, [
       this.closeButtonBody,
       closeButtonLabel,
     ]);
@@ -132,7 +147,7 @@ export class UpgradeOverlay {
 
     const hint = scene.add.text(
       centerX,
-      panelY + 482,
+      panelY + 503,
       "Use E ou ESC para sair da oficina",
       makeGameTextStyle({
         color: gameTheme.colors.textSoft,
@@ -148,7 +163,10 @@ export class UpgradeOverlay {
       title,
       this.coinsText,
       this.depthText,
-      header,
+      nameHeader,
+      powerHeader,
+      priceHeader,
+      statusHeader,
       this.listRoot,
       this.closeButton,
       hint,
@@ -204,11 +222,11 @@ export class UpgradeOverlay {
 
     this.rowRoots = [];
 
-    const panelX = (this.scene.scale.width - 584) / 2;
-    const startY = (this.scene.scale.height - 500) / 2 + 108;
+    const panelX = (this.scene.scale.width - PANEL_WIDTH) / 2;
+    const startY = (this.scene.scale.height - PANEL_HEIGHT) / 2 + 120;
 
     snapshot.pickaxes.forEach((line, index) => {
-      const y = startY + index * 40;
+      const y = startY + index * ROW_GAP;
       const row = this.createPickaxeRow(panelX + 28, y, line, snapshot);
       this.applyRowCameraFilter(row);
       this.listRoot.add(row);
@@ -230,7 +248,6 @@ export class UpgradeOverlay {
     line: PickaxeShopLine,
     snapshot: OverlaySnapshot,
   ) {
-    const rowWidth = 528;
     const bodyColor = line.equipped
       ? 0x3d3422
       : line.owned
@@ -238,64 +255,67 @@ export class UpgradeOverlay {
         : line.locked
           ? 0x171313
           : gameTheme.colors.panelDeep;
-    const body = this.scene.add.rectangle(0, 0, rowWidth, 34, bodyColor, 0.96);
+    const body = this.scene.add.rectangle(0, 0, ROW_WIDTH, ROW_HEIGHT, bodyColor, 0.96);
     body.setOrigin(0);
     body.setStrokeStyle(1, line.equipped ? gameTheme.colors.accent : gameTheme.colors.borderSoft, 0.8);
 
     const name = this.scene.add.text(
-      12,
-      7,
+      COLUMN_X.name,
+      8,
       line.pickaxe.name,
       makeGameTextStyle({
         family: "display",
         color: line.locked ? "#7f7468" : gameTheme.colors.text,
-        fontSize: "13px",
+        fontSize: "14px",
         fontStyle: "800",
         strokeThickness: 2,
+        resolution: 6,
       }),
     );
 
     const power = this.scene.add.text(
-      292,
-      7,
+      COLUMN_X.power,
+      8,
       String(line.pickaxe.power),
       makeGameTextStyle({
         family: "display",
         color: line.locked ? "#7f7468" : "#ffe28a",
-        fontSize: "13px",
+        fontSize: "14px",
         fontStyle: "800",
         strokeThickness: 2,
+        resolution: 6,
       }),
     );
     power.setOrigin(0.5, 0);
 
-    const priceLabel = line.pickaxe.cost === 0 ? "INICIAL" : `${line.pickaxe.cost}`;
     const price = this.scene.add.text(
-      374,
-      7,
-      priceLabel,
+      COLUMN_X.price,
+      8,
+      String(line.pickaxe.cost),
       makeGameTextStyle({
         family: "display",
         color: line.canBuy ? "#ffe28a" : gameTheme.colors.textSoft,
-        fontSize: "13px",
+        fontSize: "14px",
         fontStyle: "800",
         strokeThickness: 2,
+        resolution: 6,
       }),
     );
     price.setOrigin(0.5, 0);
 
     const action = getActionLabel(line);
-    const actionBody = this.scene.add.rectangle(454, 17, 122, 25, getActionFill(line), line.locked ? 0.38 : 1);
+    const actionBody = this.scene.add.rectangle(COLUMN_X.action, 18, 108, 26, getActionFill(line), line.locked ? 0.38 : 1);
     actionBody.setStrokeStyle(1, getActionStroke(line), line.locked ? 0.35 : 0.8);
     const actionText = this.scene.add.text(
-      454,
-      10,
+      COLUMN_X.action,
+      11,
       action,
       makeGameTextStyle({
         family: "display",
         color: line.canBuy || line.owned ? gameTheme.colors.textDark : "#b9aa91",
-        fontSize: "11px",
+        fontSize: "12px",
         fontStyle: "800",
+        resolution: 6,
       }),
     );
     actionText.setOrigin(0.5, 0);
