@@ -210,9 +210,18 @@ export class UpgradeOverlay {
     snapshot.pickaxes.forEach((line, index) => {
       const y = startY + index * 40;
       const row = this.createPickaxeRow(panelX + 28, y, line, snapshot);
+      this.applyRowCameraFilter(row);
       this.listRoot.add(row);
       this.rowRoots.push(row);
     });
+  }
+
+  private applyRowCameraFilter(row: Phaser.GameObjects.Container) {
+    row.cameraFilter = this.listRoot.cameraFilter;
+
+    for (const child of row.list) {
+      child.cameraFilter = this.listRoot.cameraFilter;
+    }
   }
 
   private createPickaxeRow(
