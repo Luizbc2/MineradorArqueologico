@@ -29,14 +29,14 @@ export type PickaxePurchaseResult =
 
 export function createPickaxeOwnershipState(): PickaxeOwnershipState {
   return {
-    owned: {
-      worn: true,
-      copper: false,
-      iron: false,
-      steel: false,
-      titanium: false,
-    },
-    equipped: "worn",
+    owned: pickaxeIds.reduce(
+      (owned, id) => ({
+        ...owned,
+        [id]: id === "wood",
+      }),
+      {} as Record<PickaxeId, boolean>,
+    ),
+    equipped: "wood",
   };
 }
 
@@ -119,7 +119,7 @@ export function normalizePickaxeOwnershipState(
   state: Partial<PickaxeOwnershipState>,
 ): PickaxeOwnershipState {
   const fallback = createPickaxeOwnershipState();
-  const owned = { ...fallback.owned, ...state.owned, worn: true };
+  const owned = { ...fallback.owned, ...state.owned, wood: true };
   const equipped = state.equipped && owned[state.equipped]
     ? state.equipped
     : fallback.equipped;

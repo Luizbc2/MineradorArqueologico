@@ -1,9 +1,12 @@
 export const pickaxeIds = [
-  "worn",
+  "wood",
+  "stone",
   "copper",
   "iron",
-  "steel",
-  "titanium",
+  "gold",
+  "diamond",
+  "obsidian",
+  "ancientCrystal",
 ] as const;
 
 export type PickaxeId = (typeof pickaxeIds)[number];
@@ -13,56 +16,83 @@ export type PickaxeDefinition = {
   name: string;
   tier: number;
   cost: number;
-  basePower: number;
+  power: number;
   baseSpeed: number;
   unlockDepth: number;
 };
 
 export const pickaxeCatalog: Record<PickaxeId, PickaxeDefinition> = {
-  worn: {
-    id: "worn",
-    name: "Picareta Gasta",
+  wood: {
+    id: "wood",
+    name: "Picareta de Madeira",
     tier: 1,
     cost: 0,
-    basePower: 1,
+    power: 15,
     baseSpeed: 1,
     unlockDepth: 0,
+  },
+  stone: {
+    id: "stone",
+    name: "Picareta de Pedra",
+    tier: 2,
+    cost: 80,
+    power: 30,
+    baseSpeed: 1.04,
+    unlockDepth: 12,
   },
   copper: {
     id: "copper",
     name: "Picareta de Cobre",
-    tier: 2,
-    cost: 90,
-    basePower: 1.35,
+    tier: 3,
+    cost: 180,
+    power: 55,
     baseSpeed: 1.08,
-    unlockDepth: 25,
+    unlockDepth: 30,
   },
   iron: {
     id: "iron",
     name: "Picareta de Ferro",
-    tier: 3,
-    cost: 240,
-    basePower: 1.8,
-    baseSpeed: 1.16,
+    tier: 4,
+    cost: 380,
+    power: 90,
+    baseSpeed: 1.14,
     unlockDepth: 55,
   },
-  steel: {
-    id: "steel",
-    name: "Picareta de Aco",
-    tier: 4,
-    cost: 520,
-    basePower: 2.35,
-    baseSpeed: 1.24,
-    unlockDepth: 90,
-  },
-  titanium: {
-    id: "titanium",
-    name: "Picareta de Titanio",
+  gold: {
+    id: "gold",
+    name: "Picareta de Ouro",
     tier: 5,
-    cost: 980,
-    basePower: 3.1,
-    baseSpeed: 1.34,
-    unlockDepth: 135,
+    cost: 720,
+    power: 140,
+    baseSpeed: 1.22,
+    unlockDepth: 85,
+  },
+  diamond: {
+    id: "diamond",
+    name: "Picareta de Diamante",
+    tier: 6,
+    cost: 1280,
+    power: 220,
+    baseSpeed: 1.32,
+    unlockDepth: 120,
+  },
+  obsidian: {
+    id: "obsidian",
+    name: "Picareta de Obsidiana",
+    tier: 7,
+    cost: 2200,
+    power: 340,
+    baseSpeed: 1.42,
+    unlockDepth: 165,
+  },
+  ancientCrystal: {
+    id: "ancientCrystal",
+    name: "Picareta de Cristal Antigo",
+    tier: 8,
+    cost: 3600,
+    power: 520,
+    baseSpeed: 1.55,
+    unlockDepth: 215,
   },
 };
 
