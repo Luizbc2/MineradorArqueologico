@@ -292,7 +292,7 @@ function createUpgradeRow(line: UpgradeShopLine, snapshot: OverlaySnapshot) {
     createHudElement("strong", "", line.cost === null ? "Completo" : `${formatNumber(line.cost)} moedas`),
   );
 
-  const action = createWorkshopButton(getUpgradeActionLabel(line), line.canBuy ? "primary" : "secondary");
+  const action = createWorkshopButton(getUpgradeActionLabel(line, snapshot.coins), line.canBuy ? "primary" : "secondary");
   action.disabled = !line.canBuy;
   action.onclick = () => snapshot.onUpgradeBuy(line.upgrade.id);
 
@@ -308,12 +308,12 @@ function formatUpgradeEffect(upgrade: UpgradeDefinition) {
   return `+${Math.round(upgrade.effectPerLevel * 100)}% velocidade por nível`;
 }
 
-function getUpgradeActionLabel(line: UpgradeShopLine) {
+function getUpgradeActionLabel(line: UpgradeShopLine, coins: number) {
   if (line.cost === null) {
     return "MÁXIMO";
   }
 
-  return line.canBuy ? "COMPRAR" : "SEM MOEDAS";
+  return line.canBuy ? "COMPRAR" : `FALTAM ${formatNumber(line.cost - coins)}`;
 }
 
 function getActionLabel(line: PickaxeShopLine, coins: number) {
