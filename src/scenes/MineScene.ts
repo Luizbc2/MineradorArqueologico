@@ -1250,13 +1250,14 @@ export class MineScene extends Phaser.Scene {
 
     const equippedPickaxe = getEquippedPickaxe(this.pickaxeState);
     const upgradeBonuses = getUpgradeBonusSummary(this.upgradeState);
+    const depthHardnessMultiplier = this.getDepthHardnessMultiplier(target.y);
     const speedMultiplier =
       equippedPickaxe.baseSpeed *
       (1 + this.progressionSnapshot.perks.miningSpeedBonus + upgradeBonuses.speedMultiplier);
     const effectivePower = equippedPickaxe.power + upgradeBonuses.flatPower;
     const required = Math.max(
       0.08,
-      (tileDefinitions[tile.kind].hardness * 6) /
+      (tileDefinitions[tile.kind].hardness * depthHardnessMultiplier * 6) /
         (effectivePower * speedMultiplier),
     );
 
@@ -1936,6 +1937,10 @@ export class MineScene extends Phaser.Scene {
 
   private getSurfaceDepth(tileY: number) {
     return Math.max(0, tileY - SURFACE_RETURN_TILE.y);
+  }
+
+  private getDepthHardnessMultiplier(tileY: number) {
+    return 1 + Math.min(this.getSurfaceDepth(tileY) / 220, 1.4);
   }
 
   private tryReturnToSurface() {
