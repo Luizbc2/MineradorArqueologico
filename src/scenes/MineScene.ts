@@ -21,6 +21,7 @@ import type { UpgradeId } from "../game/progression/upgradeCatalog";
 import {
   buyUpgrade,
   createUpgradeLevelState,
+  getUpgradeBonusSummary,
   getUpgradeCost,
   getUpgradeLevel,
 } from "../game/progression/upgradeState";
@@ -1248,13 +1249,15 @@ export class MineScene extends Phaser.Scene {
     }
 
     const equippedPickaxe = getEquippedPickaxe(this.pickaxeState);
+    const upgradeBonuses = getUpgradeBonusSummary(this.upgradeState);
     const speedMultiplier =
       equippedPickaxe.baseSpeed *
-      (1 + this.progressionSnapshot.perks.miningSpeedBonus);
+      (1 + this.progressionSnapshot.perks.miningSpeedBonus + upgradeBonuses.speedMultiplier);
+    const effectivePower = equippedPickaxe.power + upgradeBonuses.flatPower;
     const required = Math.max(
       0.08,
       (tileDefinitions[tile.kind].hardness * 6) /
-        (equippedPickaxe.power * speedMultiplier),
+        (effectivePower * speedMultiplier),
     );
 
     if (
