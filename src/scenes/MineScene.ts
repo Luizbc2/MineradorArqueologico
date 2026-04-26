@@ -137,7 +137,8 @@ export class MineScene extends Phaser.Scene {
   private mouseTargetLayer?: Phaser.GameObjects.Graphics;
   private screenFlash?: Phaser.GameObjects.Rectangle;
   private surfacePadLayer?: Phaser.GameObjects.Graphics;
-  private surfaceMarkerLayer?: Phaser.GameObjects.Graphics;
+  private surfaceVendorSignSprite?: Phaser.GameObjects.Image;
+  private surfaceWorkshopSignSprite?: Phaser.GameObjects.Image;
   private surfaceVillageHubSprite?: Phaser.GameObjects.Image;
   private audioDirector?: MineAudioDirector;
   private goalsPanel?: ExpeditionGoalsPanel;
@@ -596,14 +597,20 @@ export class MineScene extends Phaser.Scene {
       this.surfaceVillageHubSprite.setOrigin(0.5, 1);
     }
 
-    if (!this.surfaceMarkerLayer) {
-      this.surfaceMarkerLayer = this.add.graphics();
+    if (!this.surfaceVendorSignSprite) {
+      this.surfaceVendorSignSprite = this.add.image(0, 0, "surface-vendor-sign");
+      this.surfaceVendorSignSprite.setOrigin(0.5, 1);
+      this.surfaceVendorSignSprite.setDisplaySize(64, 64);
+    }
+
+    if (!this.surfaceWorkshopSignSprite) {
+      this.surfaceWorkshopSignSprite = this.add.image(0, 0, "surface-workshop-sign");
+      this.surfaceWorkshopSignSprite.setOrigin(0.5, 1);
+      this.surfaceWorkshopSignSprite.setDisplaySize(64, 64);
     }
 
     this.surfacePadLayer.clear();
-    this.surfaceMarkerLayer.clear();
     const layer = this.surfacePadLayer;
-    const markerLayer = this.surfaceMarkerLayer;
     const groundY = SURFACE_ROW * TILE_SIZE;
     const hubLeft = (SURFACE_RETURN_TILE.x - SURFACE_HUB_PLATFORM_HALF_WIDTH) * TILE_SIZE;
     const hubWidth = TILE_SIZE * (SURFACE_HUB_PLATFORM_HALF_WIDTH * 2 + 1);
@@ -618,63 +625,16 @@ export class MineScene extends Phaser.Scene {
       width: 676,
     });
 
-    this.drawSurfaceVendorMarker(markerLayer, centerX + SURFACE_STATION_CONFIG.vendor.offsetX, groundY - 56);
-    this.drawSurfaceWorkshopMarker(markerLayer, centerX + SURFACE_STATION_CONFIG.workshop.offsetX, groundY - 56);
-  }
-
-  private drawSurfaceVendorMarker(
-    layer: Phaser.GameObjects.Graphics,
-    centerX: number,
-    y: number,
-  ) {
-    const signX = Math.round(centerX - 24);
-    const signY = Math.round(y);
-
-    layer.fillStyle(0x120c08, 0.72);
-    layer.fillRect(signX + 3, signY + 4, 48, 24);
-    layer.fillStyle(0x3f2a19, 0.96);
-    layer.fillRect(signX, signY, 48, 22);
-    layer.fillStyle(0xd6a657, 0.98);
-    layer.fillRect(signX, signY, 48, 3);
-    layer.fillRect(signX, signY + 19, 48, 3);
-    layer.fillRect(signX, signY, 3, 22);
-    layer.fillRect(signX + 45, signY, 3, 22);
-    layer.fillCircle(signX + 24, signY + 11, 7);
-    layer.fillStyle(0x3f2a19, 0.95);
-    layer.fillRect(signX + 21, signY + 6, 2, 10);
-    layer.fillRect(signX + 25, signY + 6, 2, 10);
-    layer.fillRect(signX + 18, signY + 9, 12, 2);
-    layer.fillRect(signX + 18, signY + 13, 12, 2);
-    layer.fillStyle(0x5b3b22, 0.9);
-    layer.fillRect(signX + 8, signY + 22, 5, 20);
-    layer.fillRect(signX + 35, signY + 22, 5, 20);
-  }
-
-  private drawSurfaceWorkshopMarker(
-    layer: Phaser.GameObjects.Graphics,
-    centerX: number,
-    y: number,
-  ) {
-    const signX = Math.round(centerX - 24);
-    const signY = Math.round(y);
-
-    layer.fillStyle(0x061019, 0.72);
-    layer.fillRect(signX + 3, signY + 4, 48, 24);
-    layer.fillStyle(0x1b222b, 0.96);
-    layer.fillRect(signX, signY, 48, 22);
-    layer.fillStyle(0x8fe7ff, 0.94);
-    layer.fillRect(signX, signY, 48, 3);
-    layer.fillRect(signX, signY + 19, 48, 3);
-    layer.fillRect(signX, signY, 3, 22);
-    layer.fillRect(signX + 45, signY, 3, 22);
-    layer.fillStyle(0xd6e4f0, 0.96);
-    layer.fillRect(signX + 15, signY + 7, 18, 4);
-    layer.fillRect(signX + 30, signY + 9, 4, 4);
-    layer.fillStyle(0x8c5c35, 0.98);
-    layer.fillRect(signX + 20, signY + 11, 4, 10);
-    layer.fillStyle(0x30445c, 0.95);
-    layer.fillRect(signX + 8, signY + 22, 5, 20);
-    layer.fillRect(signX + 35, signY + 22, 5, 20);
+    this.layoutSurfaceSignSprite(
+      this.surfaceVendorSignSprite,
+      centerX + SURFACE_STATION_CONFIG.vendor.offsetX,
+      groundY - 28,
+    );
+    this.layoutSurfaceSignSprite(
+      this.surfaceWorkshopSignSprite,
+      centerX + SURFACE_STATION_CONFIG.workshop.offsetX,
+      groundY - 28,
+    );
   }
 
   private drawSurfaceHubBuilding(
@@ -914,6 +874,19 @@ export class MineScene extends Phaser.Scene {
 
     sprite.setPosition(Math.round(placement.x), Math.round(placement.y));
     sprite.setDisplaySize(targetWidth, targetHeight);
+  }
+
+  private layoutSurfaceSignSprite(
+    sprite: Phaser.GameObjects.Image | undefined,
+    x: number,
+    y: number,
+  ) {
+    if (!sprite) {
+      return;
+    }
+
+    sprite.setPosition(Math.round(x), Math.round(y));
+    sprite.setDisplaySize(64, 64);
   }
 
   private drawSurfaceWindow(
