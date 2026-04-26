@@ -150,6 +150,9 @@ export class MineScene extends Phaser.Scene {
   private surfacePromptScope?: HTMLDivElement;
   private surfacePrompt?: HTMLDivElement;
   private surfacePromptLabel?: HTMLSpanElement;
+  private surfaceToastScope?: HTMLDivElement;
+  private surfaceToast?: HTMLDivElement;
+  private surfaceToastTimer?: number;
   private uiCamera?: Phaser.Cameras.Scene2D.Camera;
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   private moveKeys?: {
@@ -239,6 +242,7 @@ export class MineScene extends Phaser.Scene {
     this.createUpgradeOverlay();
     this.createVendorOverlay();
     this.createSurfacePrompt();
+    this.createSurfaceToast();
     this.createAudioDirector();
     this.progressionSnapshot = this.expeditionProgression.getSnapshot();
 
@@ -276,6 +280,10 @@ export class MineScene extends Phaser.Scene {
       this.input.keyboard?.off("keydown", this.handleSceneKeyDown, this);
       this.sys.displayList.events.off(Phaser.Scenes.Events.ADDED_TO_SCENE, this.handleDisplayListObjectAdded, this);
       this.surfacePromptScope?.remove();
+      this.surfaceToastScope?.remove();
+      if (this.surfaceToastTimer) {
+        window.clearTimeout(this.surfaceToastTimer);
+      }
     });
     this.handleResize(this.scale.gameSize);
 
@@ -2115,48 +2123,20 @@ export class MineScene extends Phaser.Scene {
   }
 
   private showSurfaceToast(message: string) {
-    const startPoint = this.getFixedUiPosition(this.viewportWidth / 2, 180);
-    const midPoint = this.getFixedUiPosition(this.viewportWidth / 2, 168);
-    const endPoint = this.getFixedUiPosition(this.viewportWidth / 2, 152);
-    const baseScale = this.getFixedUiScale(1);
-    const toast = this.add.text(
-      startPoint.x,
-      startPoint.y,
-      message,
-      makeGameTextStyle({
-        family: "display",
-        color: "#d8fff7",
-        fontSize: "16px",
-        fontStyle: "800",
-        strokeThickness: 4,
-      }),
-    );
-    toast.setOrigin(0.5);
-    toast.setScrollFactor(0);
-    toast.setDepth(1400);
-    toast.setAlpha(0);
-    toast.setScale(this.getFixedUiScale(0.82));
+    if (!this.surfaceToast) {
+      return;
+    }
 
-    this.tweens.add({
-      targets: toast,
-      x: midPoint.x,
-      y: midPoint.y,
-      alpha: 1,
-      scale: baseScale,
-      duration: 180,
-      ease: "back.out",
-    });
+    if (this.surfaceToastTimer) {
+      window.clearTimeout(this.surfaceToastTimer);
+    }
 
-    this.tweens.add({
-      targets: toast,
-      x: endPoint.x,
-      y: endPoint.y,
-      alpha: 0,
-      delay: 300,
-      duration: 260,
-      ease: "quad.out",
-      onComplete: () => toast.destroy(),
-    });
+    this.surfaceToast.textContent = message;
+    this.surfaceToast.classList.add("is-visible");
+    this.surfaceToastTimer = window.setTimeout(() => {
+      this.surfaceToast?.classList.remove("is-visible");
+      this.surfaceToastTimer = undefined;
+    }, 1500);
   }
 
   private showMissionToast(title: string, rewardLabel: string) {
@@ -2486,6 +2466,16 @@ export class MineScene extends Phaser.Scene {
     this.surfacePrompt.append(keycap, this.surfacePromptLabel);
     this.surfacePromptScope.append(this.surfacePrompt);
     this.updateSurfacePrompt();
+  }
+
+  private createSurfaceToast() {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    this.surfaceToastScope = createHudScope("game-surface-toast-scope");
+    this.surfaceToast = createHudElement("div", "game-surface-toast") as HTMLDivElement;
+    this.surfaceToastScope.append(this.surfaceToast);
   }
 
   private updateSurfacePrompt() {

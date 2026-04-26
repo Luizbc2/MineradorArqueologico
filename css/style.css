@@ -314,6 +314,38 @@ body { image-rendering: auto; }
   color: #f5efdf;
 }
 
+.game-surface-toast-scope {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.game-surface-toast {
+  position: absolute;
+  left: 50%;
+  top: 154px;
+  max-width: min(440px, calc(100vw - 32px));
+  padding: 12px 18px;
+  border: 2px solid rgba(142, 206, 208, 0.98);
+  background: rgba(19, 25, 26, 0.94);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.3);
+  color: #d8fff7;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
+  transform: translateX(-50%) translateY(10px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 140ms ease, transform 140ms ease, visibility 140ms ease;
+}
+
+.game-surface-toast.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
 .game-hud-mission__overview {
   display: flex;
   justify-content: flex-end;
