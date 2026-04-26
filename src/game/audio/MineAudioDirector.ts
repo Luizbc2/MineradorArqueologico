@@ -222,6 +222,25 @@ export class MineAudioDirector {
     });
   }
 
+  playCoins() {
+    if (!this.isReady()) {
+      return;
+    }
+
+    for (let index = 0; index < 5; index += 1) {
+      this.playTone({
+        frequency: 760 + index * 92,
+        duration: 0.045,
+        volume: 0.05,
+        type: "triangle",
+        attack: 0.001,
+        release: 0.08,
+        startTime: index * 0.035,
+        detune: (Math.random() - 0.5) * 28,
+      });
+    }
+  }
+
   playSurfaceReturn() {
     if (!this.isReady()) {
       return;
@@ -298,7 +317,7 @@ export class MineAudioDirector {
 
     this.audioContext = new AudioCtor();
     this.masterGain = this.audioContext.createGain();
-    this.masterGain.gain.value = 0.14;
+    this.masterGain.gain.value = 0.3;
     this.masterGain.connect(this.audioContext.destination);
 
     return this.audioContext;

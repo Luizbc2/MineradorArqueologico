@@ -152,7 +152,9 @@ export class MineScene extends Phaser.Scene {
   private surfacePromptLabel?: HTMLSpanElement;
   private surfaceToastScope?: HTMLDivElement;
   private surfaceToast?: HTMLDivElement;
+  private surfaceToastBurst?: HTMLDivElement;
   private surfaceToastTimer?: number;
+  private surfaceCoinTimers: number[] = [];
   private uiCamera?: Phaser.Cameras.Scene2D.Camera;
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   private moveKeys?: {
@@ -283,6 +285,9 @@ export class MineScene extends Phaser.Scene {
       this.surfaceToastScope?.remove();
       if (this.surfaceToastTimer) {
         window.clearTimeout(this.surfaceToastTimer);
+      }
+      for (const timer of this.surfaceCoinTimers) {
+        window.clearTimeout(timer);
       }
     });
     this.handleResize(this.scale.gameSize);
@@ -2122,7 +2127,7 @@ export class MineScene extends Phaser.Scene {
     });
   }
 
-  private showSurfaceToast(message: string) {
+  private showSurfaceToast(message: string, effect: "none" | "coins" = "none") {
     if (!this.surfaceToast) {
       return;
     }
@@ -2137,6 +2142,10 @@ export class MineScene extends Phaser.Scene {
       this.surfaceToast?.classList.remove("is-visible");
       this.surfaceToastTimer = undefined;
     }, 1500);
+
+    if (effect === "coins") {
+      this.spawnSurfaceCoinBurst();
+    }
   }
 
   private showMissionToast(title: string, rewardLabel: string) {
@@ -2362,8 +2371,9 @@ export class MineScene extends Phaser.Scene {
     this.syncExpeditionProgress(this.expeditionProgression.applyPickaxeLevel(result.pickaxe.tier));
     this.saveProgression();
     this.audioDirector?.playUpgrade();
+    this.audioDirector?.playCoins();
     this.updateHud();
-    this.showSurfaceToast(`${result.pickaxe.name} equipada.`);
+    this.showSurfaceToast(`${result.pickaxe.name} equipada.`, "coins");
     this.refreshUpgradeOverlay();
   }
 
@@ -2391,8 +2401,9 @@ export class MineScene extends Phaser.Scene {
     this.coins = result.coins;
     this.saveProgression();
     this.audioDirector?.playUpgrade();
+    this.audioDirector?.playCoins();
     this.updateHud();
-    this.showSurfaceToast(`${result.upgrade.name} nível ${result.level}.`);
+    this.showSurfaceToast(`${result.upgrade.name} nível ${result.level}.`, "coins");
     this.refreshUpgradeOverlay();
   }
 
@@ -2435,7 +2446,8 @@ export class MineScene extends Phaser.Scene {
     if (sale.totalCoins <= 0) {
       this.showSurfaceToast("Mochila vazia.");
     } else {
-      this.showSurfaceToast(`Venda concluída: +${sale.totalCoins} moedas.`);
+      this.audioDirector?.playCoins();
+      this.showSurfaceToast(`Venda concluída: +${sale.totalCoins} moedas.`, "coins");
     }
 
     this.vendorOverlay?.show({
@@ -2473,9 +2485,45 @@ export class MineScene extends Phaser.Scene {
       return;
     }
 
-    this.surfaceToastScope = createHudScope("game-surface-toast-scope");
+    this.surfaceToastScope = createHudScope("game-surface-toast-scope", "modal");
     this.surfaceToast = createHudElement("div", "game-surface-toast") as HTMLDivElement;
-    this.surfaceToastScope.append(this.surfaceToast);
+    this.surfaceToastBurst = createHudElement("div", "game-surface-coin-burst") as HTMLDivElement;
+    this.surfaceToastScope.append(this.surfaceToastBurst, this.surfaceToast);
+  }
+
+  private spawnSurfaceCoinBurst() {
+    if (!this.surfaceToastBurst) {
+      return;
+    }
+
+    this.surfaceToastBurst.replaceChildren();
+
+    for (const timer of this.surfaceCoinTimers) {
+      window.clearTimeout(timer);
+    }
+
+    this.surfaceCoinTimers = [];
+
+    for (let index = 0; index < 18; index += 1) {
+      const coin = createHudElement("span", "game-surface-coin") as HTMLSpanElement;
+      const offsetX = Math.round((Math.random() - 0.5) * 320);
+      const driftX = Math.round((Math.random() - 0.5) * 130);
+      const delay = Math.round(Math.random() * 180);
+      const duration = 720 + Math.round(Math.random() * 380);
+
+      coin.textContent = "$";
+      coin.style.setProperty("--coin-x", `${offsetX}px`);
+      coin.style.setProperty("--coin-drift", `${driftX}px`);
+      coin.style.setProperty("--coin-delay", `${delay}ms`);
+      coin.style.setProperty("--coin-duration", `${duration}ms`);
+      this.surfaceToastBurst.append(coin);
+    }
+
+    const clearTimer = window.setTimeout(() => {
+      this.surfaceToastBurst?.replaceChildren();
+      this.surfaceCoinTimers = this.surfaceCoinTimers.filter((timer) => timer !== clearTimer);
+    }, 1300);
+    this.surfaceCoinTimers.push(clearTimer);
   }
 
   private updateSurfacePrompt() {
