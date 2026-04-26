@@ -123,6 +123,7 @@ export class MineScene extends Phaser.Scene {
   private upgradeState = createUpgradeLevelState();
   private coins = 0;
   private energy = 100;
+  private audioMuted = false;
   private maxDepthReached = 0;
   private groundLayer?: Phaser.GameObjects.Graphics;
   private groundDirty = true;
@@ -307,6 +308,7 @@ export class MineScene extends Phaser.Scene {
     this.expeditionProgression = createExpeditionProgression(save.expedition);
     this.progressionSnapshot = this.expeditionProgression.getSnapshot();
     this.archaeologyDeck = createArchaeologyDeck(save.archaeology);
+    this.audioMuted = save.audioMuted;
   }
 
   private saveProgression() {
@@ -320,6 +322,7 @@ export class MineScene extends Phaser.Scene {
       archaeology: {
         collectedCount: this.archaeologyDeck.collectedCount,
       },
+      audioMuted: this.audioDirector?.isMuted ?? this.audioMuted,
     });
   }
 
@@ -1263,6 +1266,7 @@ export class MineScene extends Phaser.Scene {
 
   private createAudioDirector() {
     this.audioDirector = new MineAudioDirector(this);
+    this.audioDirector.setMuted(this.audioMuted);
 
     this.input.on("pointerdown", () => {
       this.audioDirector?.unlock();
@@ -2295,6 +2299,8 @@ export class MineScene extends Phaser.Scene {
   private handleAudioToggle() {
     this.audioDirector?.unlock();
     const muted = this.audioDirector?.toggleMuted() ?? false;
+    this.audioMuted = muted;
+    this.saveProgression();
     this.pauseOverlay?.setAudioMuted(muted);
 
     if (!muted) {

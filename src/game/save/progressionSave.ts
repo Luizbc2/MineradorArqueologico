@@ -34,6 +34,7 @@ export type ProgressionSaveData = {
   upgrades: UpgradeLevelState;
   expedition: ExpeditionProgressionState;
   archaeology: ArchaeologyDeckState;
+  audioMuted: boolean;
 };
 
 type ProgressionSavePayload = Partial<{
@@ -44,6 +45,7 @@ type ProgressionSavePayload = Partial<{
   upgrades: Partial<UpgradeLevelState>;
   expedition: Partial<ExpeditionProgressionState>;
   archaeology: Partial<ArchaeologyDeckState>;
+  audioMuted: unknown;
 }>;
 
 export function createDefaultProgressionSave(): ProgressionSaveData {
@@ -55,6 +57,7 @@ export function createDefaultProgressionSave(): ProgressionSaveData {
     upgrades: createUpgradeLevelState(),
     expedition: createDefaultExpeditionProgressionState(),
     archaeology: createDefaultArchaeologyDeckState(),
+    audioMuted: false,
   };
 }
 
@@ -95,6 +98,7 @@ function normalizeProgressionSave(
     upgrades: normalizeUpgradeLevelState(payload.upgrades ?? {}),
     expedition: normalizeExpeditionProgressionState(payload.expedition ?? {}),
     archaeology: normalizeArchaeologyDeckState(payload.archaeology ?? {}),
+    audioMuted: payload.audioMuted === true,
   };
 }
 
