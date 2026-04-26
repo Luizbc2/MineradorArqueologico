@@ -1,5 +1,8 @@
 ## Player assets
 
-`miner-dwarf-sheet.png` is a project-local pixel-art miner sprite sheet.
+`miner-adventurer-sheet.png` is a derived 4-frame player sheet based on the CC0 GameArt2D free adventure character sprite.
 
-It uses 4 frames at 48x64 pixels. The Phaser loader slices it with `frameWidth: 48` and `frameHeight: 64`.
+Source: https://www.gameart2d.com/adventurer-girl---free-sprites.html
+License: Creative Commons Zero (CC0), as listed for GameArt2D Free Assets.
+
+It uses 4 frames at 96x96 pixels. The Phaser loader slices it with `frameWidth: 96` and `frameHeight: 96`.

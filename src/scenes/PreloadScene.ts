@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import minerDwarfSheetUrl from "../assets/player/miner-dwarf-sheet.png";
+import minerAdventurerSheetUrl from "../assets/player/miner-adventurer-sheet.png";
 import pickMetalUrl from "../assets/pickaxes/pick-metal.png";
 import pickStoneUrl from "../assets/pickaxes/pick-stone.png";
 import pickWoodUrl from "../assets/pickaxes/pick-wood.png";
@@ -13,9 +13,9 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.spritesheet("player-miner", minerDwarfSheetUrl, {
-      frameWidth: 48,
-      frameHeight: 64,
+    this.load.spritesheet("player-miner", minerAdventurerSheetUrl, {
+      frameWidth: 96,
+      frameHeight: 96,
     });
     this.load.image("pickaxe-metal", pickMetalUrl);
     this.load.image("pickaxe-stone", pickStoneUrl);
