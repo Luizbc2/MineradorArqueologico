@@ -921,6 +921,10 @@ body { image-rendering: auto; }
   color: #b8f7fa;
 }
 
+.game-modal-upgrade-row__effect--muted {
+  color: #ab987c;
+}
+
 .game-modal-upgrade-row__meta {
   display: grid;
   gap: 8px;

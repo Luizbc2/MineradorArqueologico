@@ -283,8 +283,9 @@ function createUpgradeRow(line: UpgradeShopLine, snapshot: OverlaySnapshot) {
   const copy = createHudElement("div", "game-modal-upgrade-row__copy");
   const title = createHudElement("h3", "game-modal-upgrade-row__title", line.upgrade.name);
   const description = createHudElement("p", "game-modal-upgrade-row__description", line.upgrade.description);
-  const effect = createHudElement("div", "game-modal-upgrade-row__effect", formatUpgradeEffect(line.upgrade));
-  copy.append(title, description, effect);
+  const currentEffect = createHudElement("div", "game-modal-upgrade-row__effect", formatUpgradeCurrentEffect(line));
+  const nextEffect = createHudElement("div", "game-modal-upgrade-row__effect game-modal-upgrade-row__effect--muted", formatUpgradeNextEffect(line));
+  copy.append(title, description, currentEffect, nextEffect);
 
   const meta = createHudElement("div", "game-modal-upgrade-row__meta");
   meta.append(
@@ -300,12 +301,24 @@ function createUpgradeRow(line: UpgradeShopLine, snapshot: OverlaySnapshot) {
   return row;
 }
 
-function formatUpgradeEffect(upgrade: UpgradeDefinition) {
-  if (upgrade.effectKind === "flatPower") {
-    return `+${formatNumber(upgrade.effectPerLevel)} força por nível`;
+function formatUpgradeCurrentEffect(line: UpgradeShopLine) {
+  const total = line.upgrade.effectPerLevel * line.level;
+
+  if (line.upgrade.effectKind === "flatPower") {
+    return `Atual: +${formatNumber(total)} força`;
   }
 
-  return `+${Math.round(upgrade.effectPerLevel * 100)}% velocidade por nível`;
+  return `Atual: +${Math.round(total * 100)}% velocidade`;
+}
+
+function formatUpgradeNextEffect(line: UpgradeShopLine) {
+  const prefix = line.cost === null ? "Máximo" : "Próximo";
+
+  if (line.upgrade.effectKind === "flatPower") {
+    return `${prefix}: +${formatNumber(line.upgrade.effectPerLevel)} força por nível`;
+  }
+
+  return `${prefix}: +${Math.round(line.upgrade.effectPerLevel * 100)}% velocidade por nível`;
 }
 
 function getUpgradeActionLabel(line: UpgradeShopLine, coins: number) {
