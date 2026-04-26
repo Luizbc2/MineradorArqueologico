@@ -1095,6 +1095,13 @@ body { image-rendering: auto; }
   color: #fffaf0;
 }
 
+.game-hud-resource__total {
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 800;
+  color: #9edfe2;
+}
+
 .resource-coal .game-hud-resource__icon { color: #99a5b3; }
 .resource-iron .game-hud-resource__icon { color: #d49a63; }
 .resource-gold .game-hud-resource__icon { color: #f3c55d; }

@@ -44,6 +44,7 @@ export class MineHud {
   private readonly backpackValue: HTMLDivElement;
   private readonly backpackHint: HTMLDivElement;
   private readonly resourceValues: Record<keyof ResourceInventory, HTMLDivElement>;
+  private readonly resourceTotals: Record<keyof ResourceInventory, HTMLDivElement>;
 
   private isBackpackOpen = false;
   private lastInfoKey = "";
@@ -135,6 +136,12 @@ export class MineHud {
       gold: gold.value,
       diamond: diamond.value,
     };
+    this.resourceTotals = {
+      coal: coal.total,
+      iron: iron.total,
+      gold: gold.total,
+      diamond: diamond.total,
+    };
 
     resourceGrid.append(coal.root, iron.root, gold.root, diamond.root);
     backpackBody.append(backpackSummary, this.backpackHint, resourceGrid);
@@ -179,10 +186,10 @@ export class MineHud {
       this.backpackHint.textContent =
         sale.totalCoins > 0 ? "RETORNE AO POSTO DE VENDA" : "MOCHILA VAZIA";
       this.backpackHint.classList.toggle("has-value", sale.totalCoins > 0);
-      this.resourceValues.coal.textContent = `${snapshot.inventory.coal}`;
-      this.resourceValues.iron.textContent = `${snapshot.inventory.iron}`;
-      this.resourceValues.gold.textContent = `${snapshot.inventory.gold}`;
-      this.resourceValues.diamond.textContent = `${snapshot.inventory.diamond}`;
+      this.updateResourceSlot("coal", snapshot.inventory.coal, sale);
+      this.updateResourceSlot("iron", snapshot.inventory.iron, sale);
+      this.updateResourceSlot("gold", snapshot.inventory.gold, sale);
+      this.updateResourceSlot("diamond", snapshot.inventory.diamond, sale);
       this.codexChip.hidden = snapshot.cardsFound <= 0;
     }
 
@@ -207,6 +214,16 @@ export class MineHud {
     this.isBackpackOpen = value;
     this.backpackButton.classList.toggle("is-open", value);
     this.backpackPanel.classList.toggle("is-open", value);
+  }
+
+  private updateResourceSlot(
+    resource: keyof ResourceInventory,
+    quantity: number,
+    sale: ReturnType<typeof getInventorySaleSummary>,
+  ) {
+    const line = sale.lines.find((item) => item.resource === resource);
+    this.resourceValues[resource].textContent = `x${quantity}`;
+    this.resourceTotals[resource].textContent = `${formatHudNumber(line?.totalPrice ?? 0)} moedas`;
   }
 }
 
@@ -263,9 +280,10 @@ function createHudResourceSlot(label: string, toneClass: string) {
   const meta = createHudElement("div", "game-hud-resource__meta");
   const labelEl = createHudElement("div", "game-hud-resource__label", label);
   const valueEl = createHudElement("div", "game-hud-resource__value", "0");
+  const totalEl = createHudElement("div", "game-hud-resource__total", "0 moedas");
 
-  meta.append(labelEl, valueEl);
+  meta.append(labelEl, valueEl, totalEl);
   root.append(icon, meta);
 
-  return { root, value: valueEl };
+  return { root, value: valueEl, total: totalEl };
 }
