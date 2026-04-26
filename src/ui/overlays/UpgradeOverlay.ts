@@ -228,7 +228,7 @@ function createPickaxeCard(line: PickaxeShopLine, snapshot: OverlaySnapshot) {
     createStat("PREÇO", formatNumber(line.pickaxe.cost)),
   );
 
-  const action = createWorkshopButton(getActionLabel(line), line.canBuy || line.owned ? "primary" : "secondary");
+  const action = createWorkshopButton(getActionLabel(line, snapshot.coins), line.canBuy || line.owned ? "primary" : "secondary");
   action.disabled = line.locked || line.equipped || (!line.owned && !line.canBuy);
   action.onclick = () => {
     if (line.owned) {
@@ -316,7 +316,7 @@ function getUpgradeActionLabel(line: UpgradeShopLine) {
   return line.canBuy ? "COMPRAR" : "SEM MOEDAS";
 }
 
-function getActionLabel(line: PickaxeShopLine) {
+function getActionLabel(line: PickaxeShopLine, coins: number) {
   if (line.equipped) {
     return "EQUIPADA";
   }
@@ -326,10 +326,10 @@ function getActionLabel(line: PickaxeShopLine) {
   }
 
   if (line.locked) {
-    return `${line.pickaxe.unlockDepth}m`;
+    return `LIBERA ${line.pickaxe.unlockDepth}m`;
   }
 
-  return line.canBuy ? "COMPRAR" : "SEM MOEDAS";
+  return line.canBuy ? "COMPRAR" : `FALTAM ${formatNumber(line.pickaxe.cost - coins)}`;
 }
 
 function getPickaxeImageUrl(id: PickaxeId) {
