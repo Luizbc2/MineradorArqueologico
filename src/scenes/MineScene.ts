@@ -16,6 +16,14 @@ import {
   createExpeditionProgression,
 } from "../game/progression/expeditionGoals";
 import type { ExpeditionProgressionSnapshot } from "../game/progression/expeditionGoals";
+import { getUpgradeList } from "../game/progression/upgradeCatalog";
+import type { UpgradeId } from "../game/progression/upgradeCatalog";
+import {
+  buyUpgrade,
+  createUpgradeLevelState,
+  getUpgradeCost,
+  getUpgradeLevel,
+} from "../game/progression/upgradeState";
 import {
   createResourceInventory,
   getResourceFromTile,
@@ -107,6 +115,7 @@ export class MineScene extends Phaser.Scene {
   private progressionSnapshot: ExpeditionProgressionSnapshot = this.expeditionProgression.getSnapshot();
   private inventory: ResourceInventory = createResourceInventory();
   private pickaxeState = createPickaxeOwnershipState();
+  private upgradeState = createUpgradeLevelState();
   private coins = 0;
   private energy = 100;
   private maxDepthReached = 0;
@@ -2229,8 +2238,10 @@ export class MineScene extends Phaser.Scene {
       coins: this.coins,
       maxDepthReached: this.maxDepthReached,
       pickaxes: this.getPickaxeShopLines(),
+      upgrades: this.getUpgradeShopLines(),
       onBuy: (id) => this.handlePickaxeBuy(id),
       onEquip: (id) => this.handlePickaxeEquip(id),
+      onUpgradeBuy: (id) => this.handleUpgradeBuy(id),
       onClose: () => this.closeUpgradeOverlay(),
     });
     this.updateSurfacePrompt();
@@ -2257,9 +2268,25 @@ export class MineScene extends Phaser.Scene {
       coins: this.coins,
       maxDepthReached: this.maxDepthReached,
       pickaxes: this.getPickaxeShopLines(),
+      upgrades: this.getUpgradeShopLines(),
       onBuy: (id) => this.handlePickaxeBuy(id),
       onEquip: (id) => this.handlePickaxeEquip(id),
+      onUpgradeBuy: (id) => this.handleUpgradeBuy(id),
       onClose: () => this.closeUpgradeOverlay(),
+    });
+  }
+
+  private getUpgradeShopLines() {
+    return getUpgradeList().map((upgrade) => {
+      const level = getUpgradeLevel(this.upgradeState, upgrade.id);
+      const cost = getUpgradeCost(this.upgradeState, upgrade.id);
+
+      return {
+        upgrade,
+        level,
+        cost,
+        canBuy: cost !== null && this.coins >= cost,
+      };
     });
   }
 
@@ -2288,6 +2315,23 @@ export class MineScene extends Phaser.Scene {
     this.audioDirector?.playUpgrade();
     this.updateHud();
     this.showSurfaceToast(`${equippedPickaxe.name} equipada.`);
+    this.refreshUpgradeOverlay();
+  }
+
+  private handleUpgradeBuy(id: UpgradeId) {
+    const result = buyUpgrade(this.upgradeState, id, this.coins);
+
+    if (!result.ok) {
+      this.showSurfaceToast(getUpgradePurchaseFailureMessage(result.reason));
+      this.refreshUpgradeOverlay();
+      return;
+    }
+
+    this.upgradeState = result.state;
+    this.coins = result.coins;
+    this.audioDirector?.playUpgrade();
+    this.updateHud();
+    this.showSurfaceToast(`${result.upgrade.name} nível ${result.level}.`);
     this.refreshUpgradeOverlay();
   }
 
@@ -2494,6 +2538,17 @@ function getPickaxePurchaseFailureMessage(
       return "Essa picareta ja esta na mochila.";
     case "locked":
       return "Desca mais fundo para liberar essa picareta.";
+    case "not-enough-coins":
+      return "Moedas insuficientes.";
+  }
+}
+
+function getUpgradePurchaseFailureMessage(
+  reason: "max-level" | "not-enough-coins",
+) {
+  switch (reason) {
+    case "max-level":
+      return "Upgrade no nivel maximo.";
     case "not-enough-coins":
       return "Moedas insuficientes.";
   }

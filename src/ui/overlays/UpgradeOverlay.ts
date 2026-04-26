@@ -9,8 +9,7 @@ import pickObsidianUrl from "../../assets/pickaxes/pick-obsidian.png";
 import pickStoneUrl from "../../assets/pickaxes/pick-stone.png";
 import pickWoodUrl from "../../assets/pickaxes/pick-wood.png";
 import type { PickaxeDefinition, PickaxeId } from "../../game/progression/pickaxeCatalog";
-import { getUpgradeList } from "../../game/progression/upgradeCatalog";
-import type { UpgradeDefinition } from "../../game/progression/upgradeCatalog";
+import type { UpgradeDefinition, UpgradeId } from "../../game/progression/upgradeCatalog";
 import { createHudElement, createHudScope } from "../hud/domHud";
 
 type PickaxeShopLine = {
@@ -21,12 +20,21 @@ type PickaxeShopLine = {
   canBuy: boolean;
 };
 
+type UpgradeShopLine = {
+  upgrade: UpgradeDefinition;
+  level: number;
+  cost: number | null;
+  canBuy: boolean;
+};
+
 type OverlaySnapshot = {
   coins: number;
   maxDepthReached: number;
   pickaxes: PickaxeShopLine[];
+  upgrades: UpgradeShopLine[];
   onBuy: (id: PickaxeId) => void;
   onEquip: (id: PickaxeId) => void;
+  onUpgradeBuy: (id: UpgradeId) => void;
   onClose: () => void;
 };
 
@@ -155,7 +163,7 @@ export class UpgradeOverlay {
     this.depthValue.textContent = `${formatNumber(snapshot.maxDepthReached)}m`;
     this.renderTabs();
     this.renderPickaxes(snapshot);
-    this.renderUpgrades();
+    this.renderUpgrades(snapshot);
   }
 
   private renderPickaxes(snapshot: OverlaySnapshot) {
@@ -174,11 +182,11 @@ export class UpgradeOverlay {
     this.nextButton.disabled = this.pageIndex >= totalPages - 1;
   }
 
-  private renderUpgrades() {
+  private renderUpgrades(snapshot: OverlaySnapshot) {
     this.upgradesBody.replaceChildren();
 
-    for (const upgrade of getUpgradeList()) {
-      this.upgradesBody.append(createUpgradeRow(upgrade));
+    for (const line of snapshot.upgrades) {
+      this.upgradesBody.append(createUpgradeRow(line, snapshot));
     }
   }
 
@@ -268,22 +276,25 @@ function createWorkshopButton(label: string, tone: "primary" | "secondary") {
   return button;
 }
 
-function createUpgradeRow(upgrade: UpgradeDefinition) {
+function createUpgradeRow(line: UpgradeShopLine, snapshot: OverlaySnapshot) {
   const row = createHudElement("article", "game-modal-upgrade-row");
+  row.classList.toggle("is-maxed", line.cost === null);
+
   const copy = createHudElement("div", "game-modal-upgrade-row__copy");
-  const title = createHudElement("h3", "game-modal-upgrade-row__title", upgrade.name);
-  const description = createHudElement("p", "game-modal-upgrade-row__description", upgrade.description);
-  const effect = createHudElement("div", "game-modal-upgrade-row__effect", formatUpgradeEffect(upgrade));
+  const title = createHudElement("h3", "game-modal-upgrade-row__title", line.upgrade.name);
+  const description = createHudElement("p", "game-modal-upgrade-row__description", line.upgrade.description);
+  const effect = createHudElement("div", "game-modal-upgrade-row__effect", formatUpgradeEffect(line.upgrade));
   copy.append(title, description, effect);
 
   const meta = createHudElement("div", "game-modal-upgrade-row__meta");
   meta.append(
-    createHudElement("span", "", `NÍVEL 0/${upgrade.maxLevel}`),
-    createHudElement("strong", "", `${formatNumber(upgrade.baseCost)} moedas`),
+    createHudElement("span", "", `NÍVEL ${line.level}/${line.upgrade.maxLevel}`),
+    createHudElement("strong", "", line.cost === null ? "Completo" : `${formatNumber(line.cost)} moedas`),
   );
 
-  const action = createWorkshopButton("EM BREVE", "secondary");
-  action.disabled = true;
+  const action = createWorkshopButton(getUpgradeActionLabel(line), line.canBuy ? "primary" : "secondary");
+  action.disabled = !line.canBuy;
+  action.onclick = () => snapshot.onUpgradeBuy(line.upgrade.id);
 
   row.append(copy, meta, action);
   return row;
@@ -295,6 +306,14 @@ function formatUpgradeEffect(upgrade: UpgradeDefinition) {
   }
 
   return `+${Math.round(upgrade.effectPerLevel * 100)}% velocidade por nível`;
+}
+
+function getUpgradeActionLabel(line: UpgradeShopLine) {
+  if (line.cost === null) {
+    return "MÁXIMO";
+  }
+
+  return line.canBuy ? "COMPRAR" : "SEM MOEDAS";
 }
 
 function getActionLabel(line: PickaxeShopLine) {
