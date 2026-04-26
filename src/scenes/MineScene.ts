@@ -36,6 +36,10 @@ import {
   getInventorySaleSummary,
   hasSellableResources,
 } from "../game/economy/resourceSellValues";
+import {
+  loadProgressionSave,
+  saveProgression,
+} from "../game/save/progressionSave";
 import { MineAudioDirector } from "../game/audio/MineAudioDirector";
 import { PlayerMiner } from "../game/player/PlayerMiner";
 import { ExpeditionGoalsPanel } from "../ui/hud/ExpeditionGoalsPanel";
@@ -211,6 +215,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   create() {
+    this.loadSavedProgression();
     this.worldGrid = generateWorld();
     this.prepareSurfaceSafeZone();
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH_PX, WORLD_HEIGHT_PX);
@@ -274,6 +279,26 @@ export class MineScene extends Phaser.Scene {
 
     this.drawWorldGrid(true);
     this.game.events.emit("phaser:mine-ready");
+  }
+
+  private loadSavedProgression() {
+    const save = loadProgressionSave();
+
+    this.coins = save.coins;
+    this.maxDepthReached = save.maxDepthReached;
+    this.inventory = save.inventory;
+    this.pickaxeState = save.pickaxes;
+    this.upgradeState = save.upgrades;
+  }
+
+  private saveProgression() {
+    saveProgression({
+      coins: this.coins,
+      maxDepthReached: this.maxDepthReached,
+      inventory: this.inventory,
+      pickaxes: this.pickaxeState,
+      upgrades: this.upgradeState,
+    });
   }
 
   update(_: number, delta: number) {
@@ -1478,6 +1503,7 @@ export class MineScene extends Phaser.Scene {
     const rewardState = this.registerReward(resource);
     this.syncExpeditionProgress(this.expeditionProgression.applyResource(resource));
     this.game.events.emit("inventory:changed", { ...this.inventory });
+    this.saveProgression();
     this.updateHud();
     this.audioDirector?.playPickup(resource, rewardState.streak);
     this.spawnPickupFeedback(tileX, tileY, this.inventory[resource], rewardState);
@@ -1506,6 +1532,7 @@ export class MineScene extends Phaser.Scene {
 
     this.game.events.emit("economy:changed", { coins: this.coins });
     this.game.events.emit("inventory:changed", { ...this.inventory });
+    this.saveProgression();
     this.updateHud();
 
     return sale;
@@ -1885,7 +1912,13 @@ export class MineScene extends Phaser.Scene {
     }
 
     const currentDepth = this.getSurfaceDepth(this.player.position.y);
+    const previousMaxDepth = this.maxDepthReached;
     this.maxDepthReached = Math.max(this.maxDepthReached, currentDepth);
+
+    if (this.maxDepthReached !== previousMaxDepth) {
+      this.saveProgression();
+    }
+
     const equippedPickaxe = getEquippedPickaxe(this.pickaxeState);
 
     this.hud.update({
@@ -2310,6 +2343,7 @@ export class MineScene extends Phaser.Scene {
     this.pickaxeState = result.state;
     this.coins = result.coins;
     this.syncExpeditionProgress(this.expeditionProgression.applyPickaxeLevel(result.pickaxe.tier));
+    this.saveProgression();
     this.audioDirector?.playUpgrade();
     this.updateHud();
     this.showSurfaceToast(`${result.pickaxe.name} equipada.`);
@@ -2320,6 +2354,7 @@ export class MineScene extends Phaser.Scene {
     this.pickaxeState = equipPickaxe(this.pickaxeState, id);
     const equippedPickaxe = getEquippedPickaxe(this.pickaxeState);
     this.syncExpeditionProgress(this.expeditionProgression.applyPickaxeLevel(equippedPickaxe.tier));
+    this.saveProgression();
     this.audioDirector?.playUpgrade();
     this.updateHud();
     this.showSurfaceToast(`${equippedPickaxe.name} equipada.`);
@@ -2337,6 +2372,7 @@ export class MineScene extends Phaser.Scene {
 
     this.upgradeState = result.state;
     this.coins = result.coins;
+    this.saveProgression();
     this.audioDirector?.playUpgrade();
     this.updateHud();
     this.showSurfaceToast(`${result.upgrade.name} nível ${result.level}.`);
