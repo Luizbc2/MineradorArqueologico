@@ -115,6 +115,11 @@ export class VendorOverlay {
     for (const line of snapshot.sale.lines) {
       const row = createHudElement("div", "game-modal-vendor-row");
       const label = createHudElement("div", "game-modal-vendor-row__label", line.label);
+      const unit = createHudElement(
+        "div",
+        "game-modal-vendor-row__unit",
+        `${formatCoins(line.unitPrice)} cada`,
+      );
       const quantity = createHudElement(
         "div",
         "game-modal-vendor-row__qty",
@@ -125,7 +130,7 @@ export class VendorOverlay {
         "game-modal-vendor-row__total",
         `${formatCoins(line.totalPrice)} moedas`,
       );
-      row.append(label, quantity, total);
+      row.append(label, unit, quantity, total);
       this.inventoryBody.append(row);
     }
   }

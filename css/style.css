@@ -588,7 +588,7 @@ body { image-rendering: auto; }
 
 .game-modal-vendor-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
@@ -597,6 +597,7 @@ body { image-rendering: auto; }
 }
 
 .game-modal-vendor-row__label,
+.game-modal-vendor-row__unit,
 .game-modal-vendor-row__qty,
 .game-modal-vendor-row__total {
   font-size: 16px;
@@ -610,6 +611,10 @@ body { image-rendering: auto; }
 
 .game-modal-vendor-row__qty {
   color: #d3c4ad;
+}
+
+.game-modal-vendor-row__unit {
+  color: #9edfe2;
 }
 
 .game-modal-vendor-row__total {
