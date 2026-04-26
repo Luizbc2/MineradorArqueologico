@@ -312,13 +312,15 @@ function formatUpgradeCurrentEffect(line: UpgradeShopLine) {
 }
 
 function formatUpgradeNextEffect(line: UpgradeShopLine) {
-  const prefix = line.cost === null ? "Máximo" : "Próximo";
-
-  if (line.upgrade.effectKind === "flatPower") {
-    return `${prefix}: +${formatNumber(line.upgrade.effectPerLevel)} força por nível`;
+  if (line.cost === null) {
+    return "Máximo atingido";
   }
 
-  return `${prefix}: +${Math.round(line.upgrade.effectPerLevel * 100)}% velocidade por nível`;
+  if (line.upgrade.effectKind === "flatPower") {
+    return `Próximo: +${formatNumber(line.upgrade.effectPerLevel)} força por nível`;
+  }
+
+  return `Próximo: +${Math.round(line.upgrade.effectPerLevel * 100)}% velocidade por nível`;
 }
 
 function getUpgradeActionLabel(line: UpgradeShopLine, coins: number) {
