@@ -596,8 +596,14 @@ export class MineScene extends Phaser.Scene {
       this.surfaceVillageHubSprite.setOrigin(0.5, 1);
     }
 
+    if (!this.surfaceMarkerLayer) {
+      this.surfaceMarkerLayer = this.add.graphics();
+    }
+
     this.surfacePadLayer.clear();
+    this.surfaceMarkerLayer.clear();
     const layer = this.surfacePadLayer;
+    const markerLayer = this.surfaceMarkerLayer;
     const groundY = SURFACE_ROW * TILE_SIZE;
     const hubLeft = (SURFACE_RETURN_TILE.x - SURFACE_HUB_PLATFORM_HALF_WIDTH) * TILE_SIZE;
     const hubWidth = TILE_SIZE * (SURFACE_HUB_PLATFORM_HALF_WIDTH * 2 + 1);
@@ -612,8 +618,8 @@ export class MineScene extends Phaser.Scene {
       width: 676,
     });
 
-    this.drawSurfaceVendorMarker(layer, centerX + SURFACE_STATION_CONFIG.vendor.offsetX, groundY - 56);
-    this.drawSurfaceWorkshopMarker(layer, centerX + SURFACE_STATION_CONFIG.workshop.offsetX, groundY - 56);
+    this.drawSurfaceVendorMarker(markerLayer, centerX + SURFACE_STATION_CONFIG.vendor.offsetX, groundY - 56);
+    this.drawSurfaceWorkshopMarker(markerLayer, centerX + SURFACE_STATION_CONFIG.workshop.offsetX, groundY - 56);
   }
 
   private drawSurfaceVendorMarker(
