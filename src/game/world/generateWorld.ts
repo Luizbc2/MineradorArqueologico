@@ -7,6 +7,10 @@ import {
 import type { TileCell, TileKind, WorldGrid } from "./types";
 
 type RandomFn = () => number;
+type OreChance = {
+  kind: Extract<TileKind, "coal" | "iron" | "gold" | "diamond">;
+  chance: number;
+};
 
 function createSeededRandom(seed: number): RandomFn {
   let current = seed >>> 0;
@@ -26,6 +30,62 @@ function createFilledGrid(kind: TileKind): WorldGrid {
   );
 }
 
+function getOreChances(depth: number): OreChance[] {
+  if (depth < 20) {
+    return [
+      { kind: "coal", chance: 0.052 },
+      { kind: "iron", chance: 0.012 },
+    ];
+  }
+
+  if (depth < 60) {
+    return [
+      { kind: "coal", chance: 0.032 },
+      { kind: "iron", chance: 0.046 },
+      { kind: "gold", chance: 0.008 },
+    ];
+  }
+
+  if (depth < 120) {
+    return [
+      { kind: "coal", chance: 0.018 },
+      { kind: "iron", chance: 0.04 },
+      { kind: "gold", chance: 0.028 },
+      { kind: "diamond", chance: 0.006 },
+    ];
+  }
+
+  if (depth < 220) {
+    return [
+      { kind: "coal", chance: 0.01 },
+      { kind: "iron", chance: 0.028 },
+      { kind: "gold", chance: 0.038 },
+      { kind: "diamond", chance: 0.014 },
+    ];
+  }
+
+  return [
+    { kind: "coal", chance: 0.006 },
+    { kind: "iron", chance: 0.018 },
+    { kind: "gold", chance: 0.044 },
+    { kind: "diamond", chance: 0.024 },
+  ];
+}
+
+function getOreKindForDepth(depth: number, roll: number): TileKind {
+  let threshold = 0;
+
+  for (const ore of getOreChances(depth)) {
+    threshold += ore.chance;
+
+    if (roll < threshold) {
+      return ore.kind;
+    }
+  }
+
+  return "stone";
+}
+
 export function generateWorld(seed = 0x0badc0de): WorldGrid {
   const random = createSeededRandom(seed);
   const grid = createFilledGrid("dirt");
@@ -39,15 +99,11 @@ export function generateWorld(seed = 0x0badc0de): WorldGrid {
         kind = "stone";
       }
 
+      const depth = Math.max(0, y - SURFACE_ROW);
       const depthFactor = y / WORLD_HEIGHT_TILES;
 
       if (kind === "stone") {
-        const roll = random();
-
-        if (roll < 0.002 + depthFactor * 0.01) kind = "diamond";
-        else if (roll < 0.006 + depthFactor * 0.025) kind = "gold";
-        else if (roll < 0.015 + depthFactor * 0.04) kind = "iron";
-        else if (roll < 0.02 + depthFactor * 0.05) kind = "coal";
+        kind = getOreKindForDepth(depth, random());
       }
 
       if (y > 10 && y < WORLD_HEIGHT_TILES - 5) {
