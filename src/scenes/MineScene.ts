@@ -611,6 +611,63 @@ export class MineScene extends Phaser.Scene {
       width: 676,
     });
 
+    this.drawSurfaceVendorMarker(layer, centerX + SURFACE_STATION_CONFIG.vendor.offsetX, groundY - 56);
+    this.drawSurfaceWorkshopMarker(layer, centerX + SURFACE_STATION_CONFIG.workshop.offsetX, groundY - 56);
+  }
+
+  private drawSurfaceVendorMarker(
+    layer: Phaser.GameObjects.Graphics,
+    centerX: number,
+    y: number,
+  ) {
+    const signX = Math.round(centerX - 24);
+    const signY = Math.round(y);
+
+    layer.fillStyle(0x120c08, 0.72);
+    layer.fillRect(signX + 3, signY + 4, 48, 24);
+    layer.fillStyle(0x3f2a19, 0.96);
+    layer.fillRect(signX, signY, 48, 22);
+    layer.fillStyle(0xd6a657, 0.98);
+    layer.fillRect(signX, signY, 48, 3);
+    layer.fillRect(signX, signY + 19, 48, 3);
+    layer.fillRect(signX, signY, 3, 22);
+    layer.fillRect(signX + 45, signY, 3, 22);
+    layer.fillCircle(signX + 24, signY + 11, 7);
+    layer.fillStyle(0x3f2a19, 0.95);
+    layer.fillRect(signX + 21, signY + 6, 2, 10);
+    layer.fillRect(signX + 25, signY + 6, 2, 10);
+    layer.fillRect(signX + 18, signY + 9, 12, 2);
+    layer.fillRect(signX + 18, signY + 13, 12, 2);
+    layer.fillStyle(0x5b3b22, 0.9);
+    layer.fillRect(signX + 8, signY + 22, 5, 20);
+    layer.fillRect(signX + 35, signY + 22, 5, 20);
+  }
+
+  private drawSurfaceWorkshopMarker(
+    layer: Phaser.GameObjects.Graphics,
+    centerX: number,
+    y: number,
+  ) {
+    const signX = Math.round(centerX - 24);
+    const signY = Math.round(y);
+
+    layer.fillStyle(0x061019, 0.72);
+    layer.fillRect(signX + 3, signY + 4, 48, 24);
+    layer.fillStyle(0x1b222b, 0.96);
+    layer.fillRect(signX, signY, 48, 22);
+    layer.fillStyle(0x8fe7ff, 0.94);
+    layer.fillRect(signX, signY, 48, 3);
+    layer.fillRect(signX, signY + 19, 48, 3);
+    layer.fillRect(signX, signY, 3, 22);
+    layer.fillRect(signX + 45, signY, 3, 22);
+    layer.fillStyle(0xd6e4f0, 0.96);
+    layer.fillRect(signX + 15, signY + 7, 18, 4);
+    layer.fillRect(signX + 30, signY + 9, 4, 4);
+    layer.fillStyle(0x8c5c35, 0.98);
+    layer.fillRect(signX + 20, signY + 11, 4, 10);
+    layer.fillStyle(0x30445c, 0.95);
+    layer.fillRect(signX + 8, signY + 22, 5, 20);
+    layer.fillRect(signX + 35, signY + 22, 5, 20);
   }
 
   private drawSurfaceHubBuilding(
