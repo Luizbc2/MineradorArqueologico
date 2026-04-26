@@ -26,7 +26,7 @@ type ExpeditionGoalDefinition = {
   perk: Partial<ExpeditionPerks>;
 };
 
-type ExpeditionStats = {
+export type ExpeditionProgressionState = {
   deepestDepth: number;
   maxReturnDepth: number;
   resources: Record<ResourceKind, number>;
@@ -142,8 +142,8 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
   },
 ];
 
-export function createExpeditionProgression() {
-  const stats: ExpeditionStats = {
+export function createDefaultExpeditionProgressionState(): ExpeditionProgressionState {
+  return {
     deepestDepth: 0,
     maxReturnDepth: 0,
     resources: {
@@ -156,6 +156,30 @@ export function createExpeditionProgression() {
     cardsFound: 0,
     pickaxeLevel: 1,
   };
+}
+
+export function normalizeExpeditionProgressionState(
+  state: Partial<ExpeditionProgressionState> = {},
+): ExpeditionProgressionState {
+  const defaults = createDefaultExpeditionProgressionState();
+
+  return {
+    deepestDepth: normalizePositiveInteger(state.deepestDepth),
+    maxReturnDepth: normalizePositiveInteger(state.maxReturnDepth),
+    resources: {
+      coal: normalizePositiveInteger(state.resources?.coal),
+      iron: normalizePositiveInteger(state.resources?.iron),
+      gold: normalizePositiveInteger(state.resources?.gold),
+      diamond: normalizePositiveInteger(state.resources?.diamond),
+    },
+    chestsOpened: normalizePositiveInteger(state.chestsOpened),
+    cardsFound: normalizePositiveInteger(state.cardsFound),
+    pickaxeLevel: Math.max(1, normalizePositiveInteger(state.pickaxeLevel) || defaults.pickaxeLevel),
+  };
+}
+
+export function createExpeditionProgression(initialState?: Partial<ExpeditionProgressionState>) {
+  const stats = normalizeExpeditionProgressionState(initialState);
 
   let completedCount = 0;
   const perks: ExpeditionPerks = { ...defaultPerks };
@@ -176,6 +200,8 @@ export function createExpeditionProgression() {
     newlyCompleted,
     perks: { ...perks },
   });
+
+  resolveProgress(() => buildSnapshot([]));
 
   return {
     applyDepth(depth: number) {
@@ -205,6 +231,9 @@ export function createExpeditionProgression() {
     getSnapshot() {
       return buildSnapshot();
     },
+    getState() {
+      return cloneStats(stats);
+    },
   };
 
   function resolveProgress(build: typeof buildSnapshot) {
@@ -232,7 +261,7 @@ export function createExpeditionProgression() {
   }
 }
 
-function isGoalComplete(goal: ExpeditionGoalDefinition, stats: ExpeditionStats) {
+function isGoalComplete(goal: ExpeditionGoalDefinition, stats: ExpeditionProgressionState) {
   switch (goal.type) {
     case "depth":
       return stats.deepestDepth >= goal.target;
@@ -249,7 +278,7 @@ function isGoalComplete(goal: ExpeditionGoalDefinition, stats: ExpeditionStats) 
   }
 }
 
-function getGoalCurrent(goal: ExpeditionGoalDefinition, stats: ExpeditionStats) {
+function getGoalCurrent(goal: ExpeditionGoalDefinition, stats: ExpeditionProgressionState) {
   switch (goal.type) {
     case "depth":
       return stats.deepestDepth;
@@ -266,7 +295,7 @@ function getGoalCurrent(goal: ExpeditionGoalDefinition, stats: ExpeditionStats) 
   }
 }
 
-function toGoalView(goal: ExpeditionGoalDefinition | undefined, stats: ExpeditionStats): GoalProgressView | null {
+function toGoalView(goal: ExpeditionGoalDefinition | undefined, stats: ExpeditionProgressionState): GoalProgressView | null {
   if (!goal) {
     return null;
   }
@@ -278,6 +307,17 @@ function toGoalView(goal: ExpeditionGoalDefinition | undefined, stats: Expeditio
     current: Math.min(goal.target, getGoalCurrent(goal, stats)),
     target: goal.target,
   };
+}
+
+function cloneStats(stats: ExpeditionProgressionState): ExpeditionProgressionState {
+  return {
+    ...stats,
+    resources: { ...stats.resources },
+  };
+}
+
+function normalizePositiveInteger(value: unknown) {
+  return Number.isFinite(value) ? Math.max(0, Math.floor(Number(value))) : 0;
 }
 
 function applyPerk(perks: ExpeditionPerks, next: Partial<ExpeditionPerks>) {

@@ -13,6 +13,11 @@ import {
   normalizeUpgradeLevelState,
 } from "../progression/upgradeState";
 import type { UpgradeLevelState } from "../progression/upgradeState";
+import {
+  createDefaultExpeditionProgressionState,
+  normalizeExpeditionProgressionState,
+} from "../progression/expeditionGoals";
+import type { ExpeditionProgressionState } from "../progression/expeditionGoals";
 
 const SAVE_KEY = "minerador-arqueologico:progression:v1";
 
@@ -22,6 +27,7 @@ export type ProgressionSaveData = {
   inventory: ResourceInventory;
   pickaxes: PickaxeOwnershipState;
   upgrades: UpgradeLevelState;
+  expedition: ExpeditionProgressionState;
 };
 
 type ProgressionSavePayload = Partial<{
@@ -30,6 +36,7 @@ type ProgressionSavePayload = Partial<{
   inventory: Partial<Record<keyof ResourceInventory, unknown>>;
   pickaxes: Partial<PickaxeOwnershipState>;
   upgrades: Partial<UpgradeLevelState>;
+  expedition: Partial<ExpeditionProgressionState>;
 }>;
 
 export function createDefaultProgressionSave(): ProgressionSaveData {
@@ -39,6 +46,7 @@ export function createDefaultProgressionSave(): ProgressionSaveData {
     inventory: createResourceInventory(),
     pickaxes: createPickaxeOwnershipState(),
     upgrades: createUpgradeLevelState(),
+    expedition: createDefaultExpeditionProgressionState(),
   };
 }
 
@@ -77,6 +85,7 @@ function normalizeProgressionSave(
     inventory: normalizeInventory(payload.inventory),
     pickaxes: normalizePickaxeOwnershipState(payload.pickaxes ?? {}),
     upgrades: normalizeUpgradeLevelState(payload.upgrades ?? {}),
+    expedition: normalizeExpeditionProgressionState(payload.expedition ?? {}),
   };
 }
 

@@ -116,7 +116,7 @@ const MOUSE_MINING_REACH_TILES = 2;
 export class MineScene extends Phaser.Scene {
   private worldGrid: WorldGrid = [];
   private readonly archaeologyDeck = createArchaeologyDeck();
-  private readonly expeditionProgression = createExpeditionProgression();
+  private expeditionProgression = createExpeditionProgression();
   private progressionSnapshot: ExpeditionProgressionSnapshot = this.expeditionProgression.getSnapshot();
   private inventory: ResourceInventory = createResourceInventory();
   private pickaxeState = createPickaxeOwnershipState();
@@ -304,6 +304,8 @@ export class MineScene extends Phaser.Scene {
     this.inventory = save.inventory;
     this.pickaxeState = save.pickaxes;
     this.upgradeState = save.upgrades;
+    this.expeditionProgression = createExpeditionProgression(save.expedition);
+    this.progressionSnapshot = this.expeditionProgression.getSnapshot();
   }
 
   private saveProgression() {
@@ -313,6 +315,7 @@ export class MineScene extends Phaser.Scene {
       inventory: this.inventory,
       pickaxes: this.pickaxeState,
       upgrades: this.upgradeState,
+      expedition: this.expeditionProgression.getState(),
     });
   }
 
