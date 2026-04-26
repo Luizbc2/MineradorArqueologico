@@ -2680,9 +2680,9 @@ function getPickaxePurchaseFailureMessage(
 ) {
   switch (reason) {
     case "already-owned":
-      return "Essa picareta ja esta na mochila.";
+      return "Essa picareta já está na mochila.";
     case "locked":
-      return "Desca mais fundo para liberar essa picareta.";
+      return "Desça mais fundo para liberar essa picareta.";
     case "not-enough-coins":
       return "Moedas insuficientes.";
   }
@@ -2693,7 +2693,7 @@ function getUpgradePurchaseFailureMessage(
 ) {
   switch (reason) {
     case "max-level":
-      return "Upgrade no nivel maximo.";
+      return "Upgrade no nível máximo.";
     case "not-enough-coins":
       return "Moedas insuficientes.";
   }
