@@ -2,6 +2,8 @@ import Phaser from "phaser";
 import { createHudElement, createHudScope } from "../hud/domHud";
 
 type PauseOverlaySnapshot = {
+  audioMuted: boolean;
+  onAudioToggle: () => void;
   onResume: () => void;
 };
 
@@ -10,7 +12,7 @@ export class PauseOverlay {
   private readonly scope: HTMLDivElement;
   private readonly overlay: HTMLElement;
   private readonly resumeButton: HTMLButtonElement;
-  private readonly menuButton: HTMLButtonElement;
+  private readonly audioButton: HTMLButtonElement;
 
   constructor(scene: Phaser.Scene) {
     this.container = scene.add.container(0, 0);
@@ -43,14 +45,13 @@ export class PauseOverlay {
     const roadmap = createHudElement(
       "div",
       "game-modal-note",
-      "Configurações e opções avançadas chegam no próximo passo.",
+      "Use o controle de som para ajustar a expedição sem sair da mina.",
     );
 
     const actions = createHudElement("div", "game-modal-actions");
     this.resumeButton = createPauseButton("CONTINUAR", "primary");
-    this.menuButton = createPauseButton("MENU EM BREVE", "secondary");
-    this.menuButton.disabled = true;
-    actions.append(this.resumeButton, this.menuButton);
+    this.audioButton = createPauseButton("SOM LIGADO", "secondary");
+    actions.append(this.resumeButton, this.audioButton);
 
     const hint = createHudElement(
       "div",
@@ -68,17 +69,24 @@ export class PauseOverlay {
   }
 
   show(snapshot: PauseOverlaySnapshot) {
+    this.setAudioMuted(snapshot.audioMuted);
     this.resumeButton.onclick = snapshot.onResume;
+    this.audioButton.onclick = snapshot.onAudioToggle;
     this.overlay.classList.add("is-open");
   }
 
   hide() {
     this.resumeButton.onclick = null;
+    this.audioButton.onclick = null;
     this.overlay.classList.remove("is-open");
   }
 
   get isVisible() {
     return this.overlay.classList.contains("is-open");
+  }
+
+  setAudioMuted(muted: boolean) {
+    this.audioButton.textContent = muted ? "SOM DESLIGADO" : "SOM LIGADO";
   }
 }
 

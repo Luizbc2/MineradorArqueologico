@@ -2285,9 +2285,21 @@ export class MineScene extends Phaser.Scene {
 
     this.clearMiningTarget();
     this.pauseOverlay?.show({
+      audioMuted: this.audioDirector?.isMuted ?? false,
+      onAudioToggle: () => this.handleAudioToggle(),
       onResume: () => this.closePauseOverlay(),
     });
     this.updateSurfacePrompt();
+  }
+
+  private handleAudioToggle() {
+    this.audioDirector?.unlock();
+    const muted = this.audioDirector?.toggleMuted() ?? false;
+    this.pauseOverlay?.setAudioMuted(muted);
+
+    if (!muted) {
+      this.audioDirector?.playCoins();
+    }
   }
 
   private closePauseOverlay() {

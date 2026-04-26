@@ -293,6 +293,20 @@ export class MineAudioDirector {
     });
   }
 
+  setMuted(muted: boolean) {
+    this.muted = muted;
+    this.applyMasterVolume();
+  }
+
+  toggleMuted() {
+    this.setMuted(!this.muted);
+    return this.muted;
+  }
+
+  get isMuted() {
+    return this.muted;
+  }
+
   destroy() {
     this.masterGain?.disconnect();
     this.masterGain = undefined;
@@ -321,10 +335,18 @@ export class MineAudioDirector {
 
     this.audioContext = new AudioCtor();
     this.masterGain = this.audioContext.createGain();
-    this.masterGain.gain.value = MASTER_VOLUME;
+    this.applyMasterVolume();
     this.masterGain.connect(this.audioContext.destination);
 
     return this.audioContext;
+  }
+
+  private applyMasterVolume() {
+    if (!this.masterGain) {
+      return;
+    }
+
+    this.masterGain.gain.value = this.muted ? 0 : MASTER_VOLUME;
   }
 
   private playSurfaceAmbience() {
