@@ -1,7 +1,5 @@
 ## Player assets
 
-`miner-dwarf-sheet.png` is a derived miner sprite sheet based on the CC0 OpenGameArt asset "Dwarf Bases (Cabbit Rework)".
+`miner-dwarf-sheet.png` is a project-local pixel-art miner sprite sheet.
 
-Source: https://opengameart.org/content/dwarf-bases-cabbit-rework
-License: Creative Commons Zero (CC0)
-Attribution is not required. Original credits listed by the asset package: Svetlana Kushnariova (Cabbit) and Jordan Irwin (AntumDeluge).
+It uses 4 frames at 48x64 pixels. The Phaser loader slices it with `frameWidth: 48` and `frameHeight: 64`.

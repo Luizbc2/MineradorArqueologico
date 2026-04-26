@@ -8,7 +8,7 @@ export type PlayerTilePosition = {
 
 export class PlayerMiner {
   readonly sprite: Phaser.GameObjects.Container;
-  private readonly standingOffsetY = -22;
+  private readonly standingOffsetY = 0;
 
   private readonly dustShadow: Phaser.GameObjects.Ellipse;
   private readonly rig: Phaser.GameObjects.Container;
@@ -35,22 +35,22 @@ export class PlayerMiner {
     this.targetX = this.toWorldX(startPosition.x);
     this.targetY = this.toWorldY(startPosition.y);
 
-    this.dustShadow = scene.add.ellipse(0, 17, 24, 8, 0x03070d, 0.46);
+    this.dustShadow = scene.add.ellipse(0, 18, 24, 8, 0x03070d, 0.46);
 
-    this.lampGlow = scene.add.ellipse(17, -31, 22, 14, 0xffdf85, 0.14);
+    this.lampGlow = scene.add.ellipse(16, -23, 22, 14, 0xffdf85, 0.14);
     this.lampGlow.setBlendMode(Phaser.BlendModes.ADD);
-    this.helmetGlow = scene.add.ellipse(18, -33, 8, 6, 0xfff2b6, 0.72);
+    this.helmetGlow = scene.add.ellipse(17, -24, 8, 6, 0xfff2b6, 0.72);
     this.helmetGlow.setBlendMode(Phaser.BlendModes.ADD);
 
-    this.body = scene.add.sprite(0, -1, "player-miner", 1);
-    this.body.setOrigin(0.5, 0.82);
-    this.body.setScale(0.78);
+    this.body = scene.add.sprite(0, 16, "player-miner", 1);
+    this.body.setOrigin(0.5, 1);
+    this.body.setScale(0.82);
 
-    this.pickaxe = scene.add.image(14, -9, "pickaxe-metal");
+    this.pickaxe = scene.add.image(16, 10, "pickaxe-metal");
     this.pickaxe.setOrigin(0.5, 0.74);
-    this.pickaxe.setScale(0.26);
-    this.pickaxe.setAngle(-34);
-    this.pickaxe.setAlpha(0.82);
+    this.pickaxe.setScale(0.24);
+    this.pickaxe.setAngle(-26);
+    this.pickaxe.setAlpha(0.72);
 
     this.rig = scene.add.container(0, 0, [
       this.lampGlow,
@@ -63,7 +63,7 @@ export class PlayerMiner {
       this.dustShadow,
       this.rig,
     ]);
-    this.sprite.setSize(34, 45);
+    this.sprite.setSize(36, 52);
   }
 
   setMining(active: boolean) {
@@ -122,26 +122,26 @@ export class PlayerMiner {
     this.dustShadow.alpha = 0.34 + locomotion * 0.14 + landingRatio * 0.16;
 
     this.body.setFrame(moving && !airborne ? runFrame : 1);
-    this.body.y = -1 + Math.abs(runSwing) * 0.9 - jumpRatio * 1.2;
+    this.body.y = 16 + Math.abs(runSwing) * 0.45 - jumpRatio * 1.4;
     this.body.angle = moving ? runSwing * 1.6 * runPower : 0;
-    this.body.scaleX = 0.78 + landingRatio * 0.04;
-    this.body.scaleY = 0.78 - landingRatio * 0.06;
+    this.body.scaleX = 0.82 + landingRatio * 0.04;
+    this.body.scaleY = 0.82 - landingRatio * 0.06;
 
-    const idlePickAngle = -34 + runSwing * 4;
+    const idlePickAngle = -26 + runSwing * 4;
     const minePickAngle = -76 + miningSwing * 34;
-    this.pickaxe.x = 14 + Math.abs(miningSwing) * 3 + locomotion * 0.8;
-    this.pickaxe.y = -9 - miningLift * 1.2 + jumpRatio * 1.5;
+    this.pickaxe.x = 16 + Math.abs(miningSwing) * 3 + locomotion * 0.8;
+    this.pickaxe.y = 10 - miningLift * 1.2 + jumpRatio * 1.5;
     this.pickaxe.rotation = Phaser.Math.DegToRad(this.mining ? minePickAngle : idlePickAngle);
     this.pickaxe.alpha = this.mining ? 1 : 0.76;
     this.pickaxe.setScale(this.mining ? 0.29 : 0.24);
 
-    this.lampGlow.x = 17 + runSwing * 0.45;
-    this.lampGlow.y = -31 + idleBob * 0.35;
+    this.lampGlow.x = 16 + runSwing * 0.45;
+    this.lampGlow.y = -23 + idleBob * 0.35;
     this.lampGlow.alpha = 0.12 + Math.sin(this.animationTime * 8.5) * 0.04;
     this.lampGlow.scaleX = 1 + Math.sin(this.animationTime * 7.8) * 0.07;
     this.lampGlow.scaleY = 1 + Math.cos(this.animationTime * 7.8) * 0.07;
-    this.helmetGlow.x = 18 + runSwing * 0.35;
-    this.helmetGlow.y = -33 + idleBob * 0.28;
+    this.helmetGlow.x = 17 + runSwing * 0.35;
+    this.helmetGlow.y = -24 + idleBob * 0.28;
     this.helmetGlow.alpha = 0.62 + Math.sin(this.animationTime * 10) * 0.1;
   }
 
