@@ -8,6 +8,10 @@ type AmbienceState = {
   comboCount: number;
 };
 
+const MASTER_VOLUME = 0.85;
+const EFFECT_VOLUME_MULTIPLIER = 2.6;
+const MAX_TONE_VOLUME = 0.42;
+
 export class MineAudioDirector {
   private audioContext?: AudioContext;
   private masterGain?: GainNode;
@@ -317,7 +321,7 @@ export class MineAudioDirector {
 
     this.audioContext = new AudioCtor();
     this.masterGain = this.audioContext.createGain();
-    this.masterGain.gain.value = 0.3;
+    this.masterGain.gain.value = MASTER_VOLUME;
     this.masterGain.connect(this.audioContext.destination);
 
     return this.audioContext;
@@ -399,8 +403,10 @@ export class MineAudioDirector {
     filter.frequency.value = Math.max(220, options.frequency * 3.6);
     filter.Q.value = 0.5;
 
+    const toneVolume = Math.min(MAX_TONE_VOLUME, options.volume * EFFECT_VOLUME_MULTIPLIER);
+
     gainNode.gain.setValueAtTime(0.0001, now);
-    gainNode.gain.exponentialRampToValueAtTime(options.volume, now + options.attack);
+    gainNode.gain.exponentialRampToValueAtTime(toneVolume, now + options.attack);
     gainNode.gain.exponentialRampToValueAtTime(0.0001, now + options.duration + options.release);
 
     oscillator.connect(filter);
