@@ -8,7 +8,7 @@ import type { TileCell, TileKind, WorldGrid } from "./types";
 
 type RandomFn = () => number;
 type OreChance = {
-  kind: Extract<TileKind, "coal" | "iron" | "gold" | "diamond">;
+  kind: Extract<TileKind, "coal" | "iron" | "gold" | "diamond" | "crystal">;
   chance: number;
 };
 
@@ -61,6 +61,7 @@ function getOreChances(depth: number): OreChance[] {
       { kind: "iron", chance: 0.028 },
       { kind: "gold", chance: 0.038 },
       { kind: "diamond", chance: 0.014 },
+      { kind: "crystal", chance: 0.004 },
     ];
   }
 
@@ -69,6 +70,7 @@ function getOreChances(depth: number): OreChance[] {
     { kind: "iron", chance: 0.018 },
     { kind: "gold", chance: 0.044 },
     { kind: "diamond", chance: 0.024 },
+    { kind: "crystal", chance: 0.014 },
   ];
 }
 

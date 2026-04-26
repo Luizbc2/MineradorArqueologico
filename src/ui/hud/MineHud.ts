@@ -129,21 +129,24 @@ export class MineHud {
     const iron = createHudResourceSlot("Ferro", "resource-iron");
     const gold = createHudResourceSlot("Ouro", "resource-gold");
     const diamond = createHudResourceSlot("Diamante", "resource-diamond");
+    const crystal = createHudResourceSlot("Cristal", "resource-crystal");
 
     this.resourceValues = {
       coal: coal.value,
       iron: iron.value,
       gold: gold.value,
       diamond: diamond.value,
+      crystal: crystal.value,
     };
     this.resourceTotals = {
       coal: coal.total,
       iron: iron.total,
       gold: gold.total,
       diamond: diamond.total,
+      crystal: crystal.total,
     };
 
-    resourceGrid.append(coal.root, iron.root, gold.root, diamond.root);
+    resourceGrid.append(coal.root, iron.root, gold.root, diamond.root, crystal.root);
     backpackBody.append(backpackSummary, this.backpackHint, resourceGrid);
     this.backpackPanel.append(backpackClose, backpackBody);
 
