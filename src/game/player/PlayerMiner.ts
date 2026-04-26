@@ -1,6 +1,5 @@
 import Phaser from "phaser";
 import { TILE_SIZE } from "../world/constants";
-import { gameTheme } from "../../ui/theme/gameTheme";
 
 export type PlayerTilePosition = {
   x: number;
@@ -9,22 +8,14 @@ export type PlayerTilePosition = {
 
 export class PlayerMiner {
   readonly sprite: Phaser.GameObjects.Container;
-  private readonly standingOffsetY = -9;
+  private readonly standingOffsetY = -22;
 
   private readonly dustShadow: Phaser.GameObjects.Ellipse;
   private readonly rig: Phaser.GameObjects.Container;
-  private readonly helmet: Phaser.GameObjects.Rectangle;
-  private readonly visor: Phaser.GameObjects.Rectangle;
-  private readonly lamp: Phaser.GameObjects.Ellipse;
-  private readonly torso: Phaser.GameObjects.Rectangle;
-  private readonly belt: Phaser.GameObjects.Rectangle;
-  private readonly backpack: Phaser.GameObjects.Rectangle;
-  private readonly leftArm: Phaser.GameObjects.Rectangle;
-  private readonly rightArm: Phaser.GameObjects.Rectangle;
-  private readonly leftLeg: Phaser.GameObjects.Rectangle;
-  private readonly rightLeg: Phaser.GameObjects.Rectangle;
-  private readonly pickaxeHandle: Phaser.GameObjects.Rectangle;
-  private readonly pickaxeHead: Phaser.GameObjects.Rectangle;
+  private readonly body: Phaser.GameObjects.Sprite;
+  private readonly pickaxe: Phaser.GameObjects.Image;
+  private readonly lampGlow: Phaser.GameObjects.Ellipse;
+  private readonly helmetGlow: Phaser.GameObjects.Ellipse;
   private targetX: number;
   private targetY: number;
   private animationTime = 0;
@@ -44,63 +35,35 @@ export class PlayerMiner {
     this.targetX = this.toWorldX(startPosition.x);
     this.targetY = this.toWorldY(startPosition.y);
 
-    this.dustShadow = scene.add.ellipse(0, 16, 22, 8, 0x03070d, 0.45);
+    this.dustShadow = scene.add.ellipse(0, 17, 24, 8, 0x03070d, 0.46);
 
-    this.backpack = scene.add.rectangle(-7, 2, 9, 14, 0x4c3725, 1);
-    this.backpack.setStrokeStyle(2, 0x27180d, 0.85);
+    this.lampGlow = scene.add.ellipse(17, -31, 22, 14, 0xffdf85, 0.14);
+    this.lampGlow.setBlendMode(Phaser.BlendModes.ADD);
+    this.helmetGlow = scene.add.ellipse(18, -33, 8, 6, 0xfff2b6, 0.72);
+    this.helmetGlow.setBlendMode(Phaser.BlendModes.ADD);
 
-    this.leftLeg = scene.add.rectangle(-4, 14, 6, 11, 0x45382d, 1);
-    this.leftLeg.setOrigin(0.5, 0);
-    this.leftLeg.setStrokeStyle(2, 0x241913, 0.9);
+    this.body = scene.add.sprite(0, -1, "player-miner", 1);
+    this.body.setOrigin(0.5, 0.82);
+    this.body.setScale(0.78);
 
-    this.rightLeg = scene.add.rectangle(4, 14, 6, 11, 0x3c3028, 1);
-    this.rightLeg.setOrigin(0.5, 0);
-    this.rightLeg.setStrokeStyle(2, 0x241913, 0.9);
-
-    this.torso = scene.add.rectangle(0, 4, 16, 18, 0xd69f57, 1);
-    this.torso.setStrokeStyle(2, 0x4c2f12, 0.95);
-
-    this.belt = scene.add.rectangle(0, 10, 16, 4, 0x5a3d23, 1);
-
-    this.leftArm = scene.add.rectangle(-9, 5, 5, 13, 0xc3894c, 1);
-    this.leftArm.setOrigin(0.5, 0);
-    this.leftArm.setStrokeStyle(2, 0x513115, 0.9);
-
-    this.rightArm = scene.add.rectangle(9, 4, 5, 14, 0xc3894c, 1);
-    this.rightArm.setOrigin(0.5, 0);
-    this.rightArm.setStrokeStyle(2, 0x513115, 0.9);
-
-    this.pickaxeHandle = scene.add.rectangle(13, 11, 4, 18, 0x7c5631, 1);
-    this.pickaxeHandle.setOrigin(0.5, 0.85);
-    this.pickaxeHead = scene.add.rectangle(14, 4, 12, 4, 0xbfc9d8, 1);
-    this.pickaxeHead.setStrokeStyle(2, 0x5c697a, 0.8);
-
-    this.helmet = scene.add.rectangle(0, -7, 18, 10, gameTheme.colors.warning, 1);
-    this.helmet.setStrokeStyle(2, 0x563a11, 0.95);
-    this.visor = scene.add.rectangle(0, -5, 12, 6, 0x1a3046, 0.98);
-    this.visor.setStrokeStyle(1, 0x84d4ff, 0.35);
-    this.lamp = scene.add.ellipse(8, -9, 8, 8, 0xfff4d7, 1);
+    this.pickaxe = scene.add.image(14, -9, "pickaxe-metal");
+    this.pickaxe.setOrigin(0.5, 0.74);
+    this.pickaxe.setScale(0.26);
+    this.pickaxe.setAngle(-34);
+    this.pickaxe.setAlpha(0.82);
 
     this.rig = scene.add.container(0, 0, [
-      this.backpack,
-      this.leftLeg,
-      this.rightLeg,
-      this.torso,
-      this.belt,
-      this.leftArm,
-      this.rightArm,
-      this.pickaxeHandle,
-      this.pickaxeHead,
-      this.helmet,
-      this.visor,
-      this.lamp,
+      this.lampGlow,
+      this.helmetGlow,
+      this.body,
+      this.pickaxe,
     ]);
 
     this.sprite = scene.add.container(this.targetX, this.targetY, [
       this.dustShadow,
       this.rig,
     ]);
-    this.sprite.setSize(30, 34);
+    this.sprite.setSize(34, 45);
   }
 
   setMining(active: boolean) {
@@ -139,11 +102,12 @@ export class PlayerMiner {
     const jumpRatio = Phaser.Math.Clamp(this.jumpPoseTimer / 0.24, 0, 1);
     const landingRatio = Phaser.Math.Clamp(this.landingSquashTimer / 0.14, 0, 1);
     const airborne = this.falling || jumpRatio > 0;
-    const idleBob = airborne ? 0 : -Math.abs(Math.sin(this.animationTime * 4.8)) * 1.1;
+    const idleBob = airborne ? 0 : -Math.abs(Math.sin(this.animationTime * 4.8)) * 0.9;
     const runSwing = Math.sin(this.animationTime * 16) * (moving ? 1 : 0);
     const runPower = moving ? 1 + this.stepKick * 0.3 : 0;
-    const walkSwing = runSwing * 13 * runPower;
-    const fallLean = this.falling ? Phaser.Math.Linear(this.rig.rotation, -0.16, 0.28) : Phaser.Math.Linear(this.rig.rotation, 0, 0.22);
+    const fallLean = this.falling
+      ? Phaser.Math.Linear(this.rig.rotation, -0.16, 0.28)
+      : Phaser.Math.Linear(this.rig.rotation, 0, 0.22);
     const jumpLift = jumpRatio * 4;
     const miningSwing = this.mining ? Math.sin(this.animationTime * 22) * 0.95 : 0;
     const miningLift = this.mining ? Math.abs(Math.sin(this.animationTime * 22)) * 2.5 : 0;
@@ -157,118 +121,28 @@ export class PlayerMiner {
     this.dustShadow.scaleY = 1 - locomotion * 0.1 - landingRatio * 0.1;
     this.dustShadow.alpha = 0.34 + locomotion * 0.14 + landingRatio * 0.16;
 
-    this.applyBasePose();
+    this.body.setFrame(moving && !airborne ? runFrame : 1);
+    this.body.y = -1 + Math.abs(runSwing) * 0.9 - jumpRatio * 1.2;
+    this.body.angle = moving ? runSwing * 1.6 * runPower : 0;
+    this.body.scaleX = 0.78 + landingRatio * 0.04;
+    this.body.scaleY = 0.78 - landingRatio * 0.06;
 
-    if (this.falling) {
-      this.applyFallPose();
-    } else if (jumpRatio > 0) {
-      this.applyJumpPose(jumpRatio);
-    } else if (moving) {
-      this.applyRunPose(runFrame, landingRatio);
-    }
+    const idlePickAngle = -34 + runSwing * 4;
+    const minePickAngle = -76 + miningSwing * 34;
+    this.pickaxe.x = 14 + Math.abs(miningSwing) * 3 + locomotion * 0.8;
+    this.pickaxe.y = -9 - miningLift * 1.2 + jumpRatio * 1.5;
+    this.pickaxe.rotation = Phaser.Math.DegToRad(this.mining ? minePickAngle : idlePickAngle);
+    this.pickaxe.alpha = this.mining ? 1 : 0.76;
+    this.pickaxe.setScale(this.mining ? 0.29 : 0.24);
 
-    if (this.mining) {
-      this.rightArm.rotation = Phaser.Math.DegToRad(-76 + miningSwing * 16);
-      this.rightArm.x = 9 + Math.abs(miningSwing) * 2;
-    }
-
-    this.pickaxeHandle.rotation = this.rightArm.rotation;
-    this.pickaxeHead.rotation = this.rightArm.rotation;
-    this.pickaxeHandle.y = 11 - miningLift * 0.25;
-    this.pickaxeHead.y = 4 - miningLift * 0.38;
-
-    this.backpack.x = -7 - locomotion * 0.5;
-    this.backpack.y = 2 + Math.abs(runSwing) * 0.7 - jumpRatio * 1.5;
-    this.helmet.y = -7 + idleBob * 0.12;
-    this.visor.y = -5 + idleBob * 0.12;
-    this.lamp.y = -9 + idleBob * 0.18;
-    this.lamp.alpha = 0.82 + Math.sin(this.animationTime * 10) * 0.12;
-    this.lamp.scaleX = 1 + Math.sin(this.animationTime * 8.5) * 0.06;
-    this.lamp.scaleY = 1 + Math.cos(this.animationTime * 8.5) * 0.06;
-  }
-
-  private applyBasePose() {
-    this.leftLeg.x = -4;
-    this.leftLeg.y = 14;
-    this.leftLeg.rotation = 0;
-    this.leftLeg.scaleY = 1;
-
-    this.rightLeg.x = 4;
-    this.rightLeg.y = 14;
-    this.rightLeg.rotation = 0;
-    this.rightLeg.scaleY = 1;
-
-    this.leftArm.x = -9;
-    this.leftArm.y = 5;
-    this.leftArm.rotation = Phaser.Math.DegToRad(-4);
-
-    this.rightArm.x = 9;
-    this.rightArm.y = 4;
-    this.rightArm.rotation = Phaser.Math.DegToRad(10);
-  }
-
-  private applyRunPose(frame: number, landingRatio: number) {
-    const forward = frame === 0 || frame === 3;
-    const stride = forward ? 1 : -1;
-    const lift = frame === 1 || frame === 3 ? 2 : 0;
-
-    this.leftLeg.x = -5 - stride;
-    this.leftLeg.y = 14 - lift - landingRatio;
-    this.leftLeg.rotation = Phaser.Math.DegToRad(28 * stride);
-    this.leftLeg.scaleY = forward ? 1.12 : 0.92;
-
-    this.rightLeg.x = 5 + stride;
-    this.rightLeg.y = 14 - (2 - lift) - landingRatio;
-    this.rightLeg.rotation = Phaser.Math.DegToRad(-30 * stride);
-    this.rightLeg.scaleY = forward ? 0.92 : 1.12;
-
-    this.leftArm.x = -10 + stride;
-    this.leftArm.y = 5;
-    this.leftArm.rotation = Phaser.Math.DegToRad(-34 * stride);
-
-    this.rightArm.x = 10 - stride;
-    this.rightArm.y = 4;
-    this.rightArm.rotation = Phaser.Math.DegToRad(34 * stride + 8);
-  }
-
-  private applyJumpPose(jumpRatio: number) {
-    this.leftLeg.x = -5;
-    this.leftLeg.y = 12;
-    this.leftLeg.rotation = Phaser.Math.DegToRad(-38);
-    this.leftLeg.scaleY = 0.92;
-
-    this.rightLeg.x = 5;
-    this.rightLeg.y = 12;
-    this.rightLeg.rotation = Phaser.Math.DegToRad(36);
-    this.rightLeg.scaleY = 0.92;
-
-    this.leftArm.x = -10;
-    this.leftArm.y = 3;
-    this.leftArm.rotation = Phaser.Math.DegToRad(-46 * jumpRatio);
-
-    this.rightArm.x = 9;
-    this.rightArm.y = 2;
-    this.rightArm.rotation = Phaser.Math.DegToRad(-28 * jumpRatio + 8);
-  }
-
-  private applyFallPose() {
-    this.leftLeg.x = -5;
-    this.leftLeg.y = 15;
-    this.leftLeg.rotation = Phaser.Math.DegToRad(12);
-    this.leftLeg.scaleY = 1.08;
-
-    this.rightLeg.x = 5;
-    this.rightLeg.y = 15;
-    this.rightLeg.rotation = Phaser.Math.DegToRad(-14);
-    this.rightLeg.scaleY = 1.08;
-
-    this.leftArm.x = -10;
-    this.leftArm.y = 6;
-    this.leftArm.rotation = Phaser.Math.DegToRad(-24);
-
-    this.rightArm.x = 10;
-    this.rightArm.y = 6;
-    this.rightArm.rotation = Phaser.Math.DegToRad(32);
+    this.lampGlow.x = 17 + runSwing * 0.45;
+    this.lampGlow.y = -31 + idleBob * 0.35;
+    this.lampGlow.alpha = 0.12 + Math.sin(this.animationTime * 8.5) * 0.04;
+    this.lampGlow.scaleX = 1 + Math.sin(this.animationTime * 7.8) * 0.07;
+    this.lampGlow.scaleY = 1 + Math.cos(this.animationTime * 7.8) * 0.07;
+    this.helmetGlow.x = 18 + runSwing * 0.35;
+    this.helmetGlow.y = -33 + idleBob * 0.28;
+    this.helmetGlow.alpha = 0.62 + Math.sin(this.animationTime * 10) * 0.1;
   }
 
   snapToTile(nextPosition: PlayerTilePosition) {
