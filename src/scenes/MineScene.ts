@@ -115,7 +115,7 @@ const MOUSE_MINING_REACH_TILES = 2;
 
 export class MineScene extends Phaser.Scene {
   private worldGrid: WorldGrid = [];
-  private readonly archaeologyDeck = createArchaeologyDeck();
+  private archaeologyDeck = createArchaeologyDeck();
   private expeditionProgression = createExpeditionProgression();
   private progressionSnapshot: ExpeditionProgressionSnapshot = this.expeditionProgression.getSnapshot();
   private inventory: ResourceInventory = createResourceInventory();
@@ -306,6 +306,7 @@ export class MineScene extends Phaser.Scene {
     this.upgradeState = save.upgrades;
     this.expeditionProgression = createExpeditionProgression(save.expedition);
     this.progressionSnapshot = this.expeditionProgression.getSnapshot();
+    this.archaeologyDeck = createArchaeologyDeck(save.archaeology);
   }
 
   private saveProgression() {
@@ -316,6 +317,9 @@ export class MineScene extends Phaser.Scene {
       pickaxes: this.pickaxeState,
       upgrades: this.upgradeState,
       expedition: this.expeditionProgression.getState(),
+      archaeology: {
+        collectedCount: this.archaeologyDeck.collectedCount,
+      },
     });
   }
 
@@ -2250,6 +2254,7 @@ export class MineScene extends Phaser.Scene {
   private openArchaeologyCard() {
     const cardBody = this.archaeologyDeck.drawNextCard();
     this.syncExpeditionProgress(this.expeditionProgression.applyCardFound());
+    this.saveProgression();
     this.archaeologyOverlay?.show({
       body: cardBody,
       collectedCount: this.archaeologyDeck.collectedCount,

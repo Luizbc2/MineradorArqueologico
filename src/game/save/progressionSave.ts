@@ -1,4 +1,9 @@
 import {
+  createDefaultArchaeologyDeckState,
+  normalizeArchaeologyDeckState,
+} from "../archaeology/archaeologyCards";
+import type { ArchaeologyDeckState } from "../archaeology/archaeologyCards";
+import {
   createResourceInventory,
   resourceKinds,
 } from "../inventory/resourceInventory";
@@ -28,6 +33,7 @@ export type ProgressionSaveData = {
   pickaxes: PickaxeOwnershipState;
   upgrades: UpgradeLevelState;
   expedition: ExpeditionProgressionState;
+  archaeology: ArchaeologyDeckState;
 };
 
 type ProgressionSavePayload = Partial<{
@@ -37,6 +43,7 @@ type ProgressionSavePayload = Partial<{
   pickaxes: Partial<PickaxeOwnershipState>;
   upgrades: Partial<UpgradeLevelState>;
   expedition: Partial<ExpeditionProgressionState>;
+  archaeology: Partial<ArchaeologyDeckState>;
 }>;
 
 export function createDefaultProgressionSave(): ProgressionSaveData {
@@ -47,6 +54,7 @@ export function createDefaultProgressionSave(): ProgressionSaveData {
     pickaxes: createPickaxeOwnershipState(),
     upgrades: createUpgradeLevelState(),
     expedition: createDefaultExpeditionProgressionState(),
+    archaeology: createDefaultArchaeologyDeckState(),
   };
 }
 
@@ -86,6 +94,7 @@ function normalizeProgressionSave(
     pickaxes: normalizePickaxeOwnershipState(payload.pickaxes ?? {}),
     upgrades: normalizeUpgradeLevelState(payload.upgrades ?? {}),
     expedition: normalizeExpeditionProgressionState(payload.expedition ?? {}),
+    archaeology: normalizeArchaeologyDeckState(payload.archaeology ?? {}),
   };
 }
 

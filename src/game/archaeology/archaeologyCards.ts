@@ -17,6 +17,10 @@ export type ArchaeologyDeck = {
   drawNextCard: () => string;
 };
 
+export type ArchaeologyDeckState = {
+  collectedCount: number;
+};
+
 function createSeededRandom(seed: number) {
   let current = seed >>> 0;
 
@@ -29,7 +33,24 @@ function createSeededRandom(seed: number) {
   };
 }
 
-export function createArchaeologyDeck(seed = 0xabc123) {
+export function createDefaultArchaeologyDeckState(): ArchaeologyDeckState {
+  return {
+    collectedCount: 0,
+  };
+}
+
+export function normalizeArchaeologyDeckState(
+  state: Partial<ArchaeologyDeckState> = {},
+): ArchaeologyDeckState {
+  return {
+    collectedCount: Math.min(
+      archaeologyFacts.length,
+      normalizePositiveInteger(state.collectedCount),
+    ),
+  };
+}
+
+export function createArchaeologyDeck(initialState?: Partial<ArchaeologyDeckState>, seed = 0xabc123) {
   const random = createSeededRandom(seed);
   const pool = [...archaeologyFacts];
 
@@ -38,7 +59,11 @@ export function createArchaeologyDeck(seed = 0xabc123) {
     [pool[index], pool[nextIndex]] = [pool[nextIndex], pool[index]];
   }
 
-  let collectedCount = 0;
+  let collectedCount = normalizeArchaeologyDeckState(initialState).collectedCount;
+
+  for (let index = 0; index < collectedCount; index += 1) {
+    pool.pop();
+  }
 
   const deck: ArchaeologyDeck = {
     get collectedCount() {
@@ -46,10 +71,18 @@ export function createArchaeologyDeck(seed = 0xabc123) {
     },
     totalCount: archaeologyFacts.length,
     drawNextCard: () => {
+      if (collectedCount >= archaeologyFacts.length) {
+        return "Você já encontrou todos os cards arqueológicos desta expedição.";
+      }
+
       collectedCount += 1;
       return pool.pop() ?? "Você já encontrou todos os cards arqueológicos desta expedição.";
     },
   };
 
   return deck;
+}
+
+function normalizePositiveInteger(value: unknown) {
+  return Number.isFinite(value) ? Math.max(0, Math.floor(Number(value))) : 0;
 }
