@@ -137,6 +137,7 @@ export class MineScene extends Phaser.Scene {
   private mouseTargetLayer?: Phaser.GameObjects.Graphics;
   private screenFlash?: Phaser.GameObjects.Rectangle;
   private surfacePadLayer?: Phaser.GameObjects.Graphics;
+  private surfaceMarkerLayer?: Phaser.GameObjects.Graphics;
   private surfaceVillageHubSprite?: Phaser.GameObjects.Image;
   private audioDirector?: MineAudioDirector;
   private goalsPanel?: ExpeditionGoalsPanel;
