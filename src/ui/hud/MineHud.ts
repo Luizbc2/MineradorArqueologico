@@ -42,6 +42,7 @@ export class MineHud {
   private readonly backpackButton: HTMLButtonElement;
   private readonly backpackPanel: HTMLElement;
   private readonly backpackValue: HTMLDivElement;
+  private readonly backpackHint: HTMLDivElement;
   private readonly resourceValues: Record<keyof ResourceInventory, HTMLDivElement>;
 
   private isBackpackOpen = false;
@@ -116,6 +117,11 @@ export class MineHud {
       createHudElement("div", "game-hud-backpack-summary__label", "VALOR ESTIMADO"),
       this.backpackValue = createHudElement("div", "game-hud-backpack-summary__value", "0 moedas"),
     );
+    this.backpackHint = createHudElement(
+      "div",
+      "game-hud-backpack-hint",
+      "MOCHILA VAZIA",
+    ) as HTMLDivElement;
     const resourceGrid = createHudElement("div", "game-hud-resource-grid");
 
     const coal = createHudResourceSlot("Carvão", "resource-coal");
@@ -131,7 +137,7 @@ export class MineHud {
     };
 
     resourceGrid.append(coal.root, iron.root, gold.root, diamond.root);
-    backpackBody.append(backpackSummary, resourceGrid);
+    backpackBody.append(backpackSummary, this.backpackHint, resourceGrid);
     this.backpackPanel.append(backpackClose, backpackBody);
 
     this.scope.append(
@@ -170,6 +176,9 @@ export class MineHud {
       this.pickaxeValue.textContent = `LV ${snapshot.pickaxeLevel}`;
       this.codexValue.textContent = `${snapshot.cardsFound}/${snapshot.cardsTotal}`;
       this.backpackValue.textContent = `${formatHudNumber(sale.totalCoins)} moedas`;
+      this.backpackHint.textContent =
+        sale.totalCoins > 0 ? "RETORNE AO POSTO DE VENDA" : "MOCHILA VAZIA";
+      this.backpackHint.classList.toggle("has-value", sale.totalCoins > 0);
       this.resourceValues.coal.textContent = `${snapshot.inventory.coal}`;
       this.resourceValues.iron.textContent = `${snapshot.inventory.iron}`;
       this.resourceValues.gold.textContent = `${snapshot.inventory.gold}`;
