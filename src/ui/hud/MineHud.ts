@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { getInventorySaleSummary } from "../../game/economy/resourceSellValues";
 import type { ResourceInventory } from "../../game/inventory/resourceInventory";
 import { getHudLayout } from "./hudLayout";
 import {
@@ -40,6 +41,7 @@ export class MineHud {
   private readonly comboValue: HTMLDivElement;
   private readonly backpackButton: HTMLButtonElement;
   private readonly backpackPanel: HTMLElement;
+  private readonly backpackValue: HTMLDivElement;
   private readonly resourceValues: Record<keyof ResourceInventory, HTMLDivElement>;
 
   private isBackpackOpen = false;
@@ -109,6 +111,11 @@ export class MineHud {
     });
 
     const backpackBody = createHudElement("div", "game-hud-panel__body");
+    const backpackSummary = createHudElement("div", "game-hud-backpack-summary");
+    backpackSummary.append(
+      createHudElement("div", "game-hud-backpack-summary__label", "VALOR ESTIMADO"),
+      this.backpackValue = createHudElement("div", "game-hud-backpack-summary__value", "0 moedas"),
+    );
     const resourceGrid = createHudElement("div", "game-hud-resource-grid");
 
     const coal = createHudResourceSlot("Carvão", "resource-coal");
@@ -124,7 +131,7 @@ export class MineHud {
     };
 
     resourceGrid.append(coal.root, iron.root, gold.root, diamond.root);
-    backpackBody.append(resourceGrid);
+    backpackBody.append(backpackSummary, resourceGrid);
     this.backpackPanel.append(backpackClose, backpackBody);
 
     this.scope.append(
@@ -156,10 +163,13 @@ export class MineHud {
 
     if (infoKey !== this.lastInfoKey) {
       this.lastInfoKey = infoKey;
+      const sale = getInventorySaleSummary(snapshot.inventory);
+
       this.depthValue.textContent = `${snapshot.depth}m`;
       this.coinsValue.textContent = formatHudNumber(snapshot.coins);
       this.pickaxeValue.textContent = `LV ${snapshot.pickaxeLevel}`;
       this.codexValue.textContent = `${snapshot.cardsFound}/${snapshot.cardsTotal}`;
+      this.backpackValue.textContent = `${formatHudNumber(sale.totalCoins)} moedas`;
       this.resourceValues.coal.textContent = `${snapshot.inventory.coal}`;
       this.resourceValues.iron.textContent = `${snapshot.inventory.iron}`;
       this.resourceValues.gold.textContent = `${snapshot.inventory.gold}`;

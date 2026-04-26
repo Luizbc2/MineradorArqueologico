@@ -1004,6 +1004,33 @@ body { image-rendering: auto; }
   color: #ffe39b;
 }
 
+.game-hud-backpack-summary {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 2px solid rgba(142, 206, 208, 0.48);
+  background: rgba(13, 27, 30, 0.78);
+}
+
+.game-hud-backpack-summary__label {
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #9edfe2;
+}
+
+.game-hud-backpack-summary__value {
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 800;
+  color: #fffaf0;
+  text-align: right;
+}
+
 .game-hud-resource-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
