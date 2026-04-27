@@ -83,7 +83,7 @@ export const pickaxeCatalog: Record<PickaxeId, PickaxeDefinition> = {
     cost: 2200,
     power: 340,
     baseSpeed: 1.42,
-    unlockDepth: 165,
+    unlockDepth: 150,
   },
   ancientCrystal: {
     id: "ancientCrystal",
