@@ -230,6 +230,7 @@ function createPickaxeCard(line: PickaxeShopLine, snapshot: OverlaySnapshot) {
   const stats = createHudElement("div", "game-modal-pickaxe-card__stats");
   stats.append(
     createStat("FORÇA", formatNumber(line.pickaxe.power)),
+    createStat("VELOC.", formatSpeedMultiplier(line.pickaxe.baseSpeed)),
     createStat("PREÇO", formatNumber(line.pickaxe.cost)),
   );
 
@@ -381,4 +382,8 @@ function getPickaxeImageClass(id: PickaxeId) {
 
 function formatNumber(value: number) {
   return value.toLocaleString("pt-BR");
+}
+
+function formatSpeedMultiplier(value: number) {
+  return `${value.toFixed(2).replace(".", ",")}x`;
 }

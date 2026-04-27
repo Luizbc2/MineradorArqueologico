@@ -891,13 +891,19 @@ body { image-rendering: auto; }
 
 .game-modal-pickaxe-card__stats {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .game-modal-pickaxe-card__stat {
   display: grid;
   gap: 5px;
+  min-width: 0;
+  text-align: center;
+}
+
+.game-modal-pickaxe-card__stat:first-child {
+  text-align: left;
 }
 
 .game-modal-pickaxe-card__stat:last-child {
