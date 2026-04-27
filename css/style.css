@@ -621,7 +621,28 @@ body { image-rendering: auto; }
 }
 
 .game-modal-vendor-row__label {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
   color: #f5efdf;
+}
+
+.game-modal-vendor-row__name,
+.game-modal-vendor-row__tier {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-modal-vendor-row__tier {
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--resource-accent, #e7bd63);
 }
 
 .game-modal-vendor-row__qty {

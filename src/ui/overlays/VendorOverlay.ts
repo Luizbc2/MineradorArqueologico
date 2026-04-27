@@ -1,6 +1,9 @@
 import Phaser from "phaser";
 import type { InventorySaleSummary } from "../../game/economy/resourceSellValues";
-import { getResourceMeta } from "../../game/inventory/resourceInventory";
+import {
+  getResourceMeta,
+  getResourceTierLabel,
+} from "../../game/inventory/resourceInventory";
 import { createHudElement, createHudScope } from "../hud/domHud";
 
 type VendorOverlaySnapshot = {
@@ -115,9 +118,14 @@ export class VendorOverlay {
 
     for (const line of snapshot.sale.lines) {
       const row = createHudElement("div", "game-modal-vendor-row");
-      row.style.setProperty("--resource-accent", getResourceMeta(line.resource).accent);
+      const meta = getResourceMeta(line.resource);
+      row.style.setProperty("--resource-accent", meta.accent);
       const marker = createHudElement("div", "game-modal-vendor-row__marker");
-      const label = createHudElement("div", "game-modal-vendor-row__label", line.label);
+      const label = createHudElement("div", "game-modal-vendor-row__label");
+      label.append(
+        createHudElement("span", "game-modal-vendor-row__name", line.label),
+        createHudElement("span", "game-modal-vendor-row__tier", getResourceTierLabel(meta.tier)),
+      );
       const unit = createHudElement(
         "div",
         "game-modal-vendor-row__unit",
