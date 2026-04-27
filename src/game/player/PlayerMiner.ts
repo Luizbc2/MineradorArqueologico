@@ -34,16 +34,16 @@ export class PlayerMiner {
     this.targetX = this.toWorldX(startPosition.x);
     this.targetY = this.toWorldY(startPosition.y);
 
-    this.dustShadow = scene.add.ellipse(0, 18, 26, 8, 0x03070d, 0.46);
+    this.dustShadow = scene.add.ellipse(0, 16, 22, 7, 0x03070d, 0.46);
 
-    this.lampGlow = scene.add.ellipse(12, -17, 18, 11, 0xffdf85, 0.12);
+    this.lampGlow = scene.add.ellipse(11, -11, 16, 10, 0xffdf85, 0.12);
     this.lampGlow.setBlendMode(Phaser.BlendModes.ADD);
-    this.helmetGlow = scene.add.ellipse(12, -17, 6, 4, 0xfff2b6, 0.56);
+    this.helmetGlow = scene.add.ellipse(11, -11, 5, 4, 0xfff2b6, 0.56);
     this.helmetGlow.setBlendMode(Phaser.BlendModes.ADD);
 
     this.body = scene.add.sprite(0, 16, "player-miner", 0);
     this.body.setOrigin(0.5, 1);
-    this.body.setScale(0.62);
+    this.body.setScale(0.54);
 
     this.rig = scene.add.container(0, 0, [
       this.lampGlow,
@@ -55,7 +55,7 @@ export class PlayerMiner {
       this.dustShadow,
       this.rig,
     ]);
-    this.sprite.setSize(30, 42);
+    this.sprite.setSize(26, 34);
   }
 
   setMining(active: boolean) {
@@ -116,16 +116,16 @@ export class PlayerMiner {
     this.body.setFrame(this.mining ? miningFrame : moving && !airborne ? runFrame : 0);
     this.body.y = 16 + Math.abs(runSwing) * 0.45 - jumpRatio * 1.4;
     this.body.angle = moving ? runSwing * 1.6 * runPower : 0;
-    this.body.scaleX = 0.62 + landingRatio * 0.03;
-    this.body.scaleY = 0.62 - landingRatio * 0.04;
+    this.body.scaleX = 0.54 + landingRatio * 0.03;
+    this.body.scaleY = 0.54 - landingRatio * 0.04;
 
-    this.lampGlow.x = 12 + runSwing * 0.45;
-    this.lampGlow.y = -17 + idleBob * 0.35;
+    this.lampGlow.x = 11 + runSwing * 0.45;
+    this.lampGlow.y = -11 + idleBob * 0.35;
     this.lampGlow.alpha = 0.12 + Math.sin(this.animationTime * 8.5) * 0.04;
     this.lampGlow.scaleX = 1 + Math.sin(this.animationTime * 7.8) * 0.07;
     this.lampGlow.scaleY = 1 + Math.cos(this.animationTime * 7.8) * 0.07;
-    this.helmetGlow.x = 12 + runSwing * 0.35;
-    this.helmetGlow.y = -17 + idleBob * 0.28;
+    this.helmetGlow.x = 11 + runSwing * 0.35;
+    this.helmetGlow.y = -11 + idleBob * 0.28;
     this.helmetGlow.alpha = 0.62 + Math.sin(this.animationTime * 10) * 0.1;
   }
 
