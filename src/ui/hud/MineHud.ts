@@ -1,6 +1,13 @@
 import Phaser from "phaser";
 import { getInventorySaleSummary } from "../../game/economy/resourceSellValues";
-import type { ResourceInventory } from "../../game/inventory/resourceInventory";
+import {
+  getResourceLabel,
+  resourceKinds,
+} from "../../game/inventory/resourceInventory";
+import type {
+  ResourceInventory,
+  ResourceKind,
+} from "../../game/inventory/resourceInventory";
 import { getHudLayout } from "./hudLayout";
 import {
   createHudElement,
@@ -43,8 +50,8 @@ export class MineHud {
   private readonly backpackPanel: HTMLElement;
   private readonly backpackValue: HTMLDivElement;
   private readonly backpackHint: HTMLDivElement;
-  private readonly resourceValues: Record<keyof ResourceInventory, HTMLDivElement>;
-  private readonly resourceTotals: Record<keyof ResourceInventory, HTMLDivElement>;
+  private readonly resourceValues: Record<ResourceKind, HTMLDivElement>;
+  private readonly resourceTotals: Record<ResourceKind, HTMLDivElement>;
 
   private isBackpackOpen = false;
   private lastInfoKey = "";
@@ -126,28 +133,27 @@ export class MineHud {
     ) as HTMLDivElement;
     const resourceGrid = createHudElement("div", "game-hud-resource-grid");
 
-    const coal = createHudResourceSlot("Carvão", "resource-coal");
-    const iron = createHudResourceSlot("Ferro", "resource-iron");
-    const gold = createHudResourceSlot("Ouro", "resource-gold");
-    const diamond = createHudResourceSlot("Diamante", "resource-diamond");
-    const crystal = createHudResourceSlot("Cristal", "resource-crystal");
+    const resourceSlots = resourceKinds.map((resource) => ({
+      resource,
+      slot: createHudResourceSlot(getResourceLabel(resource), `resource-${resource}`),
+    }));
 
-    this.resourceValues = {
-      coal: coal.value,
-      iron: iron.value,
-      gold: gold.value,
-      diamond: diamond.value,
-      crystal: crystal.value,
-    };
-    this.resourceTotals = {
-      coal: coal.total,
-      iron: iron.total,
-      gold: gold.total,
-      diamond: diamond.total,
-      crystal: crystal.total,
-    };
+    this.resourceValues = resourceSlots.reduce(
+      (values, { resource, slot }) => ({
+        ...values,
+        [resource]: slot.value,
+      }),
+      {} as Record<ResourceKind, HTMLDivElement>,
+    );
+    this.resourceTotals = resourceSlots.reduce(
+      (values, { resource, slot }) => ({
+        ...values,
+        [resource]: slot.total,
+      }),
+      {} as Record<ResourceKind, HTMLDivElement>,
+    );
 
-    resourceGrid.append(coal.root, iron.root, gold.root, diamond.root, crystal.root);
+    resourceGrid.append(...resourceSlots.map(({ slot }) => slot.root));
     backpackBody.append(backpackSummary, this.backpackHint, resourceGrid);
     this.backpackPanel.append(backpackClose, backpackBody);
 
@@ -172,11 +178,7 @@ export class MineHud {
       snapshot.pickaxeLevel,
       snapshot.cardsFound,
       snapshot.cardsTotal,
-      snapshot.inventory.coal,
-      snapshot.inventory.iron,
-      snapshot.inventory.gold,
-      snapshot.inventory.diamond,
-      snapshot.inventory.crystal,
+      ...resourceKinds.map((resource) => snapshot.inventory[resource]),
     ].join("|");
 
     if (infoKey !== this.lastInfoKey) {
@@ -191,11 +193,9 @@ export class MineHud {
       this.backpackHint.textContent =
         sale.totalCoins > 0 ? "RETORNE AO POSTO DE VENDA" : "MOCHILA VAZIA";
       this.backpackHint.classList.toggle("has-value", sale.totalCoins > 0);
-      this.updateResourceSlot("coal", snapshot.inventory.coal, sale);
-      this.updateResourceSlot("iron", snapshot.inventory.iron, sale);
-      this.updateResourceSlot("gold", snapshot.inventory.gold, sale);
-      this.updateResourceSlot("diamond", snapshot.inventory.diamond, sale);
-      this.updateResourceSlot("crystal", snapshot.inventory.crystal, sale);
+      for (const resource of resourceKinds) {
+        this.updateResourceSlot(resource, snapshot.inventory[resource], sale);
+      }
       this.codexChip.hidden = snapshot.cardsFound <= 0;
     }
 
@@ -223,7 +223,7 @@ export class MineHud {
   }
 
   private updateResourceSlot(
-    resource: keyof ResourceInventory,
+    resource: ResourceKind,
     quantity: number,
     sale: ReturnType<typeof getInventorySaleSummary>,
   ) {
