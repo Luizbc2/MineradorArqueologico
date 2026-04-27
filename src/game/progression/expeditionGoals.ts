@@ -140,6 +140,25 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     target: 45,
     perk: { comboWindowBonus: 0.3 },
   },
+  {
+    id: "reach-140",
+    title: "Zona Profunda",
+    description: "Atinga 140m de profundidade.",
+    rewardLabel: "Mineração +10%",
+    type: "depth",
+    target: 140,
+    perk: { miningSpeedBonus: 0.1 },
+  },
+  {
+    id: "collect-crystal",
+    title: "Cristal Vivo",
+    description: "Colete 2 cristais.",
+    rewardLabel: "Brilho raro +20%",
+    type: "resource",
+    resource: "crystal",
+    target: 2,
+    perk: { rareGlowBonus: 0.2 },
+  },
 ];
 
 export function createDefaultExpeditionProgressionState(): ExpeditionProgressionState {
