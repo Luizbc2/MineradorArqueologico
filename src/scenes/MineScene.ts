@@ -1510,10 +1510,6 @@ export class MineScene extends Phaser.Scene {
 
     const directionX = deltaX / distance;
     const directionY = deltaY / distance;
-    const mouseTile = {
-      x: Math.floor(worldPoint.x / TILE_SIZE),
-      y: Math.floor(worldPoint.y / TILE_SIZE),
-    };
     let bestTarget: TilePoint | null = null;
     let bestScore = Number.POSITIVE_INFINITY;
 
@@ -1524,6 +1520,15 @@ export class MineScene extends Phaser.Scene {
         }
 
         if (!this.isMiningTargetInReach(x, y)) {
+          continue;
+        }
+
+        const gridDistance = Math.max(
+          Math.abs(x - this.player.position.x),
+          Math.abs(y - this.player.position.y),
+        );
+
+        if (gridDistance > 1) {
           continue;
         }
 
@@ -1555,9 +1560,8 @@ export class MineScene extends Phaser.Scene {
           continue;
         }
 
-        const tileDistanceToMouse = Math.abs(x - mouseTile.x) + Math.abs(y - mouseTile.y);
         const anglePenalty = (1 - alignment) * 6;
-        const score = tileDistanceToMouse * 1.15 + anglePenalty + candidateDistance / TILE_SIZE * 0.12;
+        const score = anglePenalty + gridDistance * 0.4;
 
         if (score < bestScore) {
           bestScore = score;
@@ -1570,7 +1574,7 @@ export class MineScene extends Phaser.Scene {
       return bestTarget;
     }
 
-    const targetDistance = Math.min(distance, SMART_MINING_REACH_TILES * TILE_SIZE);
+    const targetDistance = Math.min(distance, TILE_SIZE);
     const targetX = Math.floor((playerWorldX + directionX * targetDistance) / TILE_SIZE);
     const targetY = Math.floor((playerWorldY + directionY * targetDistance) / TILE_SIZE);
     return this.getFirstMineableTileOnLine(
