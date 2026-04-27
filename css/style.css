@@ -469,6 +469,8 @@ body { image-rendering: auto; }
 
 .game-modal-card--vendor {
   width: min(620px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  overflow: hidden;
 }
 
 .game-modal-card--workshop {
@@ -589,15 +591,18 @@ body { image-rendering: auto; }
 
 .game-modal-vendor-list {
   display: grid;
-  gap: 10px;
+  gap: 7px;
+  max-height: 232px;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .game-modal-vendor-row {
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr) auto auto auto;
   align-items: center;
-  gap: 10px;
-  padding: 11px 13px;
+  gap: 8px;
+  padding: 8px 10px;
   border: 1px solid rgba(86, 70, 51, 0.72);
   background: rgba(31, 24, 18, 0.92);
 }
@@ -615,8 +620,8 @@ body { image-rendering: auto; }
 .game-modal-vendor-row__unit,
 .game-modal-vendor-row__qty,
 .game-modal-vendor-row__total {
-  font-size: 15px;
-  line-height: 1.2;
+  font-size: 13px;
+  line-height: 1.12;
   font-weight: 700;
 }
 
@@ -637,7 +642,7 @@ body { image-rendering: auto; }
 }
 
 .game-modal-vendor-row__tier {
-  font-size: 11px;
+  font-size: 10px;
   line-height: 1;
   font-weight: 800;
   letter-spacing: 0.06em;
