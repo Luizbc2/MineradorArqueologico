@@ -1,4 +1,5 @@
-import type { ResourceKind } from "../inventory/resourceInventory";
+import { createResourceInventory, resourceKinds } from "../inventory/resourceInventory";
+import type { ResourceInventory, ResourceKind } from "../inventory/resourceInventory";
 
 export type ExpeditionPerks = {
   comboWindowBonus: number;
@@ -28,7 +29,7 @@ type ExpeditionGoalDefinition = {
 export type ExpeditionProgressionState = {
   deepestDepth: number;
   maxReturnDepth: number;
-  resources: Record<ResourceKind, number>;
+  resources: ResourceInventory;
   chestsOpened: number;
   cardsFound: number;
   pickaxeLevel: number;
@@ -163,13 +164,7 @@ export function createDefaultExpeditionProgressionState(): ExpeditionProgression
   return {
     deepestDepth: 0,
     maxReturnDepth: 0,
-    resources: {
-      coal: 0,
-      iron: 0,
-      gold: 0,
-      diamond: 0,
-      crystal: 0,
-    },
+    resources: createResourceInventory(),
     chestsOpened: 0,
     cardsFound: 0,
     pickaxeLevel: 1,
@@ -184,13 +179,7 @@ export function normalizeExpeditionProgressionState(
   return {
     deepestDepth: normalizePositiveInteger(state.deepestDepth),
     maxReturnDepth: normalizePositiveInteger(state.maxReturnDepth),
-    resources: {
-      coal: normalizePositiveInteger(state.resources?.coal),
-      iron: normalizePositiveInteger(state.resources?.iron),
-      gold: normalizePositiveInteger(state.resources?.gold),
-      diamond: normalizePositiveInteger(state.resources?.diamond),
-      crystal: normalizePositiveInteger(state.resources?.crystal),
-    },
+    resources: normalizeResourceProgress(state.resources),
     chestsOpened: normalizePositiveInteger(state.chestsOpened),
     cardsFound: normalizePositiveInteger(state.cardsFound),
     pickaxeLevel: Math.max(1, normalizePositiveInteger(state.pickaxeLevel) || defaults.pickaxeLevel),
@@ -333,6 +322,16 @@ function cloneStats(stats: ExpeditionProgressionState): ExpeditionProgressionSta
     ...stats,
     resources: { ...stats.resources },
   };
+}
+
+function normalizeResourceProgress(resources: Partial<ResourceInventory> | undefined) {
+  return resourceKinds.reduce<ResourceInventory>(
+    (normalized, resource) => ({
+      ...normalized,
+      [resource]: normalizePositiveInteger(resources?.[resource]),
+    }),
+    createResourceInventory(),
+  );
 }
 
 function normalizePositiveInteger(value: unknown) {
