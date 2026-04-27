@@ -4,7 +4,6 @@ export type ExpeditionPerks = {
   comboWindowBonus: number;
   miningSpeedBonus: number;
   moveTempoBonus: number;
-  rareGlowBonus: number;
 };
 
 type ExpeditionGoalType =
@@ -62,7 +61,6 @@ const defaultPerks: ExpeditionPerks = {
   comboWindowBonus: 0,
   miningSpeedBonus: 0,
   moveTempoBonus: 0,
-  rareGlowBonus: 0,
 };
 
 const expeditionGoals: ExpeditionGoalDefinition[] = [
@@ -89,10 +87,10 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     id: "open-chest",
     title: "Olho de Curador",
     description: "Abra 1 baú arqueológico.",
-    rewardLabel: "Brilho raro +15%",
+    rewardLabel: "Combo +0.15s",
     type: "chest",
     target: 1,
-    perk: { rareGlowBonus: 0.15 },
+    perk: { comboWindowBonus: 0.15 },
   },
   {
     id: "find-cards",
@@ -125,11 +123,11 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     id: "collect-gold",
     title: "Veio Dourado",
     description: "Colete 4 unidades de ouro.",
-    rewardLabel: "Brilho raro +15%",
+    rewardLabel: "Passo leve -6%",
     type: "resource",
     resource: "gold",
     target: 4,
-    perk: { rareGlowBonus: 0.15 },
+    perk: { moveTempoBonus: 0.06 },
   },
   {
     id: "return-veteran",
@@ -153,11 +151,11 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     id: "collect-crystal",
     title: "Cristal Vivo",
     description: "Colete 2 cristais.",
-    rewardLabel: "Brilho raro +20%",
+    rewardLabel: "Mineração +12%",
     type: "resource",
     resource: "crystal",
     target: 2,
-    perk: { rareGlowBonus: 0.2 },
+    perk: { miningSpeedBonus: 0.12 },
   },
 ];
 
@@ -345,7 +343,6 @@ function applyPerk(perks: ExpeditionPerks, next: Partial<ExpeditionPerks>) {
   perks.comboWindowBonus += next.comboWindowBonus ?? 0;
   perks.miningSpeedBonus += next.miningSpeedBonus ?? 0;
   perks.moveTempoBonus += next.moveTempoBonus ?? 0;
-  perks.rareGlowBonus += next.rareGlowBonus ?? 0;
 }
 
 function buildPerkSummary(perks: ExpeditionPerks) {
@@ -361,10 +358,6 @@ function buildPerkSummary(perks: ExpeditionPerks) {
 
   if (perks.moveTempoBonus > 0) {
     parts.push(`Passo -${Math.round(perks.moveTempoBonus * 100)}%`);
-  }
-
-  if (perks.rareGlowBonus > 0) {
-    parts.push(`Brilho +${Math.round(perks.rareGlowBonus * 100)}%`);
   }
 
   return parts.length > 0 ? parts.join(" • ") : "Sem bônus ativos";
