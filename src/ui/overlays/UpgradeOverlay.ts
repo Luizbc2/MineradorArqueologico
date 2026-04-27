@@ -334,7 +334,7 @@ function getUpgradeActionLabel(line: UpgradeShopLine, coins: number) {
     return "MÁXIMO";
   }
 
-  return line.canBuy ? "COMPRAR" : `FALTAM ${formatNumber(line.cost - coins)}`;
+  return line.canBuy ? "COMPRAR" : `FALTAM ${formatNumber(line.cost - coins)} MOEDAS`;
 }
 
 function getActionLabel(line: PickaxeShopLine, coins: number) {

@@ -1016,7 +1016,9 @@ body { image-rendering: auto; }
   min-width: 0;
   width: 100%;
   min-height: 40px;
-  font-size: 14px;
+  padding: 0 8px;
+  font-size: 13px;
+  white-space: normal;
 }
 
 .game-hud-mission__progress-row {
