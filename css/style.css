@@ -1151,6 +1151,7 @@ body { image-rendering: auto; }
 .resource-iron .game-hud-resource__icon { color: #d49a63; }
 .resource-gold .game-hud-resource__icon { color: #f3c55d; }
 .resource-diamond .game-hud-resource__icon { color: #89dff5; }
+.resource-obsidian .game-hud-resource__icon { color: #b7a3f2; }
 .resource-crystal .game-hud-resource__icon { color: #d9c5ff; }
 #game-root { display:flex; flex-direction:column; min-height:100vh; }
 

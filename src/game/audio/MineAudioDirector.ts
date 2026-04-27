@@ -83,6 +83,7 @@ export class MineAudioDirector {
 
     const base =
       kind === "crystal" ? 660 :
+      kind === "obsidian" ? 580 :
       kind === "diamond" ? 520 :
       kind === "gold" ? 420 :
       kind === "iron" ? 320 :
@@ -117,6 +118,7 @@ export class MineAudioDirector {
 
     const accent =
       kind === "crystal" ? 920 :
+      kind === "obsidian" ? 840 :
       kind === "diamond" ? 760 :
       kind === "gold" ? 620 :
       kind === "iron" ? 460 :
@@ -150,6 +152,7 @@ export class MineAudioDirector {
 
     const root =
       resource === "crystal" ? 1046 :
+      resource === "obsidian" ? 932 :
       resource === "diamond" ? 830 :
       resource === "gold" ? 698 :
       resource === "iron" ? 554 :

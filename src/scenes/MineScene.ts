@@ -1044,7 +1044,7 @@ export class MineScene extends Phaser.Scene {
       }
     }
 
-    if (kind === "coal" || kind === "iron" || kind === "gold" || kind === "diamond") {
+    if (kind === "coal" || kind === "iron" || kind === "gold" || kind === "diamond" || kind === "obsidian") {
       for (let cluster = 0; cluster < 2; cluster += 1) {
         const px = tileX + 7 + ((variant + cluster * 7) % 14);
         const py = tileY + 8 + ((variant * 2 + cluster * 9) % 12);
@@ -1053,9 +1053,17 @@ export class MineScene extends Phaser.Scene {
       }
     }
 
-    if (kind === "gold" || kind === "diamond") {
+    if (kind === "gold" || kind === "diamond" || kind === "obsidian") {
       ground.fillStyle(material.top, 0.22);
       ground.fillRect(tileX + 6, tileY + 6, 20, 20);
+    }
+
+    if (kind === "obsidian") {
+      ground.fillStyle(material.glow ?? material.detail, 0.16);
+      ground.fillRect(tileX + 8, tileY + 8, 16, 16);
+      ground.fillStyle(material.edge, 0.5);
+      ground.fillRect(tileX + 11, tileY + 6, 3, 20);
+      ground.fillRect(tileX + 18, tileY + 9, 3, 15);
     }
 
     if (kind === "crystal") {

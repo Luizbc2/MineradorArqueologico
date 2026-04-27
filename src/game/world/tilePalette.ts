@@ -60,6 +60,13 @@ export const tilePalette: Record<TileKind, TileMaterial> = {
     detail: 0xe5fcff,
     glow: 0x7ceeff,
   },
+  obsidian: {
+    base: 0x302447,
+    top: 0x7c68b7,
+    edge: 0x130d22,
+    detail: 0xb7a3f2,
+    glow: 0x8d6ff0,
+  },
   crystal: {
     base: 0x7b4ed8,
     top: 0xd9c5ff,
