@@ -594,19 +594,28 @@ body { image-rendering: auto; }
 
 .game-modal-vendor-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  grid-template-columns: 18px minmax(0, 1fr) auto auto auto;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
+  gap: 10px;
+  padding: 11px 13px;
   border: 1px solid rgba(86, 70, 51, 0.72);
   background: rgba(31, 24, 18, 0.92);
+}
+
+.game-modal-vendor-row__marker {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  transform: rotate(45deg);
+  background: var(--resource-accent, #e7bd63);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--resource-accent, #e7bd63) 42%, transparent);
 }
 
 .game-modal-vendor-row__label,
 .game-modal-vendor-row__unit,
 .game-modal-vendor-row__qty,
 .game-modal-vendor-row__total {
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1.2;
   font-weight: 700;
 }

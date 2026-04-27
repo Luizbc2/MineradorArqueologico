@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import type { InventorySaleSummary } from "../../game/economy/resourceSellValues";
+import { getResourceMeta } from "../../game/inventory/resourceInventory";
 import { createHudElement, createHudScope } from "../hud/domHud";
 
 type VendorOverlaySnapshot = {
@@ -114,6 +115,8 @@ export class VendorOverlay {
 
     for (const line of snapshot.sale.lines) {
       const row = createHudElement("div", "game-modal-vendor-row");
+      row.style.setProperty("--resource-accent", getResourceMeta(line.resource).accent);
+      const marker = createHudElement("div", "game-modal-vendor-row__marker");
       const label = createHudElement("div", "game-modal-vendor-row__label", line.label);
       const unit = createHudElement(
         "div",
@@ -130,7 +133,7 @@ export class VendorOverlay {
         "game-modal-vendor-row__total",
         `${formatCoins(line.totalPrice)} moedas`,
       );
-      row.append(label, unit, quantity, total);
+      row.append(marker, label, unit, quantity, total);
       this.inventoryBody.append(row);
     }
   }
