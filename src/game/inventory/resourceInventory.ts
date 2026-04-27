@@ -4,7 +4,7 @@ export const resourceKinds = ["coal", "iron", "gold", "diamond", "crystal"] as c
 
 export type ResourceKind = (typeof resourceKinds)[number];
 export type ResourceInventory = Record<ResourceKind, number>;
-export type ResourceTier = "common" | "uncommon" | "rare" | "legendary";
+export type ResourceTier = "common" | "uncommon" | "rare" | "legendary" | "mythic";
 
 type ResourceMeta = {
   label: string;
@@ -48,7 +48,7 @@ const resourceMetaMap: Record<ResourceKind, ResourceMeta> = {
   },
   crystal: {
     label: "Cristal",
-    tier: "legendary",
+    tier: "mythic",
     value: 8,
     accent: "#d9c5ff",
   },
@@ -86,5 +86,7 @@ export function getResourceTierLabel(tier: ResourceTier): string {
       return "Raro";
     case "legendary":
       return "Lendário";
+    case "mythic":
+      return "Mítico";
   }
 }
