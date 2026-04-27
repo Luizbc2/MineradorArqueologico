@@ -81,7 +81,12 @@ export class MineAudioDirector {
       return;
     }
 
-    const base = kind === "diamond" ? 520 : kind === "gold" ? 420 : kind === "iron" ? 320 : 220;
+    const base =
+      kind === "crystal" ? 660 :
+      kind === "diamond" ? 520 :
+      kind === "gold" ? 420 :
+      kind === "iron" ? 320 :
+      220;
     const volume = 0.02 + intensity * 0.018;
 
     this.playTone({
@@ -110,7 +115,12 @@ export class MineAudioDirector {
       return;
     }
 
-    const accent = kind === "diamond" ? 760 : kind === "gold" ? 620 : kind === "iron" ? 460 : 260;
+    const accent =
+      kind === "crystal" ? 920 :
+      kind === "diamond" ? 760 :
+      kind === "gold" ? 620 :
+      kind === "iron" ? 460 :
+      260;
 
     this.playTone({
       frequency: accent,
@@ -138,7 +148,12 @@ export class MineAudioDirector {
       return;
     }
 
-    const root = resource === "diamond" ? 830 : resource === "gold" ? 698 : resource === "iron" ? 554 : 392;
+    const root =
+      resource === "crystal" ? 1046 :
+      resource === "diamond" ? 830 :
+      resource === "gold" ? 698 :
+      resource === "iron" ? 554 :
+      392;
     const bonus = Math.min(220, streak * 16);
 
     this.playTone({

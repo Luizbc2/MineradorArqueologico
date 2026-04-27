@@ -176,6 +176,7 @@ export class MineHud {
       snapshot.inventory.iron,
       snapshot.inventory.gold,
       snapshot.inventory.diamond,
+      snapshot.inventory.crystal,
     ].join("|");
 
     if (infoKey !== this.lastInfoKey) {
@@ -194,6 +195,7 @@ export class MineHud {
       this.updateResourceSlot("iron", snapshot.inventory.iron, sale);
       this.updateResourceSlot("gold", snapshot.inventory.gold, sale);
       this.updateResourceSlot("diamond", snapshot.inventory.diamond, sale);
+      this.updateResourceSlot("crystal", snapshot.inventory.crystal, sale);
       this.codexChip.hidden = snapshot.cardsFound <= 0;
     }
 
