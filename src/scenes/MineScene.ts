@@ -1058,6 +1058,22 @@ export class MineScene extends Phaser.Scene {
       ground.fillRect(tileX + 6, tileY + 6, 20, 20);
     }
 
+    if (kind === "crystal") {
+      ground.fillStyle(material.glow ?? material.detail, 0.18);
+      ground.fillRect(tileX + 5, tileY + 5, 22, 22);
+
+      for (let shard = 0; shard < 3; shard += 1) {
+        const px = tileX + 7 + ((variant + shard * 6) % 14);
+        const py = tileY + 7 + ((variant * 2 + shard * 5) % 13);
+        ground.fillStyle(material.detail, 0.96);
+        ground.fillRect(px, py, 3, 8);
+        ground.fillStyle(material.top, 0.78);
+        ground.fillRect(px + 1, py - 2, 2, 2);
+        ground.fillStyle(material.edge, 0.62);
+        ground.fillRect(px + 2, py + 2, 2, 6);
+      }
+    }
+
     if (kind === "chest") {
       ground.fillStyle(material.top, 1);
       ground.fillRect(tileX + 4, tileY + 6, 24, 16);
