@@ -896,8 +896,8 @@ body { image-rendering: auto; }
 
 .game-modal-pickaxe-card__stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: minmax(42px, 0.8fr) minmax(64px, 1.25fr) minmax(42px, 0.8fr);
+  gap: 10px;
 }
 
 .game-modal-pickaxe-card__stat {
@@ -916,7 +916,7 @@ body { image-rendering: auto; }
 }
 
 .game-modal-pickaxe-card__stat strong {
-  font-size: 28px;
+  font-size: 26px;
   line-height: 1;
   font-weight: 800;
   color: #fffaf0;

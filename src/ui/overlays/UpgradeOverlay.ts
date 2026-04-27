@@ -230,7 +230,7 @@ function createPickaxeCard(line: PickaxeShopLine, snapshot: OverlaySnapshot) {
   const stats = createHudElement("div", "game-modal-pickaxe-card__stats");
   stats.append(
     createStat("FORÇA", formatNumber(line.pickaxe.power)),
-    createStat("VELOC.", formatSpeedMultiplier(line.pickaxe.baseSpeed)),
+    createStat("VEL.", formatSpeedMultiplier(line.pickaxe.baseSpeed)),
     createStat("PREÇO", formatNumber(line.pickaxe.cost)),
   );
 
