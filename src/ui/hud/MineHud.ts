@@ -103,6 +103,7 @@ export class MineHud {
     });
 
     this.backpackPanel = createHudPanel("MOCHILA", "up", "cool");
+    this.backpackPanel.classList.add("game-hud-panel--backpack");
     setHudRect(this.backpackPanel, layout.backpackPanel);
 
     const backpackClose = createHudIconButton("close");

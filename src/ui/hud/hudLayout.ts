@@ -51,7 +51,7 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number): Hud
   const missionPanelWidth = snapUi(clamp(availablePanelWidth * 0.32, width < 600 ? 320 : 420, 480));
   const backpackPanelWidth = snapUi(clamp(availablePanelWidth * 0.28, width < 600 ? 320 : 360, 440));
   const missionPanelHeight = tight ? 360 : compact ? 392 : 408;
-  const backpackPanelHeight = tight ? 264 : compact ? 280 : 296;
+  const backpackPanelHeight = tight ? 320 : compact ? 344 : 368;
 
   const missionButton = {
     x: width - margin - buttonWidth,
