@@ -350,7 +350,7 @@ function getActionLabel(line: PickaxeShopLine, coins: number) {
     return `LIBERA ${line.pickaxe.unlockDepth}m`;
   }
 
-  return line.canBuy ? "COMPRAR" : `FALTAM ${formatNumber(line.pickaxe.cost - coins)}`;
+  return line.canBuy ? "COMPRAR" : `FALTAM ${formatNumber(line.pickaxe.cost - coins)} MOEDAS`;
 }
 
 function getPickaxeImageUrl(id: PickaxeId) {

@@ -929,6 +929,9 @@ body { image-rendering: auto; }
 .game-modal-pickaxe-card .game-modal-button {
   width: 100%;
   min-width: 0;
+  padding: 0 8px;
+  font-size: 14px;
+  white-space: normal;
 }
 
 .game-modal-workshop-page {
