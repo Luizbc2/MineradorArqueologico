@@ -149,6 +149,16 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     perk: { miningSpeedBonus: 0.1 },
   },
   {
+    id: "collect-obsidian",
+    title: "Pedra Negra",
+    description: "Colete 3 unidades de obsidiana.",
+    rewardLabel: "Velocidade de passo +6%",
+    type: "resource",
+    resource: "obsidian",
+    target: 3,
+    perk: { moveTempoBonus: 0.06 },
+  },
+  {
     id: "collect-crystal",
     title: "Cristal Vivo",
     description: "Colete 2 cristais.",
