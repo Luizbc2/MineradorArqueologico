@@ -1,11 +1,12 @@
 export const upgradeIds = [
   "power",
   "speed",
+  "backpack",
 ] as const;
 
 export type UpgradeId = (typeof upgradeIds)[number];
 
-export type UpgradeEffectKind = "flatPower" | "speedMultiplier";
+export type UpgradeEffectKind = "flatPower" | "speedMultiplier" | "backpackCapacity";
 
 export type UpgradeDefinition = {
   id: UpgradeId;
@@ -38,6 +39,16 @@ export const upgradeCatalog: Record<UpgradeId, UpgradeDefinition> = {
     effectKind: "speedMultiplier",
     effectPerLevel: 0.04,
     maxLevel: 15,
+  },
+  backpack: {
+    id: "backpack",
+    name: "Mochila Maior",
+    description: "Aumenta a quantidade de minérios que você pode carregar.",
+    baseCost: 90,
+    growth: 1.38,
+    effectKind: "backpackCapacity",
+    effectPerLevel: 6,
+    maxLevel: 18,
   },
 };
 

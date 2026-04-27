@@ -14,6 +14,7 @@ export type UpgradeLevelState = {
 export type UpgradeBonusSummary = {
   flatPower: number;
   speedMultiplier: number;
+  backpackCapacity: number;
 };
 
 export type UpgradePurchaseResult =
@@ -77,8 +78,10 @@ export function getUpgradeBonusSummary(
 
       if (upgrade.effectKind === "flatPower") {
         summary.flatPower += value;
-      } else {
+      } else if (upgrade.effectKind === "speedMultiplier") {
         summary.speedMultiplier += value;
+      } else {
+        summary.backpackCapacity += value;
       }
 
       return summary;
@@ -86,6 +89,7 @@ export function getUpgradeBonusSummary(
     {
       flatPower: 0,
       speedMultiplier: 0,
+      backpackCapacity: 0,
     },
   );
 }

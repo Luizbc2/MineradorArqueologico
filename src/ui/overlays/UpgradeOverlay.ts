@@ -314,6 +314,10 @@ function formatUpgradeCurrentEffect(line: UpgradeShopLine) {
     return `Atual: +${formatNumber(total)} força`;
   }
 
+  if (line.upgrade.effectKind === "backpackCapacity") {
+    return `Atual: +${formatNumber(total)} espaços`;
+  }
+
   return `Atual: +${Math.round(total * 100)}% velocidade`;
 }
 
@@ -324,6 +328,10 @@ function formatUpgradeNextEffect(line: UpgradeShopLine) {
 
   if (line.upgrade.effectKind === "flatPower") {
     return `Próximo: +${formatNumber(line.upgrade.effectPerLevel)} força por nível`;
+  }
+
+  if (line.upgrade.effectKind === "backpackCapacity") {
+    return `Próximo: +${formatNumber(line.upgrade.effectPerLevel)} espaços por nível`;
   }
 
   return `Próximo: +${Math.round(line.upgrade.effectPerLevel * 100)}% velocidade por nível`;
