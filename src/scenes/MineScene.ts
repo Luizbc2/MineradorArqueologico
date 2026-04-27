@@ -75,6 +75,11 @@ type MiningTarget = {
   impacts: number;
 };
 
+type TilePoint = {
+  x: number;
+  y: number;
+};
+
 type FixedUiElement =
   | Phaser.GameObjects.Container
   | Phaser.GameObjects.Rectangle
@@ -112,6 +117,7 @@ const SURFACE_STATION_CONFIG: Record<SurfaceStationKind, { offsetX: number; radi
   },
 } as const;
 const MOUSE_MINING_REACH_TILES = 2;
+const SMART_MINING_REACH_TILES = 4;
 
 export class MineScene extends Phaser.Scene {
   private worldGrid: WorldGrid = [];
@@ -170,8 +176,10 @@ export class MineScene extends Phaser.Scene {
   private escapeKey?: Phaser.Input.Keyboard.Key;
   private upgradeKey?: Phaser.Input.Keyboard.Key;
   private surfaceKey?: Phaser.Input.Keyboard.Key;
+  private smartMiningKey?: Phaser.Input.Keyboard.Key;
   private player?: PlayerMiner;
   private miningTarget?: MiningTarget;
+  private smartMiningEnabled = false;
   private rewardComboCount = 0;
   private rewardComboTimer = 0;
   private rewardComboWindow = 2.6;
@@ -267,6 +275,7 @@ export class MineScene extends Phaser.Scene {
     this.escapeKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
     this.upgradeKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.U);
     this.surfaceKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+    this.smartMiningKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.CTRL);
     this.input.keyboard?.addCapture([
       Phaser.Input.Keyboard.KeyCodes.PLUS,
       Phaser.Input.Keyboard.KeyCodes.MINUS,
@@ -375,6 +384,12 @@ export class MineScene extends Phaser.Scene {
 
     if (Phaser.Input.Keyboard.JustDown(this.escapeKey!)) {
       this.togglePauseOverlay();
+      return;
+    }
+
+    if (Phaser.Input.Keyboard.JustDown(this.smartMiningKey!)) {
+      this.toggleSmartMiningMode();
+      this.finalizeFrame(deltaSeconds);
       return;
     }
 
@@ -1256,6 +1271,15 @@ export class MineScene extends Phaser.Scene {
     this.manualZoomOffset = 0;
   }
 
+  private toggleSmartMiningMode() {
+    this.smartMiningEnabled = !this.smartMiningEnabled;
+    this.clearMiningTarget();
+    this.showSurfaceToast(
+      this.smartMiningEnabled ? "Mira inteligente ligada." : "Mira inteligente desligada.",
+      this.smartMiningEnabled ? "coins" : "none",
+    );
+  }
+
   private handleSceneKeyDown(event: KeyboardEvent) {
     this.audioDirector?.unlock();
     this.handleZoomShortcut(event);
@@ -1454,6 +1478,10 @@ export class MineScene extends Phaser.Scene {
       return null;
     }
 
+    if (this.smartMiningEnabled) {
+      return this.getSmartMiningTarget();
+    }
+
     const target = this.getMouseMiningTile();
 
     if (!target || !this.isMiningTargetInReach(target.x, target.y)) {
@@ -1463,18 +1491,101 @@ export class MineScene extends Phaser.Scene {
     return target;
   }
 
+  private getSmartMiningTarget() {
+    if (!this.player) {
+      return null;
+    }
+
+    const worldPoint = this.getMouseWorldPoint();
+
+    if (!worldPoint) {
+      return null;
+    }
+
+    const playerWorldX = this.player.position.x * TILE_SIZE + TILE_SIZE / 2;
+    const playerWorldY = this.player.position.y * TILE_SIZE + TILE_SIZE / 2;
+    const deltaX = worldPoint.x - playerWorldX;
+    const deltaY = worldPoint.y - playerWorldY;
+    const distance = Math.hypot(deltaX, deltaY);
+
+    if (distance < 1) {
+      return null;
+    }
+
+    const targetDistance = Math.min(distance, SMART_MINING_REACH_TILES * TILE_SIZE);
+    const targetX = Math.floor((playerWorldX + (deltaX / distance) * targetDistance) / TILE_SIZE);
+    const targetY = Math.floor((playerWorldY + (deltaY / distance) * targetDistance) / TILE_SIZE);
+
+    return this.getFirstMineableTileOnLine(
+      this.player.position,
+      { x: targetX, y: targetY },
+    );
+  }
+
+  private getFirstMineableTileOnLine(start: TilePoint, end: TilePoint) {
+    let x = start.x;
+    let y = start.y;
+    const dx = Math.abs(end.x - start.x);
+    const dy = Math.abs(end.y - start.y);
+    const sx = start.x < end.x ? 1 : -1;
+    const sy = start.y < end.y ? 1 : -1;
+    let error = dx - dy;
+
+    while (x !== end.x || y !== end.y) {
+      const doubledError = error * 2;
+
+      if (doubledError > -dy) {
+        error -= dy;
+        x += sx;
+      }
+
+      if (doubledError < dx) {
+        error += dx;
+        y += sy;
+      }
+
+      if (
+        x < 0 ||
+        y < 0 ||
+        x >= WORLD_WIDTH_TILES ||
+        y >= WORLD_HEIGHT_TILES
+      ) {
+        return null;
+      }
+
+      const tile = this.worldGrid[y]?.[x];
+
+      if (!tile || this.isPassable(tile.kind)) {
+        continue;
+      }
+
+      return this.isMineable(tile.kind) ? { x, y } : null;
+    }
+
+    return null;
+  }
+
   private getMouseMiningTile() {
+    const worldPoint = this.getMouseWorldPoint();
+
+    if (!worldPoint) {
+      return null;
+    }
+
+    return {
+      x: Math.floor(worldPoint.x / TILE_SIZE),
+      y: Math.floor(worldPoint.y / TILE_SIZE),
+    };
+  }
+
+  private getMouseWorldPoint() {
     const pointer = this.input.activePointer;
 
     if (!pointer) {
       return null;
     }
 
-    const worldPoint = pointer.positionToCamera(this.cameras.main) as Phaser.Math.Vector2;
-    return {
-      x: Math.floor(worldPoint.x / TILE_SIZE),
-      y: Math.floor(worldPoint.y / TILE_SIZE),
-    };
+    return pointer.positionToCamera(this.cameras.main) as Phaser.Math.Vector2;
   }
 
   private isMiningTargetInReach(tileX: number, tileY: number) {
@@ -1514,9 +1625,14 @@ export class MineScene extends Phaser.Scene {
       return;
     }
 
-    const target = this.getMouseMiningTile();
+    const target = this.smartMiningEnabled
+      ? this.getSmartMiningTarget()
+      : this.getMouseMiningTile();
 
-    if (!target || !this.isMiningTargetInReach(target.x, target.y)) {
+    if (
+      !target ||
+      (!this.smartMiningEnabled && !this.isMiningTargetInReach(target.x, target.y))
+    ) {
       return;
     }
 
@@ -1530,7 +1646,7 @@ export class MineScene extends Phaser.Scene {
     const tileX = target.x * TILE_SIZE;
     const tileY = target.y * TILE_SIZE;
     const pulse = 0.42 + Math.sin(this.time.now / 120) * 0.1;
-    const color = material.glow ?? material.detail;
+    const color = this.smartMiningEnabled ? gameTheme.colors.accent : material.glow ?? material.detail;
 
     this.mouseTargetLayer.lineStyle(2, color, pulse);
     this.mouseTargetLayer.strokeRect(tileX + 3, tileY + 3, TILE_SIZE - 6, TILE_SIZE - 6);
