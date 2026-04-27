@@ -1508,14 +1508,80 @@ export class MineScene extends Phaser.Scene {
       return null;
     }
 
-    const targetDistance = Math.min(distance, SMART_MINING_REACH_TILES * TILE_SIZE);
-    const targetX = Math.floor((playerWorldX + (deltaX / distance) * targetDistance) / TILE_SIZE);
-    const targetY = Math.floor((playerWorldY + (deltaY / distance) * targetDistance) / TILE_SIZE);
+    const directionX = deltaX / distance;
+    const directionY = deltaY / distance;
+    const mouseTile = {
+      x: Math.floor(worldPoint.x / TILE_SIZE),
+      y: Math.floor(worldPoint.y / TILE_SIZE),
+    };
+    let bestTarget: TilePoint | null = null;
+    let bestScore = Number.POSITIVE_INFINITY;
 
+    for (let y = this.player.position.y - SMART_MINING_REACH_TILES; y <= this.player.position.y + SMART_MINING_REACH_TILES; y += 1) {
+      for (let x = this.player.position.x - SMART_MINING_REACH_TILES; x <= this.player.position.x + SMART_MINING_REACH_TILES; x += 1) {
+        if (x === this.player.position.x && y === this.player.position.y) {
+          continue;
+        }
+
+        if (!this.isMiningTargetInReach(x, y)) {
+          continue;
+        }
+
+        const tile = this.worldGrid[y]?.[x];
+
+        if (!tile || !this.isMineable(tile.kind)) {
+          continue;
+        }
+
+        if (!this.hasMiningLineOfSight(this.player.position, { x, y })) {
+          continue;
+        }
+
+        const candidateWorldX = x * TILE_SIZE + TILE_SIZE / 2;
+        const candidateWorldY = y * TILE_SIZE + TILE_SIZE / 2;
+        const candidateDeltaX = candidateWorldX - playerWorldX;
+        const candidateDeltaY = candidateWorldY - playerWorldY;
+        const candidateDistance = Math.hypot(candidateDeltaX, candidateDeltaY);
+
+        if (candidateDistance < 1) {
+          continue;
+        }
+
+        const candidateDirectionX = candidateDeltaX / candidateDistance;
+        const candidateDirectionY = candidateDeltaY / candidateDistance;
+        const alignment = candidateDirectionX * directionX + candidateDirectionY * directionY;
+
+        if (alignment < 0.34) {
+          continue;
+        }
+
+        const tileDistanceToMouse = Math.abs(x - mouseTile.x) + Math.abs(y - mouseTile.y);
+        const anglePenalty = (1 - alignment) * 6;
+        const score = tileDistanceToMouse * 1.15 + anglePenalty + candidateDistance / TILE_SIZE * 0.12;
+
+        if (score < bestScore) {
+          bestScore = score;
+          bestTarget = { x, y };
+        }
+      }
+    }
+
+    if (bestTarget) {
+      return bestTarget;
+    }
+
+    const targetDistance = Math.min(distance, SMART_MINING_REACH_TILES * TILE_SIZE);
+    const targetX = Math.floor((playerWorldX + directionX * targetDistance) / TILE_SIZE);
+    const targetY = Math.floor((playerWorldY + directionY * targetDistance) / TILE_SIZE);
     return this.getFirstMineableTileOnLine(
       this.player.position,
       { x: targetX, y: targetY },
     );
+  }
+
+  private hasMiningLineOfSight(start: TilePoint, end: TilePoint) {
+    const blocker = this.getFirstMineableTileOnLine(start, end);
+    return Boolean(blocker && blocker.x === end.x && blocker.y === end.y);
   }
 
   private getFirstMineableTileOnLine(start: TilePoint, end: TilePoint) {
