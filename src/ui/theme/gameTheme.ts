@@ -26,6 +26,7 @@ export const gameTheme = {
     iron: 0xd49a63,
     gold: 0xf3c55d,
     diamond: 0x89dff5,
+    crystal: 0xd9c5ff,
     text: "#f5efdf",
     textMuted: "#d3c4ad",
     textSoft: "#ab987c",
