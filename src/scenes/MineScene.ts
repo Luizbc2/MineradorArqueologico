@@ -117,7 +117,7 @@ const SURFACE_STATION_CONFIG: Record<SurfaceStationKind, { offsetX: number; radi
   },
 } as const;
 const MOUSE_MINING_REACH_TILES = 2;
-const SMART_MINING_REACH_TILES = 4;
+const SMART_MINING_REACH_TILES = MOUSE_MINING_REACH_TILES;
 
 export class MineScene extends Phaser.Scene {
   private worldGrid: WorldGrid = [];
@@ -1274,10 +1274,6 @@ export class MineScene extends Phaser.Scene {
   private toggleSmartMiningMode() {
     this.smartMiningEnabled = !this.smartMiningEnabled;
     this.clearMiningTarget();
-    this.showSurfaceToast(
-      this.smartMiningEnabled ? "Mira inteligente ligada." : "Mira inteligente desligada.",
-      this.smartMiningEnabled ? "coins" : "none",
-    );
   }
 
   private handleSceneKeyDown(event: KeyboardEvent) {
