@@ -27,6 +27,8 @@ type HudSnapshot = {
   comboWindowRatio: number;
   comboColor: string;
   inventory: ResourceInventory;
+  backpackLoad: number;
+  backpackCapacity: number;
   atSurface: boolean;
   surfaceReturnLocked: boolean;
 };
@@ -178,6 +180,8 @@ export class MineHud {
       snapshot.pickaxeLevel,
       snapshot.cardsFound,
       snapshot.cardsTotal,
+      snapshot.backpackLoad,
+      snapshot.backpackCapacity,
       ...resourceKinds.map((resource) => snapshot.inventory[resource]),
     ].join("|");
 
@@ -191,7 +195,7 @@ export class MineHud {
       this.codexValue.textContent = `${snapshot.cardsFound}/${snapshot.cardsTotal}`;
       this.backpackValue.textContent = `${formatHudNumber(sale.totalCoins)} moedas`;
       this.backpackHint.textContent =
-        sale.totalCoins > 0 ? "RETORNE AO POSTO DE VENDA" : "MOCHILA VAZIA";
+        `${snapshot.backpackLoad}/${snapshot.backpackCapacity} ESPAÇOS`;
       this.backpackHint.classList.toggle("has-value", sale.totalCoins > 0);
       for (const resource of resourceKinds) {
         this.updateResourceSlot(resource, snapshot.inventory[resource], sale);

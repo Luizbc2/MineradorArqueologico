@@ -118,6 +118,7 @@ const SURFACE_STATION_CONFIG: Record<SurfaceStationKind, { offsetX: number; radi
 } as const;
 const MOUSE_MINING_REACH_TILES = 2;
 const SMART_MINING_REACH_TILES = MOUSE_MINING_REACH_TILES;
+const BASE_BACKPACK_CAPACITY = 24;
 
 export class MineScene extends Phaser.Scene {
   private worldGrid: WorldGrid = [];
@@ -1766,6 +1767,12 @@ export class MineScene extends Phaser.Scene {
       return;
     }
 
+    if (this.getInventoryLoad() >= this.getBackpackCapacity()) {
+      this.showSurfaceToast("Mochila cheia. Volte para vender.");
+      this.updateHud();
+      return;
+    }
+
     this.inventory[resource] += 1;
     const rewardState = this.registerReward(resource);
     this.syncExpeditionProgress(this.expeditionProgression.applyResource(resource));
@@ -1782,6 +1789,14 @@ export class MineScene extends Phaser.Scene {
 
   private getInventorySaleSummary() {
     return getInventorySaleSummary(this.inventory);
+  }
+
+  private getInventoryLoad() {
+    return resourceKinds.reduce((total, resource) => total + this.inventory[resource], 0);
+  }
+
+  private getBackpackCapacity() {
+    return BASE_BACKPACK_CAPACITY + getUpgradeBonusSummary(this.upgradeState).backpackCapacity;
   }
 
   private sellInventory() {
@@ -2202,6 +2217,8 @@ export class MineScene extends Phaser.Scene {
           : 0,
       comboColor: this.rewardColor,
       inventory: this.inventory,
+      backpackLoad: this.getInventoryLoad(),
+      backpackCapacity: this.getBackpackCapacity(),
       atSurface: this.isAtSurface(),
       surfaceReturnLocked: this.surfaceReturnLocked,
     });
