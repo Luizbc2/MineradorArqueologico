@@ -105,7 +105,7 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     id: "reach-60",
     title: "Fundo Chamando",
     description: "Atinga 60m de profundidade.",
-    rewardLabel: "Passo leve -8%",
+    rewardLabel: "Velocidade de passo +8%",
     type: "depth",
     target: 60,
     perk: { moveTempoBonus: 0.08 },
@@ -123,7 +123,7 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     id: "collect-gold",
     title: "Veio Dourado",
     description: "Colete 4 unidades de ouro.",
-    rewardLabel: "Passo leve -6%",
+    rewardLabel: "Velocidade de passo +6%",
     type: "resource",
     resource: "gold",
     target: 4,
@@ -357,7 +357,7 @@ function buildPerkSummary(perks: ExpeditionPerks) {
   }
 
   if (perks.moveTempoBonus > 0) {
-    parts.push(`Passo -${Math.round(perks.moveTempoBonus * 100)}%`);
+    parts.push(`Passo +${Math.round(perks.moveTempoBonus * 100)}%`);
   }
 
   return parts.length > 0 ? parts.join(" • ") : "Sem bônus ativos";
