@@ -131,7 +131,7 @@ export function generateWorld(seed = 0x0badc0de): WorldGrid {
             }
           }
 
-          if (!nearChest) {
+          if (!nearChest && kind !== "crystal") {
             kind = "chest";
             rowChestCount[y] += 1;
           }
@@ -161,7 +161,7 @@ export function generateWorld(seed = 0x0badc0de): WorldGrid {
         continue;
       }
 
-      if (current === "diamond" && random() < 0.6) {
+      if (current === "crystal" || (current === "diamond" && random() < 0.6)) {
         continue;
       }
 
