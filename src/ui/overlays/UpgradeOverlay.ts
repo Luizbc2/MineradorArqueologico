@@ -214,6 +214,11 @@ function createPickaxeCard(line: PickaxeShopLine, snapshot: OverlaySnapshot) {
 
   const title = createHudElement("h3", "game-modal-pickaxe-card__title", line.pickaxe.name);
   const tier = createHudElement("div", "game-modal-pickaxe-card__tier", `TIER ${line.pickaxe.tier}`);
+  const unlock = createHudElement(
+    "div",
+    "game-modal-pickaxe-card__unlock",
+    line.pickaxe.unlockDepth > 0 ? `LIBERA EM ${formatNumber(line.pickaxe.unlockDepth)}m` : "INICIAL",
+  );
 
   const artWrap = createHudElement("div", "game-modal-pickaxe-card__art");
   const image = createHudElement("img", `game-modal-pickaxe-card__image ${getPickaxeImageClass(line.pickaxe.id)}`) as HTMLImageElement;
@@ -239,7 +244,7 @@ function createPickaxeCard(line: PickaxeShopLine, snapshot: OverlaySnapshot) {
     snapshot.onBuy(line.pickaxe.id);
   };
 
-  card.append(title, tier, artWrap, stats, action);
+  card.append(title, tier, unlock, artWrap, stats, action);
   return card;
 }
 
