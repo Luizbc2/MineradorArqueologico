@@ -896,8 +896,8 @@ body { image-rendering: auto; }
 
 .game-modal-pickaxe-card__stats {
   display: grid;
-  grid-template-columns: minmax(42px, 0.8fr) minmax(64px, 1.25fr) minmax(42px, 0.8fr);
-  gap: 10px;
+  grid-template-columns: minmax(42px, 0.82fr) minmax(58px, 1.08fr) minmax(48px, 0.92fr);
+  gap: 7px;
 }
 
 .game-modal-pickaxe-card__stat {
@@ -915,8 +915,12 @@ body { image-rendering: auto; }
   text-align: right;
 }
 
+.game-modal-pickaxe-card__stat span {
+  font-size: 11px;
+}
+
 .game-modal-pickaxe-card__stat strong {
-  font-size: 26px;
+  font-size: 22px;
   line-height: 1;
   font-weight: 800;
   color: #fffaf0;

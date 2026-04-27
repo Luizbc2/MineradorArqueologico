@@ -231,7 +231,7 @@ function createPickaxeCard(line: PickaxeShopLine, snapshot: OverlaySnapshot) {
   stats.append(
     createStat("FORÇA", formatNumber(line.pickaxe.power)),
     createStat("VEL.", formatSpeedMultiplier(line.pickaxe.baseSpeed)),
-    createStat("PREÇO", formatNumber(line.pickaxe.cost)),
+    createStat("PREÇO", formatCompactCardNumber(line.pickaxe.cost)),
   );
 
   const action = createWorkshopButton(getActionLabel(line, snapshot.coins), line.canBuy || line.owned ? "primary" : "secondary");
@@ -386,4 +386,8 @@ function formatNumber(value: number) {
 
 function formatSpeedMultiplier(value: number) {
   return `${value.toFixed(2).replace(".", ",")}x`;
+}
+
+function formatCompactCardNumber(value: number) {
+  return value.toLocaleString("pt-BR", { useGrouping: false });
 }
