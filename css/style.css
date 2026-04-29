@@ -1126,6 +1126,12 @@ body { image-rendering: auto; }
   color: #ffe39b;
 }
 
+.game-hud-backpack-hint.is-full {
+  border-color: rgba(238, 112, 91, 0.88);
+  background: rgba(76, 29, 24, 0.78);
+  color: #ffd2c8;
+}
+
 .game-hud-resource-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -194,9 +194,13 @@ export class MineHud {
       this.pickaxeValue.textContent = `LV ${snapshot.pickaxeLevel}`;
       this.codexValue.textContent = `${snapshot.cardsFound}/${snapshot.cardsTotal}`;
       this.backpackValue.textContent = `${formatHudNumber(sale.totalCoins)} moedas`;
+      const backpackFull = snapshot.backpackLoad >= snapshot.backpackCapacity;
       this.backpackHint.textContent =
-        `${snapshot.backpackLoad}/${snapshot.backpackCapacity} ESPAÇOS`;
+        backpackFull
+          ? `MOCHILA CHEIA ${snapshot.backpackLoad}/${snapshot.backpackCapacity}`
+          : `${snapshot.backpackLoad}/${snapshot.backpackCapacity} ESPAÇOS`;
       this.backpackHint.classList.toggle("has-value", sale.totalCoins > 0);
+      this.backpackHint.classList.toggle("is-full", backpackFull);
       for (const resource of resourceKinds) {
         this.updateResourceSlot(resource, snapshot.inventory[resource], sale);
       }
