@@ -150,6 +150,15 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     perk: { comboWindowBonus: 0.25 },
   },
   {
+    id: "gold-pickaxe",
+    title: "Ferramenta Dourada",
+    description: "Leve a picareta ao nível 5.",
+    rewardLabel: "Mineração +8%",
+    type: "pickaxe",
+    target: 5,
+    perk: { miningSpeedBonus: 0.08 },
+  },
+  {
     id: "reach-140",
     title: "Zona Profunda",
     description: "Atinga 140m de profundidade.",
