@@ -24,9 +24,9 @@ export const resourceSellValues: Record<ResourceKind, number> = {
   coal: 4,
   iron: 9,
   gold: 18,
-  diamond: 34,
-  obsidian: 46,
-  crystal: 62,
+  diamond: 42,
+  obsidian: 64,
+  crystal: 92,
 };
 
 export function getResourceSellValue(resource: ResourceKind) {
