@@ -683,6 +683,19 @@ body { image-rendering: auto; }
   background: rgba(52, 38, 21, 0.82);
 }
 
+.game-modal-vendor-total__copy {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.game-modal-vendor-total__meta {
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 700;
+  color: #d3c4ad;
+}
+
 .game-modal-actions {
   display: flex;
   gap: 14px;

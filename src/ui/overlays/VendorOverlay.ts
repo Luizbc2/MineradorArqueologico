@@ -19,6 +19,7 @@ export class VendorOverlay {
   private readonly overlay: HTMLElement;
   private readonly walletValue: HTMLSpanElement;
   private readonly inventoryBody: HTMLDivElement;
+  private readonly totalMeta: HTMLDivElement;
   private readonly totalValue: HTMLDivElement;
   private readonly sellButton: HTMLButtonElement;
   private readonly closeButton: HTMLButtonElement;
@@ -50,11 +51,14 @@ export class VendorOverlay {
     inventorySection.append(this.inventoryBody);
 
     const totalSection = createHudElement("div", "game-modal-vendor-total");
-    totalSection.append(
+    const totalCopy = createHudElement("div", "game-modal-vendor-total__copy");
+    totalCopy.append(
       createHudElement("div", "game-modal-vendor-total__label", "TOTAL DA VENDA"),
     );
+    this.totalMeta = createHudElement("div", "game-modal-vendor-total__meta", "0 itens no lote");
+    totalCopy.append(this.totalMeta);
     this.totalValue = createHudElement("div", "game-modal-vendor-total__value", "0 moedas");
-    totalSection.append(this.totalValue);
+    totalSection.append(totalCopy, this.totalValue);
 
     const note = createHudElement(
       "div",
@@ -100,8 +104,11 @@ export class VendorOverlay {
   }
 
   private renderSnapshot(snapshot: VendorOverlaySnapshot) {
+    const itemCount = snapshot.sale.lines.reduce((total, line) => total + line.quantity, 0);
+
     this.walletValue.textContent = `${formatCoins(snapshot.coins)} moedas`;
     this.totalValue.textContent = `${formatCoins(snapshot.sale.totalCoins)} moedas`;
+    this.totalMeta.textContent = `${formatCoins(itemCount)} ${itemCount === 1 ? "item" : "itens"} no lote`;
     this.sellButton.disabled = snapshot.sale.totalCoins <= 0;
     this.inventoryBody.replaceChildren();
 
