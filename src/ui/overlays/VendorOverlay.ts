@@ -9,6 +9,7 @@ import { createHudElement, createHudScope } from "../hud/domHud";
 type VendorOverlaySnapshot = {
   coins: number;
   sale: InventorySaleSummary;
+  saleBonusPercent: number;
   onSellAll: () => void;
   onClose: () => void;
 };
@@ -109,9 +110,12 @@ export class VendorOverlay {
 
     this.walletValue.textContent = `${formatCoins(snapshot.coins)} moedas`;
     this.totalValue.textContent = `${formatCoins(snapshot.sale.totalCoins)} moedas`;
+    const bonusLabel = snapshot.saleBonusPercent > 0
+      ? ` · bônus +${formatCoins(snapshot.saleBonusPercent)}%`
+      : "";
     this.totalMeta.textContent =
       itemCount > 0
-        ? `${formatCoins(itemCount)} ${itemCount === 1 ? "item" : "itens"} no lote · média ${formatCoins(averageValue)}`
+        ? `${formatCoins(itemCount)} ${itemCount === 1 ? "item" : "itens"} no lote · média ${formatCoins(averageValue)}${bonusLabel}`
         : "0 itens no lote";
     this.sellButton.disabled = snapshot.sale.totalCoins <= 0;
     this.inventoryBody.replaceChildren();

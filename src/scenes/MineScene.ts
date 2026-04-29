@@ -1813,11 +1813,19 @@ export class MineScene extends Phaser.Scene {
   }
 
   private getInventorySaleSummary() {
-    return getInventorySaleSummary(this.inventory, this.getSaleValueMultiplier() * this.getBackpackSaleBonusMultiplier());
+    return getInventorySaleSummary(this.inventory, this.getEffectiveSaleValueMultiplier());
   }
 
   private getSaleValueMultiplier() {
     return 1 + getUpgradeBonusSummary(this.upgradeState).saleMultiplier;
+  }
+
+  private getEffectiveSaleValueMultiplier() {
+    return this.getSaleValueMultiplier() * this.getBackpackSaleBonusMultiplier();
+  }
+
+  private getSaleBonusPercent() {
+    return Math.max(0, Math.round((this.getEffectiveSaleValueMultiplier() - 1) * 100));
   }
 
   private getBackpackSaleBonusMultiplier() {
@@ -2260,7 +2268,7 @@ export class MineScene extends Phaser.Scene {
       inventory: this.inventory,
       backpackLoad: this.getInventoryLoad(),
       backpackCapacity: this.getBackpackCapacity(),
-      saleValueMultiplier: this.getSaleValueMultiplier() * this.getBackpackSaleBonusMultiplier(),
+      saleValueMultiplier: this.getEffectiveSaleValueMultiplier(),
       atSurface: this.isAtSurface(),
       surfaceReturnLocked: this.surfaceReturnLocked,
     });
@@ -2744,6 +2752,7 @@ export class MineScene extends Phaser.Scene {
     this.vendorOverlay?.show({
       coins: this.coins,
       sale: this.getInventorySaleSummary(),
+      saleBonusPercent: this.getSaleBonusPercent(),
       onSellAll: () => this.handleVendorSellAll(),
       onClose: () => this.closeVendorOverlay(),
     });
@@ -2751,13 +2760,13 @@ export class MineScene extends Phaser.Scene {
   }
 
   private handleVendorSellAll() {
+    const bonusActive = this.getBackpackSaleBonusMultiplier() > 1;
     const sale = this.sellInventory();
 
     if (sale.totalCoins <= 0) {
       this.showSurfaceToast("Mochila vazia.");
     } else {
       this.audioDirector?.playCoins();
-      const bonusActive = this.getBackpackSaleBonusMultiplier() > 1;
       this.showSurfaceToast(
         bonusActive
           ? `Venda cheia: +${sale.totalCoins} moedas.`
