@@ -475,6 +475,8 @@ body { image-rendering: auto; }
 
 .game-modal-card--workshop {
   width: min(860px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  overflow: hidden;
 }
 
 .game-modal-card__accent {
@@ -752,15 +754,16 @@ body { image-rendering: auto; }
 }
 
 .game-modal-workshop-meta {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 16px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
 }
 
 .game-modal-workshop-meta__item {
   display: grid;
-  gap: 4px;
+  gap: 3px;
+  min-width: 0;
 }
 
 .game-modal-workshop-meta__item:last-child {
@@ -776,7 +779,7 @@ body { image-rendering: auto; }
 }
 
 .game-modal-workshop-meta__item strong {
-  font-size: 24px;
+  font-size: 21px;
   line-height: 1;
   font-weight: 800;
   color: #fffaf0;
@@ -786,7 +789,7 @@ body { image-rendering: auto; }
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .game-modal-workshop-tab {
@@ -958,29 +961,31 @@ body { image-rendering: auto; }
 
 .game-modal-upgrade-list {
   display: grid;
-  gap: 12px;
-  min-height: 362px;
+  gap: 8px;
+  max-height: min(430px, calc(100vh - 280px));
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .game-modal-upgrade-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 138px 132px;
+  grid-template-columns: minmax(0, 1fr) 116px 118px;
   align-items: center;
-  gap: 14px;
-  padding: 16px;
+  gap: 10px;
+  padding: 10px 12px;
   border: 2px solid rgba(86, 70, 51, 0.86);
   background: rgba(20, 16, 12, 0.88);
 }
 
 .game-modal-upgrade-row__copy {
   display: grid;
-  gap: 7px;
+  gap: 5px;
   min-width: 0;
 }
 
 .game-modal-upgrade-row__title {
   margin: 0;
-  font-size: 19px;
+  font-size: 17px;
   line-height: 1.1;
   font-weight: 800;
   color: #f5efdf;
@@ -988,14 +993,14 @@ body { image-rendering: auto; }
 
 .game-modal-upgrade-row__description {
   margin: 0;
-  font-size: 14px;
-  line-height: 1.28;
+  font-size: 12px;
+  line-height: 1.22;
   font-weight: 600;
   color: #d3c4ad;
 }
 
 .game-modal-upgrade-row__effect {
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1;
   font-weight: 800;
   color: #b8f7fa;
@@ -1007,19 +1012,19 @@ body { image-rendering: auto; }
 
 .game-modal-upgrade-row__meta {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   text-align: right;
 }
 
 .game-modal-upgrade-row__meta span {
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1;
   font-weight: 800;
   color: #ffe39b;
 }
 
 .game-modal-upgrade-row__meta strong {
-  font-size: 17px;
+  font-size: 15px;
   line-height: 1.12;
   font-weight: 800;
   color: #fffaf0;
@@ -1028,9 +1033,9 @@ body { image-rendering: auto; }
 .game-modal-upgrade-row .game-modal-button {
   min-width: 0;
   width: 100%;
-  min-height: 40px;
+  min-height: 36px;
   padding: 0 8px;
-  font-size: 13px;
+  font-size: 12px;
   white-space: normal;
 }
 
