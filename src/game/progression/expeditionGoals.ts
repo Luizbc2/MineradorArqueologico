@@ -179,6 +179,15 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     perk: { miningSpeedBonus: 0.1 },
   },
   {
+    id: "advanced-upgrades",
+    title: "Oficina Forte",
+    description: "Compre 12 níveis de upgrades.",
+    rewardLabel: "Combo +0.25s",
+    type: "upgrade",
+    target: 12,
+    perk: { comboWindowBonus: 0.25 },
+  },
+  {
     id: "collect-obsidian",
     title: "Pedra Negra",
     description: "Colete 3 unidades de obsidiana.",
