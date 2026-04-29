@@ -217,6 +217,15 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     perk: { miningSpeedBonus: 0.1 },
   },
   {
+    id: "master-upgrades",
+    title: "Oficina Mestra",
+    description: "Compre 24 níveis de upgrades.",
+    rewardLabel: "Mineração +10%",
+    type: "upgrade",
+    target: 24,
+    perk: { miningSpeedBonus: 0.1 },
+  },
+  {
     id: "ancient-crystal-pickaxe",
     title: "Catálogo Completo",
     description: "Leve a picareta ao nível 8.",
