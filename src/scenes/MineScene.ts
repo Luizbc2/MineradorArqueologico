@@ -2686,12 +2686,20 @@ export class MineScene extends Phaser.Scene {
 
     this.upgradeState = result.state;
     this.coins = result.coins;
+    this.syncExpeditionProgress(this.expeditionProgression.applyUpgradeLevels(this.getTotalUpgradeLevels()));
     this.saveProgression();
     this.audioDirector?.playUpgrade();
     this.audioDirector?.playCoins();
     this.updateHud();
     this.showSurfaceToast(`${result.upgrade.name} nível ${result.level}.`, "coins");
     this.refreshUpgradeOverlay();
+  }
+
+  private getTotalUpgradeLevels() {
+    return getUpgradeList().reduce(
+      (total, upgrade) => total + getUpgradeLevel(this.upgradeState, upgrade.id),
+      0,
+    );
   }
 
   private closeUpgradeOverlay() {

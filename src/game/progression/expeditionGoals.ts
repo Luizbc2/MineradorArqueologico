@@ -13,6 +13,7 @@ type ExpeditionGoalType =
   | "chest"
   | "card"
   | "pickaxe"
+  | "upgrade"
   | "surfaceReturnDepth";
 
 type ExpeditionGoalDefinition = {
@@ -33,6 +34,7 @@ export type ExpeditionProgressionState = {
   chestsOpened: number;
   cardsFound: number;
   pickaxeLevel: number;
+  upgradeLevels: number;
 };
 
 type GoalProgressView = {
@@ -119,6 +121,15 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     type: "pickaxe",
     target: 2,
     perk: { miningSpeedBonus: 0.08 },
+  },
+  {
+    id: "first-upgrades",
+    title: "Oficina Ativa",
+    description: "Compre 3 níveis de upgrades.",
+    rewardLabel: "Velocidade de passo +5%",
+    type: "upgrade",
+    target: 3,
+    perk: { moveTempoBonus: 0.05 },
   },
   {
     id: "collect-gold",
@@ -215,6 +226,7 @@ export function createDefaultExpeditionProgressionState(): ExpeditionProgression
     chestsOpened: 0,
     cardsFound: 0,
     pickaxeLevel: 1,
+    upgradeLevels: 0,
   };
 }
 
@@ -230,6 +242,7 @@ export function normalizeExpeditionProgressionState(
     chestsOpened: normalizePositiveInteger(state.chestsOpened),
     cardsFound: normalizePositiveInteger(state.cardsFound),
     pickaxeLevel: Math.max(1, normalizePositiveInteger(state.pickaxeLevel) || defaults.pickaxeLevel),
+    upgradeLevels: normalizePositiveInteger(state.upgradeLevels),
   };
 }
 
@@ -277,6 +290,10 @@ export function createExpeditionProgression(initialState?: Partial<ExpeditionPro
     },
     applyPickaxeLevel(level: number) {
       stats.pickaxeLevel = Math.max(stats.pickaxeLevel, level);
+      return resolveProgress(buildSnapshot);
+    },
+    applyUpgradeLevels(levels: number) {
+      stats.upgradeLevels = Math.max(stats.upgradeLevels, levels);
       return resolveProgress(buildSnapshot);
     },
     applySurfaceReturn(fromDepth: number) {
@@ -328,6 +345,8 @@ function isGoalComplete(goal: ExpeditionGoalDefinition, stats: ExpeditionProgres
       return stats.cardsFound >= goal.target;
     case "pickaxe":
       return stats.pickaxeLevel >= goal.target;
+    case "upgrade":
+      return stats.upgradeLevels >= goal.target;
     case "surfaceReturnDepth":
       return stats.maxReturnDepth >= goal.target;
   }
@@ -345,6 +364,8 @@ function getGoalCurrent(goal: ExpeditionGoalDefinition, stats: ExpeditionProgres
       return stats.cardsFound;
     case "pickaxe":
       return stats.pickaxeLevel;
+    case "upgrade":
+      return stats.upgradeLevels;
     case "surfaceReturnDepth":
       return stats.maxReturnDepth;
   }
