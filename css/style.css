@@ -1145,6 +1145,24 @@ body { image-rendering: auto; }
   color: #ffd2c8;
 }
 
+.game-hud-backpack-meter {
+  height: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(142, 206, 208, 0.42);
+  background: rgba(6, 8, 15, 0.72);
+}
+
+.game-hud-backpack-meter__fill {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, #8ecece, #e7bd63);
+  transition: width 160ms ease, background 160ms ease;
+}
+
+.game-hud-backpack-meter__fill.is-full {
+  background: linear-gradient(90deg, #e7bd63, #ee705b);
+}
+
 .game-hud-resource-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

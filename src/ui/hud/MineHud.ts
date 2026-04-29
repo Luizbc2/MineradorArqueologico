@@ -53,6 +53,7 @@ export class MineHud {
   private readonly backpackPanel: HTMLElement;
   private readonly backpackValue: HTMLDivElement;
   private readonly backpackHint: HTMLDivElement;
+  private readonly backpackFill: HTMLDivElement;
   private readonly resourceValues: Record<ResourceKind, HTMLDivElement>;
   private readonly resourceTotals: Record<ResourceKind, HTMLDivElement>;
 
@@ -134,6 +135,9 @@ export class MineHud {
       "game-hud-backpack-hint",
       "MOCHILA VAZIA",
     ) as HTMLDivElement;
+    const backpackMeter = createHudElement("div", "game-hud-backpack-meter");
+    this.backpackFill = createHudElement("div", "game-hud-backpack-meter__fill") as HTMLDivElement;
+    backpackMeter.append(this.backpackFill);
     const resourceGrid = createHudElement("div", "game-hud-resource-grid");
 
     const resourceSlots = resourceKinds.map((resource) => ({
@@ -157,7 +161,7 @@ export class MineHud {
     );
 
     resourceGrid.append(...resourceSlots.map(({ slot }) => slot.root));
-    backpackBody.append(backpackSummary, this.backpackHint, resourceGrid);
+    backpackBody.append(backpackSummary, this.backpackHint, backpackMeter, resourceGrid);
     this.backpackPanel.append(backpackClose, backpackBody);
 
     this.scope.append(
@@ -203,6 +207,8 @@ export class MineHud {
           : `${snapshot.backpackLoad}/${snapshot.backpackCapacity} ESPAÇOS`;
       this.backpackHint.classList.toggle("has-value", sale.totalCoins > 0);
       this.backpackHint.classList.toggle("is-full", backpackFull);
+      this.backpackFill.style.width = `${Math.round((snapshot.backpackLoad / snapshot.backpackCapacity) * 100)}%`;
+      this.backpackFill.classList.toggle("is-full", backpackFull);
       for (const resource of resourceKinds) {
         this.updateResourceSlot(resource, snapshot.inventory[resource], sale);
       }
