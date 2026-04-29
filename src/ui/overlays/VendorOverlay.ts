@@ -105,10 +105,14 @@ export class VendorOverlay {
 
   private renderSnapshot(snapshot: VendorOverlaySnapshot) {
     const itemCount = snapshot.sale.lines.reduce((total, line) => total + line.quantity, 0);
+    const averageValue = itemCount > 0 ? Math.round(snapshot.sale.totalCoins / itemCount) : 0;
 
     this.walletValue.textContent = `${formatCoins(snapshot.coins)} moedas`;
     this.totalValue.textContent = `${formatCoins(snapshot.sale.totalCoins)} moedas`;
-    this.totalMeta.textContent = `${formatCoins(itemCount)} ${itemCount === 1 ? "item" : "itens"} no lote`;
+    this.totalMeta.textContent =
+      itemCount > 0
+        ? `${formatCoins(itemCount)} ${itemCount === 1 ? "item" : "itens"} no lote · média ${formatCoins(averageValue)}`
+        : "0 itens no lote";
     this.sellButton.disabled = snapshot.sale.totalCoins <= 0;
     this.inventoryBody.replaceChildren();
 
