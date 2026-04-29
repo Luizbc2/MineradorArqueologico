@@ -48,6 +48,7 @@ export class UpgradeOverlay {
   private readonly coinsValue: HTMLSpanElement;
   private readonly depthValue: HTMLSpanElement;
   private readonly pickaxeCollectionValue: HTMLSpanElement;
+  private readonly upgradeInvestmentValue: HTMLSpanElement;
   private readonly carouselBody: HTMLDivElement;
   private readonly pageText: HTMLDivElement;
   private readonly previousButton: HTMLButtonElement;
@@ -88,7 +89,12 @@ export class UpgradeOverlay {
     collection.append(createHudElement("span", "", "COLEÇÃO"));
     this.pickaxeCollectionValue = createHudElement("strong", "", "1/1");
     collection.append(this.pickaxeCollectionValue);
-    meta.append(coins, collection, depth);
+
+    const investment = createHudElement("div", "game-modal-workshop-meta__item");
+    investment.append(createHudElement("span", "", "UPGRADES"));
+    this.upgradeInvestmentValue = createHudElement("strong", "", "0");
+    investment.append(this.upgradeInvestmentValue);
+    meta.append(coins, collection, investment, depth);
 
     const tabs = createHudElement("div", "game-modal-workshop-tabs");
     this.pickaxesTab = createWorkshopTabButton("PICARETAS");
@@ -166,9 +172,11 @@ export class UpgradeOverlay {
 
   private renderSnapshot(snapshot: OverlaySnapshot) {
     const ownedPickaxes = snapshot.pickaxes.filter((line) => line.owned).length;
+    const upgradeLevels = snapshot.upgrades.reduce((total, line) => total + line.level, 0);
 
     this.coinsValue.textContent = formatNumber(snapshot.coins);
     this.pickaxeCollectionValue.textContent = `${ownedPickaxes}/${snapshot.pickaxes.length}`;
+    this.upgradeInvestmentValue.textContent = formatNumber(upgradeLevels);
     this.depthValue.textContent = `${formatNumber(snapshot.maxDepthReached)}m`;
     this.renderTabs();
     this.renderPickaxes(snapshot);
