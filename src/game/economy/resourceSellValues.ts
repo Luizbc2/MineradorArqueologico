@@ -37,11 +37,14 @@ export function hasSellableResources(inventory: ResourceInventory) {
   return resourceKinds.some((resource) => inventory[resource] > 0);
 }
 
-export function getInventorySaleSummary(inventory: ResourceInventory): InventorySaleSummary {
+export function getInventorySaleSummary(
+  inventory: ResourceInventory,
+  valueMultiplier = 1,
+): InventorySaleSummary {
   const lines = resourceKinds
     .map((resource) => {
       const quantity = inventory[resource];
-      const unitPrice = getResourceSellValue(resource);
+      const unitPrice = Math.max(1, Math.round(getResourceSellValue(resource) * valueMultiplier));
 
       return {
         resource,

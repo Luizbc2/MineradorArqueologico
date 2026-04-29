@@ -2,11 +2,16 @@ export const upgradeIds = [
   "power",
   "speed",
   "backpack",
+  "saleValue",
 ] as const;
 
 export type UpgradeId = (typeof upgradeIds)[number];
 
-export type UpgradeEffectKind = "flatPower" | "speedMultiplier" | "backpackCapacity";
+export type UpgradeEffectKind =
+  | "flatPower"
+  | "speedMultiplier"
+  | "backpackCapacity"
+  | "saleMultiplier";
 
 export type UpgradeDefinition = {
   id: UpgradeId;
@@ -49,6 +54,16 @@ export const upgradeCatalog: Record<UpgradeId, UpgradeDefinition> = {
     effectKind: "backpackCapacity",
     effectPerLevel: 6,
     maxLevel: 18,
+  },
+  saleValue: {
+    id: "saleValue",
+    name: "Venda Melhor",
+    description: "Aumenta o valor recebido ao vender minérios.",
+    baseCost: 180,
+    growth: 1.48,
+    effectKind: "saleMultiplier",
+    effectPerLevel: 0.05,
+    maxLevel: 12,
   },
 };
 

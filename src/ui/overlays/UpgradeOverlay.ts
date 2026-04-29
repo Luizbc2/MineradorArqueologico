@@ -327,6 +327,10 @@ function formatUpgradeCurrentEffect(line: UpgradeShopLine) {
     return `Atual: +${formatNumber(total)} espaços`;
   }
 
+  if (line.upgrade.effectKind === "saleMultiplier") {
+    return `Atual: +${Math.round(total * 100)}% venda`;
+  }
+
   return `Atual: +${Math.round(total * 100)}% velocidade`;
 }
 
@@ -341,6 +345,10 @@ function formatUpgradeNextEffect(line: UpgradeShopLine) {
 
   if (line.upgrade.effectKind === "backpackCapacity") {
     return `Próximo: +${formatNumber(line.upgrade.effectPerLevel)} espaços por nível`;
+  }
+
+  if (line.upgrade.effectKind === "saleMultiplier") {
+    return `Próximo: +${Math.round(line.upgrade.effectPerLevel * 100)}% venda por nível`;
   }
 
   return `Próximo: +${Math.round(line.upgrade.effectPerLevel * 100)}% velocidade por nível`;

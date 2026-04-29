@@ -1788,7 +1788,11 @@ export class MineScene extends Phaser.Scene {
   }
 
   private getInventorySaleSummary() {
-    return getInventorySaleSummary(this.inventory);
+    return getInventorySaleSummary(this.inventory, this.getSaleValueMultiplier());
+  }
+
+  private getSaleValueMultiplier() {
+    return 1 + getUpgradeBonusSummary(this.upgradeState).saleMultiplier;
   }
 
   private getInventoryLoad() {
