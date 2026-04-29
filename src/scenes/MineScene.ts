@@ -2473,13 +2473,23 @@ export class MineScene extends Phaser.Scene {
       this.groundDirty = true;
       this.drawWorldGrid(true);
       this.spawnMiningImpact(candidate.x, candidate.y, "chest", true, 1);
+      const coinReward = this.getChestCoinReward(candidate.y);
+      this.coins += coinReward;
+      this.game.events.emit("economy:changed", { coins: this.coins });
       this.syncExpeditionProgress(this.expeditionProgression.applyChestOpened());
       this.audioDirector?.playChestOpen();
+      this.audioDirector?.playCoins();
+      this.showSurfaceToast(`Baú aberto: +${coinReward} moedas.`, "coins");
       this.openArchaeologyCard();
       return true;
     }
 
     return false;
+  }
+
+  private getChestCoinReward(tileY: number) {
+    const depth = this.getSurfaceDepth(tileY);
+    return 35 + Math.floor(depth * 0.7);
   }
 
   private openArchaeologyCard() {
