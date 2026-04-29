@@ -45,7 +45,7 @@ export const upgradeCatalog: Record<UpgradeId, UpgradeDefinition> = {
     name: "Mochila Maior",
     description: "Aumenta a quantidade de minérios que você pode carregar.",
     baseCost: 90,
-    growth: 1.38,
+    growth: 1.32,
     effectKind: "backpackCapacity",
     effectPerLevel: 6,
     maxLevel: 18,
