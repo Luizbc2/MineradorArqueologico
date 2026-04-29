@@ -331,6 +331,10 @@ function formatUpgradeCurrentEffect(line: UpgradeShopLine) {
     return `Atual: +${Math.round(total * 100)}% venda`;
   }
 
+  if (line.upgrade.effectKind === "chestCoinMultiplier") {
+    return `Atual: +${Math.round(total * 100)}% moedas de baú`;
+  }
+
   return `Atual: +${Math.round(total * 100)}% velocidade`;
 }
 
@@ -349,6 +353,10 @@ function formatUpgradeNextEffect(line: UpgradeShopLine) {
 
   if (line.upgrade.effectKind === "saleMultiplier") {
     return `Próximo: +${Math.round(line.upgrade.effectPerLevel * 100)}% venda por nível`;
+  }
+
+  if (line.upgrade.effectKind === "chestCoinMultiplier") {
+    return `Próximo: +${Math.round(line.upgrade.effectPerLevel * 100)}% moedas de baú por nível`;
   }
 
   return `Próximo: +${Math.round(line.upgrade.effectPerLevel * 100)}% velocidade por nível`;

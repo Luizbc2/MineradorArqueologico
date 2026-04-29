@@ -3,6 +3,7 @@ export const upgradeIds = [
   "speed",
   "backpack",
   "saleValue",
+  "chestValue",
 ] as const;
 
 export type UpgradeId = (typeof upgradeIds)[number];
@@ -11,7 +12,8 @@ export type UpgradeEffectKind =
   | "flatPower"
   | "speedMultiplier"
   | "backpackCapacity"
-  | "saleMultiplier";
+  | "saleMultiplier"
+  | "chestCoinMultiplier";
 
 export type UpgradeDefinition = {
   id: UpgradeId;
@@ -64,6 +66,16 @@ export const upgradeCatalog: Record<UpgradeId, UpgradeDefinition> = {
     effectKind: "saleMultiplier",
     effectPerLevel: 0.05,
     maxLevel: 12,
+  },
+  chestValue: {
+    id: "chestValue",
+    name: "Baús Melhores",
+    description: "Aumenta as moedas encontradas em baús arqueológicos.",
+    baseCost: 220,
+    growth: 1.5,
+    effectKind: "chestCoinMultiplier",
+    effectPerLevel: 0.08,
+    maxLevel: 10,
   },
 };
 

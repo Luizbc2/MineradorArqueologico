@@ -16,6 +16,7 @@ export type UpgradeBonusSummary = {
   speedMultiplier: number;
   backpackCapacity: number;
   saleMultiplier: number;
+  chestCoinMultiplier: number;
 };
 
 export type UpgradePurchaseResult =
@@ -83,8 +84,10 @@ export function getUpgradeBonusSummary(
         summary.speedMultiplier += value;
       } else if (upgrade.effectKind === "backpackCapacity") {
         summary.backpackCapacity += value;
-      } else {
+      } else if (upgrade.effectKind === "saleMultiplier") {
         summary.saleMultiplier += value;
+      } else {
+        summary.chestCoinMultiplier += value;
       }
 
       return summary;
@@ -94,6 +97,7 @@ export function getUpgradeBonusSummary(
       speedMultiplier: 0,
       backpackCapacity: 0,
       saleMultiplier: 0,
+      chestCoinMultiplier: 0,
     },
   );
 }
