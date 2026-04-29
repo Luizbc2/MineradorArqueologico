@@ -2778,6 +2778,7 @@ export class MineScene extends Phaser.Scene {
     this.vendorOverlay?.show({
       coins: this.coins,
       sale: this.getInventorySaleSummary(),
+      saleBonusPercent: this.getSaleBonusPercent(),
       onSellAll: () => this.handleVendorSellAll(),
       onClose: () => this.closeVendorOverlay(),
     });
