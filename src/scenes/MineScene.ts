@@ -1379,6 +1379,12 @@ export class MineScene extends Phaser.Scene {
       return false;
     }
 
+    if (getResourceFromTile(tile.kind) && this.getInventoryLoad() >= this.getBackpackCapacity()) {
+      this.clearMiningTarget();
+      this.showSurfaceToast("Mochila cheia. Volte para vender.");
+      return false;
+    }
+
     const equippedPickaxe = getEquippedPickaxe(this.pickaxeState);
     const upgradeBonuses = getUpgradeBonusSummary(this.upgradeState);
     const depthHardnessMultiplier = this.getDepthHardnessMultiplier(target.y);
@@ -1763,12 +1769,6 @@ export class MineScene extends Phaser.Scene {
     const resource = getResourceFromTile(kind);
 
     if (!resource) {
-      this.updateHud();
-      return;
-    }
-
-    if (this.getInventoryLoad() >= this.getBackpackCapacity()) {
-      this.showSurfaceToast("Mochila cheia. Volte para vender.");
       this.updateHud();
       return;
     }
