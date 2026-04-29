@@ -196,6 +196,15 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     target: 220,
     perk: { miningSpeedBonus: 0.1 },
   },
+  {
+    id: "ancient-crystal-pickaxe",
+    title: "Catálogo Completo",
+    description: "Leve a picareta ao nível 8.",
+    rewardLabel: "Combo +0.35s",
+    type: "pickaxe",
+    target: 8,
+    perk: { comboWindowBonus: 0.35 },
+  },
 ];
 
 export function createDefaultExpeditionProgressionState(): ExpeditionProgressionState {
