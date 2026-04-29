@@ -119,6 +119,8 @@ const SURFACE_STATION_CONFIG: Record<SurfaceStationKind, { offsetX: number; radi
 const MOUSE_MINING_REACH_TILES = 2;
 const SMART_MINING_REACH_TILES = MOUSE_MINING_REACH_TILES;
 const BASE_BACKPACK_CAPACITY = 24;
+const FULL_BACKPACK_SELL_THRESHOLD = 0.9;
+const FULL_BACKPACK_SELL_BONUS = 0.1;
 
 export class MineScene extends Phaser.Scene {
   private worldGrid: WorldGrid = [];
@@ -1811,11 +1813,23 @@ export class MineScene extends Phaser.Scene {
   }
 
   private getInventorySaleSummary() {
-    return getInventorySaleSummary(this.inventory, this.getSaleValueMultiplier());
+    return getInventorySaleSummary(this.inventory, this.getSaleValueMultiplier() * this.getBackpackSaleBonusMultiplier());
   }
 
   private getSaleValueMultiplier() {
     return 1 + getUpgradeBonusSummary(this.upgradeState).saleMultiplier;
+  }
+
+  private getBackpackSaleBonusMultiplier() {
+    const capacity = this.getBackpackCapacity();
+
+    if (capacity <= 0) {
+      return 1;
+    }
+
+    return this.getInventoryLoad() / capacity >= FULL_BACKPACK_SELL_THRESHOLD
+      ? 1 + FULL_BACKPACK_SELL_BONUS
+      : 1;
   }
 
   private getInventoryLoad() {
@@ -2246,7 +2260,7 @@ export class MineScene extends Phaser.Scene {
       inventory: this.inventory,
       backpackLoad: this.getInventoryLoad(),
       backpackCapacity: this.getBackpackCapacity(),
-      saleValueMultiplier: this.getSaleValueMultiplier(),
+      saleValueMultiplier: this.getSaleValueMultiplier() * this.getBackpackSaleBonusMultiplier(),
       atSurface: this.isAtSurface(),
       surfaceReturnLocked: this.surfaceReturnLocked,
     });
@@ -2743,7 +2757,13 @@ export class MineScene extends Phaser.Scene {
       this.showSurfaceToast("Mochila vazia.");
     } else {
       this.audioDirector?.playCoins();
-      this.showSurfaceToast(`Venda concluída: +${sale.totalCoins} moedas.`, "coins");
+      const bonusActive = this.getBackpackSaleBonusMultiplier() > 1;
+      this.showSurfaceToast(
+        bonusActive
+          ? `Venda cheia: +${sale.totalCoins} moedas.`
+          : `Venda concluída: +${sale.totalCoins} moedas.`,
+        "coins",
+      );
     }
 
     this.vendorOverlay?.show({
