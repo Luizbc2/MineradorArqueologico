@@ -29,6 +29,7 @@ type HudSnapshot = {
   inventory: ResourceInventory;
   backpackLoad: number;
   backpackCapacity: number;
+  saleValueMultiplier: number;
   atSurface: boolean;
   surfaceReturnLocked: boolean;
 };
@@ -182,12 +183,13 @@ export class MineHud {
       snapshot.cardsTotal,
       snapshot.backpackLoad,
       snapshot.backpackCapacity,
+      snapshot.saleValueMultiplier.toFixed(3),
       ...resourceKinds.map((resource) => snapshot.inventory[resource]),
     ].join("|");
 
     if (infoKey !== this.lastInfoKey) {
       this.lastInfoKey = infoKey;
-      const sale = getInventorySaleSummary(snapshot.inventory);
+      const sale = getInventorySaleSummary(snapshot.inventory, snapshot.saleValueMultiplier);
 
       this.depthValue.textContent = `${snapshot.depth}m`;
       this.coinsValue.textContent = formatHudNumber(snapshot.coins);

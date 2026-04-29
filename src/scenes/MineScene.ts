@@ -2246,6 +2246,7 @@ export class MineScene extends Phaser.Scene {
       inventory: this.inventory,
       backpackLoad: this.getInventoryLoad(),
       backpackCapacity: this.getBackpackCapacity(),
+      saleValueMultiplier: this.getSaleValueMultiplier(),
       atSurface: this.isAtSurface(),
       surfaceReturnLocked: this.surfaceReturnLocked,
     });
