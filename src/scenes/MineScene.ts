@@ -177,6 +177,7 @@ export class MineScene extends Phaser.Scene {
   private escapeKey?: Phaser.Input.Keyboard.Key;
   private upgradeKey?: Phaser.Input.Keyboard.Key;
   private surfaceKey?: Phaser.Input.Keyboard.Key;
+  private sellKey?: Phaser.Input.Keyboard.Key;
   private smartMiningKey?: Phaser.Input.Keyboard.Key;
   private player?: PlayerMiner;
   private miningTarget?: MiningTarget;
@@ -276,6 +277,7 @@ export class MineScene extends Phaser.Scene {
     this.escapeKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
     this.upgradeKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.U);
     this.surfaceKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+    this.sellKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.V);
     this.smartMiningKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.CTRL);
     this.input.keyboard?.addCapture([
       Phaser.Input.Keyboard.KeyCodes.PLUS,
@@ -362,6 +364,10 @@ export class MineScene extends Phaser.Scene {
     }
 
     if (this.vendorOverlay?.isVisible) {
+      if (Phaser.Input.Keyboard.JustDown(this.sellKey!)) {
+        this.handleVendorSellAll();
+      }
+
       if (Phaser.Input.Keyboard.JustDown(this.escapeKey!)) {
         this.closeVendorOverlay();
       }
@@ -410,6 +416,11 @@ export class MineScene extends Phaser.Scene {
         this.finalizeFrame(deltaSeconds);
         return;
       }
+    }
+
+    if (Phaser.Input.Keyboard.JustDown(this.sellKey!) && this.tryQuickSellAtVendor()) {
+      this.finalizeFrame(deltaSeconds);
+      return;
     }
 
     if (Phaser.Input.Keyboard.JustDown(this.jumpKey!)) {
@@ -2722,6 +2733,15 @@ export class MineScene extends Phaser.Scene {
     this.updateSurfacePrompt();
   }
 
+  private tryQuickSellAtVendor() {
+    if (this.getNearbySurfaceStation() !== "vendor") {
+      return false;
+    }
+
+    this.handleVendorSellAll();
+    return true;
+  }
+
   private closeVendorOverlay() {
     this.vendorOverlay?.hide();
     this.updateSurfacePrompt();
@@ -2811,7 +2831,7 @@ export class MineScene extends Phaser.Scene {
       const sale = this.getInventorySaleSummary();
       this.surfacePromptLabel.textContent =
         sale.totalCoins > 0
-          ? `ABRIR VENDA • ${sale.totalCoins} MOEDAS`
+          ? `E ABRIR • V VENDER • ${sale.totalCoins} MOEDAS`
           : "ABRIR VENDA";
       this.surfacePrompt.dataset.station = "vendor";
     } else {
