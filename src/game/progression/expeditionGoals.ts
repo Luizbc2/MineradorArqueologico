@@ -178,6 +178,15 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     target: 2,
     perk: { miningSpeedBonus: 0.12 },
   },
+  {
+    id: "return-220",
+    title: "Rota Segura",
+    description: "Retorne a base depois de chegar a 220m.",
+    rewardLabel: "Mineração +10%",
+    type: "surfaceReturnDepth",
+    target: 220,
+    perk: { miningSpeedBonus: 0.1 },
+  },
 ];
 
 export function createDefaultExpeditionProgressionState(): ExpeditionProgressionState {
