@@ -140,6 +140,16 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     perk: { comboWindowBonus: 0.3 },
   },
   {
+    id: "collect-diamond",
+    title: "Brilho Azul",
+    description: "Colete 3 diamantes.",
+    rewardLabel: "Combo +0.25s",
+    type: "resource",
+    resource: "diamond",
+    target: 3,
+    perk: { comboWindowBonus: 0.25 },
+  },
+  {
     id: "reach-140",
     title: "Zona Profunda",
     description: "Atinga 140m de profundidade.",
