@@ -131,15 +131,27 @@ export class VendorOverlay {
       return;
     }
 
+    const bestResource = snapshot.sale.lines.reduce(
+      (best, line) => line.totalPrice > best.totalPrice ? line : best,
+      snapshot.sale.lines[0],
+    ).resource;
+
     for (const line of snapshot.sale.lines) {
       const row = createHudElement("div", "game-modal-vendor-row");
       const meta = getResourceMeta(line.resource);
+      row.classList.toggle("is-best", line.resource === bestResource);
       row.style.setProperty("--resource-accent", meta.accent);
       const marker = createHudElement("div", "game-modal-vendor-row__marker");
       const label = createHudElement("div", "game-modal-vendor-row__label");
       label.append(
         createHudElement("span", "game-modal-vendor-row__name", line.label),
-        createHudElement("span", "game-modal-vendor-row__tier", getResourceTierLabel(meta.tier)),
+        createHudElement(
+          "span",
+          "game-modal-vendor-row__tier",
+          line.resource === bestResource
+            ? `${getResourceTierLabel(meta.tier)} · melhor lote`
+            : getResourceTierLabel(meta.tier),
+        ),
       );
       const unit = createHudElement(
         "div",
