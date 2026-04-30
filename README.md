@@ -1,40 +1,47 @@
 # Minerador Arqueológico
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?style=for-the-badge&logo=typescript&logoColor=ffffff)](https://www.typescriptlang.org/)
-[![Vite](https://img.shields.io/badge/Vite-7-8b5cf6?style=for-the-badge&logo=vite&logoColor=ffffff)](https://vite.dev/)
-[![Phaser](https://img.shields.io/badge/Phaser-3-1f2937?style=for-the-badge&logo=javascript&logoColor=f7df1e)](https://phaser.io/)
-[![Vercel](https://img.shields.io/badge/Deploy-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=ffffff)](https://mineradorarqueologico.vercel.app/)
+[![Site](https://img.shields.io/badge/Link-Projeto-7dffb7?style=for-the-badge&logo=vercel&logoColor=0b1510&labelColor=0b1510)](https://mineradorarqueologico.vercel.app/)
 
-Jogo web 2D de mineração incremental desenvolvido com Phaser, TypeScript e Vite. O jogador explora uma mina em blocos, coleta minérios, vende recursos na superfície, compra picaretas melhores, evolui upgrades e completa metas de expedição.
+Jogo web 2D de mineração incremental com exploração em blocos, progressão de picaretas, upgrades, mochila limitada, venda de minérios e metas de expedição. O projeto foi pensado como um jogo casual de navegador, com visual em pixel art e sistemas de progressão inspirados em jogos de mineração.
 
-O foco do projeto é juntar uma experiência simples de jogar no navegador com sistemas de progressão, economia, inventário e interface em pixel art.
+## Stack
 
-## Link publicado
+- Jogo: Phaser 3, TypeScript
+- Build: Vite
+- Interface: HTML, CSS
+- Deploy: Vercel
 
-- Site: https://mineradorarqueologico.vercel.app/
+## Como jogar
 
-## O que tem no jogo
+- Minere blocos para coletar recursos.
+- Volte para a superfície para vender minérios.
+- Use as moedas para comprar picaretas e upgrades.
+- Desça mais fundo para liberar minérios, baús e metas melhores.
+- Complete metas de expedição para ganhar bônus permanentes.
 
-- Mundo de mineração em blocos com profundidade, recursos e baús arqueológicos.
-- Catálogo de picaretas com tiers, força, velocidade, preço e desbloqueio por profundidade.
-- Oficina com upgrades de força, velocidade, mochila, venda e moedas de baú.
-- Mochila com capacidade limitada, valor estimado, barra de preenchimento e bônus por venda cheia.
-- Posto de venda com resumo do lote, média por item e bônus ativos.
-- Sistema de metas de expedição com recompensas permanentes.
-- Cards arqueológicos coletáveis encontrados em baús.
-- Mira inteligente inspirada no modo de mineração facilitada do Terraria.
-- HUD em HTML/CSS por cima do canvas do Phaser.
-- Save local via `localStorage`.
-- Áudio procedural para passos, mineração, moedas, upgrades e eventos.
+## Estrutura
 
-## Tecnologias do projeto
+```bash
+src/
+  app/
+  assets/
+  game/
+  scenes/
+  ui/
+```
 
-- TypeScript
-- Phaser 3
-- Vite
-- HTML
-- CSS
-- Vercel
+## O que o projeto entrega
+
+- Mundo de mineração em blocos com profundidade e recursos variados
+- Catálogo de picaretas com tiers, força, velocidade e desbloqueio por profundidade
+- Oficina com upgrades de força, velocidade, mochila, venda e baús
+- Mochila com capacidade limitada, barra de preenchimento e bônus por venda cheia
+- Posto de venda com resumo do lote, média por item e bônus ativos
+- Metas de expedição com recompensas permanentes
+- Baús arqueológicos com cards colecionáveis e moedas
+- Mira inteligente para facilitar a mineração
+- Save local usando `localStorage`
+- HUD e menus em HTML/CSS integrados ao Phaser
 
 ## Como rodar localmente
 
@@ -48,57 +55,6 @@ Para gerar a build de produção:
 ```bash
 npm run build
 ```
-
-Para visualizar a build local:
-
-```bash
-npm run preview
-```
-
-## Estrutura principal
-
-```bash
-src/
-  app/
-    phaser/
-  assets/
-    pickaxes/
-    player/
-    signs/
-    surface/
-  game/
-    archaeology/
-    audio/
-    economy/
-    inventory/
-    player/
-    progression/
-    save/
-    world/
-  scenes/
-  ui/
-    hud/
-    overlays/
-    theme/
-```
-
-## Sistemas principais
-
-### Mineração
-
-O mapa é formado por tiles com diferentes materiais, durezas e recompensas. A velocidade para quebrar blocos considera a picareta equipada, upgrades comprados, profundidade e bônus de metas.
-
-### Progressão
-
-O jogador evolui comprando picaretas e upgrades, descendo mais fundo e completando metas. As metas liberam bônus permanentes como mais velocidade de mineração, maior janela de combo e velocidade de passo.
-
-### Economia
-
-Os minérios têm valores diferentes por raridade. A venda pode ser melhorada com upgrades e também ganha bônus quando a mochila volta quase cheia para a superfície.
-
-### Interface
-
-O jogo usa Phaser para o mundo e HTML/CSS para HUD, menus e overlays. Isso permite textos mais nítidos, menus mais responsivos e componentes de interface mais fáceis de ajustar.
 
 ## Autor
 
