@@ -420,6 +420,8 @@ function getPickaxeImageUrl(id: PickaxeId) {
       return pickObsidianUrl;
     case "ancientCrystal":
       return pickAncientCrystalUrl;
+    case "fossil":
+      return pickAncientCrystalUrl;
   }
 
   return pickMetalUrl;

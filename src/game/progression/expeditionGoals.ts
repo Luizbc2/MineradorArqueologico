@@ -247,6 +247,15 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     perk: { miningSpeedBonus: 0.12 },
   },
   {
+    id: "fossil-pickaxe",
+    title: "Ferramenta Ancestral",
+    description: "Leve a picareta ao nível 9.",
+    rewardLabel: "Combo +0.30s",
+    type: "pickaxe",
+    target: 9,
+    perk: { comboWindowBonus: 0.3 },
+  },
+  {
     id: "master-upgrades",
     title: "Oficina Mestra",
     description: "Compre 24 níveis de upgrades.",

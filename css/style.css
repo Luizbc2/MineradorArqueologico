@@ -915,6 +915,10 @@ body { image-rendering: auto; }
   object-fit: contain;
 }
 
+.pickaxe-image--fossil {
+  filter: sepia(0.65) saturate(1.25) brightness(1.08);
+}
+
 .game-modal-pickaxe-card__stats {
   display: grid;
   grid-template-columns: minmax(42px, 0.82fr) minmax(58px, 1.08fr) minmax(48px, 0.92fr);
