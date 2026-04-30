@@ -9,6 +9,9 @@ export const archaeologyFacts = [
   "A Cerâmica Pintada de Telêmaco Borba usava pigmentos minerais e padrões geométricos em contextos domésticos e rituais.",
   "As Pinturas do Canyon Guartelá preservam narrativas visuais associadas à caça, fertilidade e memória ancestral.",
   "As Cerâmicas Guarani do litoral ajudam a reconstruir aspectos da vida cotidiana, do simbolismo e da religiosidade indígena.",
+  "Fragmentos fossilizados encontrados em camadas profundas ajudam a indicar mudanças ambientais antigas preservadas na rocha.",
+  "Marcas de ossos mineralizados podem revelar antigas rotas de água, soterramento e transformação do solo ao longo do tempo.",
+  "A análise de fósseis e sedimentos permite relacionar vestígios naturais com a ocupação humana de uma região.",
 ] as const;
 
 export type ArchaeologyDeck = {
