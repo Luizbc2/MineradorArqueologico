@@ -1939,7 +1939,7 @@ export class MineScene extends Phaser.Scene {
     const text = this.add.text(
       worldX,
       worldY - 10,
-      `+1 ${rewardState.lootLabel}`,
+      `+${quantity} ${rewardState.lootLabel}`,
       makeGameTextStyle({
         family: "display",
         color,
