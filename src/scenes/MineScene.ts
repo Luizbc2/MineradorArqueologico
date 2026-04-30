@@ -1084,9 +1084,20 @@ export class MineScene extends Phaser.Scene {
       }
     }
 
-    if (kind === "gold" || kind === "diamond" || kind === "obsidian") {
+    if (kind === "gold" || kind === "diamond" || kind === "obsidian" || kind === "fossil") {
       ground.fillStyle(material.top, 0.22);
       ground.fillRect(tileX + 6, tileY + 6, 20, 20);
+    }
+
+    if (kind === "fossil") {
+      ground.fillStyle(material.glow ?? material.detail, 0.16);
+      ground.fillRect(tileX + 5, tileY + 6, 22, 20);
+      ground.fillStyle(material.detail, 0.92);
+      ground.fillRect(tileX + 9, tileY + 12, 14, 4);
+      ground.fillRect(tileX + 12, tileY + 9, 8, 10);
+      ground.fillStyle(material.edge, 0.55);
+      ground.fillRect(tileX + 10, tileY + 17, 3, 5);
+      ground.fillRect(tileX + 19, tileY + 17, 3, 5);
     }
 
     if (kind === "obsidian") {
