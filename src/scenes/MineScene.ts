@@ -1800,14 +1800,20 @@ export class MineScene extends Phaser.Scene {
       return;
     }
 
-    this.inventory[resource] += 1;
+    const quantity = this.rollResourceDropQuantity();
+    this.inventory[resource] += quantity;
     const rewardState = this.registerReward(resource);
-    this.syncExpeditionProgress(this.expeditionProgression.applyResource(resource));
+    this.syncExpeditionProgress(this.expeditionProgression.applyResource(resource, quantity));
     this.game.events.emit("inventory:changed", { ...this.inventory });
     this.saveProgression();
     this.updateHud();
     this.audioDirector?.playPickup(resource, rewardState.streak);
-    this.spawnPickupFeedback(tileX, tileY, this.inventory[resource], rewardState);
+    this.spawnPickupFeedback(tileX, tileY, this.inventory[resource], rewardState, quantity);
+  }
+
+  private rollResourceDropQuantity() {
+    const chance = getUpgradeBonusSummary(this.upgradeState).extraDropChance;
+    return chance > 0 && Math.random() < chance ? 2 : 1;
   }
 
   private canSellInventory() {
@@ -1922,6 +1928,7 @@ export class MineScene extends Phaser.Scene {
       lootLabel: string;
       momentum: number;
     },
+    quantity = 1,
   ) {
     const worldX = tileX * TILE_SIZE + TILE_SIZE / 2;
     const worldY = tileY * TILE_SIZE + TILE_SIZE / 2;

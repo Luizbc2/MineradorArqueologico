@@ -4,6 +4,7 @@ export const upgradeIds = [
   "backpack",
   "saleValue",
   "chestValue",
+  "yieldChance",
 ] as const;
 
 export type UpgradeId = (typeof upgradeIds)[number];
@@ -13,7 +14,8 @@ export type UpgradeEffectKind =
   | "speedMultiplier"
   | "backpackCapacity"
   | "saleMultiplier"
-  | "chestCoinMultiplier";
+  | "chestCoinMultiplier"
+  | "extraDropChance";
 
 export type UpgradeDefinition = {
   id: UpgradeId;
@@ -76,6 +78,16 @@ export const upgradeCatalog: Record<UpgradeId, UpgradeDefinition> = {
     effectKind: "chestCoinMultiplier",
     effectPerLevel: 0.08,
     maxLevel: 10,
+  },
+  yieldChance: {
+    id: "yieldChance",
+    name: "Mais Rendimento",
+    description: "Dá chance de receber um minério extra ao minerar.",
+    baseCost: 260,
+    growth: 1.52,
+    effectKind: "extraDropChance",
+    effectPerLevel: 0.025,
+    maxLevel: 12,
   },
 };
 
