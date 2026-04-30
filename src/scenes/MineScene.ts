@@ -1869,6 +1869,7 @@ export class MineScene extends Phaser.Scene {
       this.inventory[resource] = 0;
     }
 
+    this.syncExpeditionProgress(this.expeditionProgression.applyCoinsSold(sale.totalCoins));
     this.game.events.emit("economy:changed", { coins: this.coins });
     this.game.events.emit("inventory:changed", { ...this.inventory });
     this.saveProgression();

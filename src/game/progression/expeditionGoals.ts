@@ -14,6 +14,7 @@ type ExpeditionGoalType =
   | "card"
   | "pickaxe"
   | "upgrade"
+  | "coinsSold"
   | "surfaceReturnDepth";
 
 type ExpeditionGoalDefinition = {
@@ -35,6 +36,7 @@ export type ExpeditionProgressionState = {
   cardsFound: number;
   pickaxeLevel: number;
   upgradeLevels: number;
+  coinsSold: number;
 };
 
 type GoalProgressView = {
@@ -151,6 +153,15 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     perk: { comboWindowBonus: 0.3 },
   },
   {
+    id: "sell-500",
+    title: "Primeiro Caixa",
+    description: "Venda 500 moedas em minérios.",
+    rewardLabel: "Velocidade de passo +5%",
+    type: "coinsSold",
+    target: 500,
+    perk: { moveTempoBonus: 0.05 },
+  },
+  {
     id: "collect-diamond",
     title: "Brilho Azul",
     description: "Colete 3 diamantes.",
@@ -226,6 +237,15 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     perk: { miningSpeedBonus: 0.1 },
   },
   {
+    id: "sell-5000",
+    title: "Caixa Forte",
+    description: "Venda 5.000 moedas em minérios.",
+    rewardLabel: "Combo +0.25s",
+    type: "coinsSold",
+    target: 5000,
+    perk: { comboWindowBonus: 0.25 },
+  },
+  {
     id: "ancient-crystal-pickaxe",
     title: "Catálogo Completo",
     description: "Leve a picareta ao nível 8.",
@@ -245,6 +265,7 @@ export function createDefaultExpeditionProgressionState(): ExpeditionProgression
     cardsFound: 0,
     pickaxeLevel: 1,
     upgradeLevels: 0,
+    coinsSold: 0,
   };
 }
 
@@ -261,6 +282,7 @@ export function normalizeExpeditionProgressionState(
     cardsFound: normalizePositiveInteger(state.cardsFound),
     pickaxeLevel: Math.max(1, normalizePositiveInteger(state.pickaxeLevel) || defaults.pickaxeLevel),
     upgradeLevels: normalizePositiveInteger(state.upgradeLevels),
+    coinsSold: normalizePositiveInteger(state.coinsSold),
   };
 }
 
@@ -314,6 +336,10 @@ export function createExpeditionProgression(initialState?: Partial<ExpeditionPro
       stats.upgradeLevels = Math.max(stats.upgradeLevels, levels);
       return resolveProgress(buildSnapshot);
     },
+    applyCoinsSold(coins: number) {
+      stats.coinsSold += Math.max(0, Math.floor(coins));
+      return resolveProgress(buildSnapshot);
+    },
     applySurfaceReturn(fromDepth: number) {
       stats.maxReturnDepth = Math.max(stats.maxReturnDepth, fromDepth);
       return resolveProgress(buildSnapshot);
@@ -365,6 +391,8 @@ function isGoalComplete(goal: ExpeditionGoalDefinition, stats: ExpeditionProgres
       return stats.pickaxeLevel >= goal.target;
     case "upgrade":
       return stats.upgradeLevels >= goal.target;
+    case "coinsSold":
+      return stats.coinsSold >= goal.target;
     case "surfaceReturnDepth":
       return stats.maxReturnDepth >= goal.target;
   }
@@ -384,6 +412,8 @@ function getGoalCurrent(goal: ExpeditionGoalDefinition, stats: ExpeditionProgres
       return stats.pickaxeLevel;
     case "upgrade":
       return stats.upgradeLevels;
+    case "coinsSold":
+      return stats.coinsSold;
     case "surfaceReturnDepth":
       return stats.maxReturnDepth;
   }
