@@ -1,6 +1,6 @@
 import type { TileKind } from "../world/types";
 
-export const resourceKinds = ["coal", "iron", "gold", "diamond", "obsidian", "crystal"] as const;
+export const resourceKinds = ["coal", "iron", "gold", "diamond", "obsidian", "crystal", "fossil"] as const;
 
 export type ResourceKind = (typeof resourceKinds)[number];
 export type ResourceInventory = Record<ResourceKind, number>;
@@ -20,6 +20,7 @@ const tileToResourceMap: Partial<Record<TileKind, ResourceKind>> = {
   diamond: "diamond",
   obsidian: "obsidian",
   crystal: "crystal",
+  fossil: "fossil",
 };
 
 const resourceMetaMap: Record<ResourceKind, ResourceMeta> = {
@@ -59,6 +60,12 @@ const resourceMetaMap: Record<ResourceKind, ResourceMeta> = {
     value: 8,
     accent: "#d9c5ff",
   },
+  fossil: {
+    label: "Fóssil",
+    tier: "mythic",
+    value: 10,
+    accent: "#ffe7a6",
+  },
 };
 
 export function createResourceInventory(): ResourceInventory {
@@ -69,6 +76,7 @@ export function createResourceInventory(): ResourceInventory {
     diamond: 0,
     obsidian: 0,
     crystal: 0,
+    fossil: 0,
   };
 }
 

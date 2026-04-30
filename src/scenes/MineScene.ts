@@ -1075,7 +1075,7 @@ export class MineScene extends Phaser.Scene {
       }
     }
 
-    if (kind === "coal" || kind === "iron" || kind === "gold" || kind === "diamond" || kind === "obsidian") {
+    if (kind === "coal" || kind === "iron" || kind === "gold" || kind === "diamond" || kind === "obsidian" || kind === "fossil") {
       for (let cluster = 0; cluster < 2; cluster += 1) {
         const px = tileX + 7 + ((variant + cluster * 7) % 14);
         const py = tileY + 8 + ((variant * 2 + cluster * 9) % 12);

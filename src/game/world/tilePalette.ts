@@ -74,6 +74,13 @@ export const tilePalette: Record<TileKind, TileMaterial> = {
     detail: 0xf5efff,
     glow: 0xb996ff,
   },
+  fossil: {
+    base: 0x6d5a3a,
+    top: 0xd8c48d,
+    edge: 0x332716,
+    detail: 0xfff3c7,
+    glow: 0xe7bd63,
+  },
   chest: {
     base: 0x92541e,
     top: 0xc78435,
