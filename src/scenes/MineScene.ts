@@ -121,6 +121,7 @@ const SMART_MINING_REACH_TILES = MOUSE_MINING_REACH_TILES;
 const BASE_BACKPACK_CAPACITY = 24;
 const FULL_BACKPACK_SELL_THRESHOLD = 0.9;
 const FULL_BACKPACK_SELL_BONUS = 0.1;
+const MAX_COMBO_MINING_SPEED_BONUS = 0.25;
 
 export class MineScene extends Phaser.Scene {
   private worldGrid: WorldGrid = [];
@@ -1401,9 +1402,10 @@ export class MineScene extends Phaser.Scene {
     const equippedPickaxe = getEquippedPickaxe(this.pickaxeState);
     const upgradeBonuses = getUpgradeBonusSummary(this.upgradeState);
     const depthHardnessMultiplier = this.getDepthHardnessMultiplier(target.y);
+    const comboMiningBonus = Math.min(MAX_COMBO_MINING_SPEED_BONUS, this.rewardComboCount * 0.01);
     const speedMultiplier =
       equippedPickaxe.baseSpeed *
-      (1 + this.progressionSnapshot.perks.miningSpeedBonus + upgradeBonuses.speedMultiplier);
+      (1 + this.progressionSnapshot.perks.miningSpeedBonus + upgradeBonuses.speedMultiplier + comboMiningBonus);
     const effectivePower = equippedPickaxe.power + upgradeBonuses.flatPower;
     const required = Math.max(
       0.08,
