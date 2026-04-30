@@ -122,6 +122,7 @@ const BASE_BACKPACK_CAPACITY = 24;
 const FULL_BACKPACK_SELL_THRESHOLD = 0.9;
 const FULL_BACKPACK_SELL_BONUS = 0.1;
 const MAX_COMBO_MINING_SPEED_BONUS = 0.25;
+const BACKPACK_NEAR_FULL_THRESHOLD = 0.8;
 
 export class MineScene extends Phaser.Scene {
   private worldGrid: WorldGrid = [];
@@ -1800,15 +1801,32 @@ export class MineScene extends Phaser.Scene {
       return;
     }
 
-    const quantity = this.rollResourceDropQuantity();
+    const previousLoad = this.getInventoryLoad();
+    const capacity = this.getBackpackCapacity();
+    const quantity = Math.min(this.rollResourceDropQuantity(), Math.max(1, capacity - previousLoad));
     this.inventory[resource] += quantity;
     const rewardState = this.registerReward(resource);
     this.syncExpeditionProgress(this.expeditionProgression.applyResource(resource, quantity));
     this.game.events.emit("inventory:changed", { ...this.inventory });
     this.saveProgression();
     this.updateHud();
+    this.showBackpackLoadWarning(previousLoad, this.getInventoryLoad(), capacity);
     this.audioDirector?.playPickup(resource, rewardState.streak);
     this.spawnPickupFeedback(tileX, tileY, this.inventory[resource], rewardState, quantity);
+  }
+
+  private showBackpackLoadWarning(previousLoad: number, nextLoad: number, capacity: number) {
+    if (nextLoad >= capacity && previousLoad < capacity) {
+      this.showSurfaceToast("Mochila cheia. Volte para vender.");
+      return;
+    }
+
+    if (
+      previousLoad / capacity < BACKPACK_NEAR_FULL_THRESHOLD &&
+      nextLoad / capacity >= BACKPACK_NEAR_FULL_THRESHOLD
+    ) {
+      this.showSurfaceToast("Mochila quase cheia.");
+    }
   }
 
   private rollResourceDropQuantity() {
