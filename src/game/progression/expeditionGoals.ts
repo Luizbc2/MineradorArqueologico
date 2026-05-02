@@ -282,6 +282,34 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     target: 5000,
     perk: { comboWindowBonus: 0.25 },
   },
+  {
+    id: "reach-420",
+    title: "Veio Prismático",
+    description: "Atinga 420m de profundidade.",
+    rewardLabel: "Mineração +12%",
+    type: "depth",
+    target: 420,
+    perk: { miningSpeedBonus: 0.12 },
+  },
+  {
+    id: "collect-prismatic",
+    title: "Luz da Caverna",
+    description: "Colete 2 minérios prismáticos.",
+    rewardLabel: "Combo +0.30s",
+    type: "resource",
+    resource: "prismatic",
+    target: 2,
+    perk: { comboWindowBonus: 0.3 },
+  },
+  {
+    id: "sell-20000",
+    title: "Tesouro da Base",
+    description: "Venda 20.000 moedas em minérios.",
+    rewardLabel: "Velocidade de passo +8%",
+    type: "coinsSold",
+    target: 20000,
+    perk: { moveTempoBonus: 0.08 },
+  },
 ];
 
 export function createDefaultExpeditionProgressionState(): ExpeditionProgressionState {
