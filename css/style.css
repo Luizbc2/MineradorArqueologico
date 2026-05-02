@@ -925,8 +925,9 @@ body { image-rendering: auto; }
 
 .game-modal-pickaxe-card__stats {
   display: grid;
-  grid-template-columns: minmax(42px, 0.82fr) minmax(58px, 1.08fr) minmax(48px, 0.92fr);
-  gap: 7px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  align-items: end;
 }
 
 .game-modal-pickaxe-card__stat {
@@ -937,29 +938,39 @@ body { image-rendering: auto; }
 }
 
 .game-modal-pickaxe-card__stat:first-child {
-  text-align: left;
+  text-align: center;
 }
 
 .game-modal-pickaxe-card__stat:last-child {
-  text-align: right;
+  text-align: center;
 }
 
 .game-modal-pickaxe-card__stat span {
-  font-size: 11px;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .game-modal-pickaxe-card__stat strong {
-  font-size: 22px;
+  min-width: 0;
+  overflow: hidden;
+  font-size: clamp(16px, 2.4vw, 22px);
   line-height: 1;
   font-weight: 800;
   color: #fffaf0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .game-modal-pickaxe-card .game-modal-button {
   width: 100%;
+  min-height: 48px;
   min-width: 0;
   padding: 0 8px;
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 1.08;
   white-space: normal;
 }
 
