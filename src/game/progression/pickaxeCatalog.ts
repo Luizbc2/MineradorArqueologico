@@ -8,6 +8,7 @@ export const pickaxeIds = [
   "obsidian",
   "ancientCrystal",
   "fossil",
+  "prismatic",
 ] as const;
 
 export type PickaxeId = (typeof pickaxeIds)[number];
@@ -103,6 +104,15 @@ export const pickaxeCatalog: Record<PickaxeId, PickaxeDefinition> = {
     power: 780,
     baseSpeed: 1.68,
     unlockDepth: 320,
+  },
+  prismatic: {
+    id: "prismatic",
+    name: "Picareta Prismática",
+    tier: 10,
+    cost: 9800,
+    power: 1150,
+    baseSpeed: 1.82,
+    unlockDepth: 420,
   },
 };
 
