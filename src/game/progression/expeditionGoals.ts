@@ -247,6 +247,15 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     perk: { miningSpeedBonus: 0.12 },
   },
   {
+    id: "ancient-crystal-pickaxe",
+    title: "Catálogo Completo",
+    description: "Leve a picareta ao nível 8.",
+    rewardLabel: "Combo +0.35s",
+    type: "pickaxe",
+    target: 8,
+    perk: { comboWindowBonus: 0.35 },
+  },
+  {
     id: "fossil-pickaxe",
     title: "Ferramenta Ancestral",
     description: "Leve a picareta ao nível 9.",
@@ -272,15 +281,6 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     type: "coinsSold",
     target: 5000,
     perk: { comboWindowBonus: 0.25 },
-  },
-  {
-    id: "ancient-crystal-pickaxe",
-    title: "Catálogo Completo",
-    description: "Leve a picareta ao nível 8.",
-    rewardLabel: "Combo +0.35s",
-    type: "pickaxe",
-    target: 8,
-    perk: { comboWindowBonus: 0.35 },
   },
 ];
 
