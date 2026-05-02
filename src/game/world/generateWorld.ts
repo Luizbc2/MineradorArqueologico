@@ -8,7 +8,7 @@ import type { TileCell, TileKind, WorldGrid } from "./types";
 
 type RandomFn = () => number;
 type OreChance = {
-  kind: Extract<TileKind, "coal" | "iron" | "gold" | "diamond" | "obsidian" | "crystal" | "fossil">;
+  kind: Extract<TileKind, "coal" | "iron" | "gold" | "diamond" | "obsidian" | "crystal" | "fossil" | "prismatic">;
   chance: number;
 };
 
@@ -66,14 +66,27 @@ function getOreChances(depth: number): OreChance[] {
     ];
   }
 
-  return [
-    { kind: "coal", chance: 0.006 },
-    { kind: "iron", chance: 0.018 },
-    { kind: "gold", chance: 0.044 },
+  if (depth < 360) {
+    return [
+      { kind: "coal", chance: 0.006 },
+      { kind: "iron", chance: 0.018 },
+      { kind: "gold", chance: 0.044 },
       { kind: "diamond", chance: 0.024 },
       { kind: "obsidian", chance: 0.018 },
       { kind: "crystal", chance: 0.014 },
       { kind: "fossil", chance: depth > 300 ? 0.01 : 0.004 },
+    ];
+  }
+
+  return [
+    { kind: "coal", chance: 0.006 },
+    { kind: "iron", chance: 0.014 },
+    { kind: "gold", chance: 0.036 },
+    { kind: "diamond", chance: 0.026 },
+    { kind: "obsidian", chance: 0.022 },
+    { kind: "crystal", chance: 0.018 },
+    { kind: "fossil", chance: 0.014 },
+    { kind: "prismatic", chance: 0.006 },
   ];
 }
 
@@ -134,7 +147,7 @@ export function generateWorld(seed = 0x0badc0de): WorldGrid {
             }
           }
 
-          if (!nearChest && kind !== "obsidian" && kind !== "crystal" && kind !== "fossil") {
+          if (!nearChest && kind !== "obsidian" && kind !== "crystal" && kind !== "fossil" && kind !== "prismatic") {
             kind = "chest";
             rowChestCount[y] += 1;
           }
@@ -164,7 +177,13 @@ export function generateWorld(seed = 0x0badc0de): WorldGrid {
         continue;
       }
 
-      if (current === "crystal" || current === "obsidian" || current === "fossil" || (current === "diamond" && random() < 0.6)) {
+      if (
+        current === "crystal" ||
+        current === "obsidian" ||
+        current === "fossil" ||
+        current === "prismatic" ||
+        (current === "diamond" && random() < 0.6)
+      ) {
         continue;
       }
 
