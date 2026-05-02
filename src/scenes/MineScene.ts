@@ -1075,7 +1075,15 @@ export class MineScene extends Phaser.Scene {
       }
     }
 
-    if (kind === "coal" || kind === "iron" || kind === "gold" || kind === "diamond" || kind === "obsidian" || kind === "fossil") {
+    if (
+      kind === "coal" ||
+      kind === "iron" ||
+      kind === "gold" ||
+      kind === "diamond" ||
+      kind === "obsidian" ||
+      kind === "fossil" ||
+      kind === "prismatic"
+    ) {
       for (let cluster = 0; cluster < 2; cluster += 1) {
         const px = tileX + 7 + ((variant + cluster * 7) % 14);
         const py = tileY + 8 + ((variant * 2 + cluster * 9) % 12);
@@ -1084,7 +1092,7 @@ export class MineScene extends Phaser.Scene {
       }
     }
 
-    if (kind === "gold" || kind === "diamond" || kind === "obsidian" || kind === "fossil") {
+    if (kind === "gold" || kind === "diamond" || kind === "obsidian" || kind === "fossil" || kind === "prismatic") {
       ground.fillStyle(material.top, 0.22);
       ground.fillRect(tileX + 6, tileY + 6, 20, 20);
     }
@@ -1121,6 +1129,24 @@ export class MineScene extends Phaser.Scene {
         ground.fillRect(px + 1, py - 2, 2, 2);
         ground.fillStyle(material.edge, 0.62);
         ground.fillRect(px + 2, py + 2, 2, 6);
+      }
+    }
+
+    if (kind === "prismatic") {
+      ground.fillStyle(material.glow ?? material.detail, 0.16);
+      ground.fillRect(tileX + 4, tileY + 4, 24, 24);
+
+      for (let shard = 0; shard < 4; shard += 1) {
+        const px = tileX + 6 + ((variant + shard * 5) % 17);
+        const py = tileY + 7 + ((variant * 2 + shard * 6) % 14);
+        const shardColor = shard % 2 === 0 ? material.detail : material.top;
+
+        ground.fillStyle(shardColor, 0.96);
+        ground.fillRect(px, py, 3, 9);
+        ground.fillStyle(material.edge, 0.5);
+        ground.fillRect(px + 2, py + 2, 2, 7);
+        ground.fillStyle(material.glow ?? material.detail, 0.38);
+        ground.fillRect(px - 1, py - 1, 5, 2);
       }
     }
 
