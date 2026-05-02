@@ -28,6 +28,7 @@ export const resourceSellValues: Record<ResourceKind, number> = {
   obsidian: 64,
   crystal: 92,
   fossil: 128,
+  prismatic: 185,
 };
 
 export function getResourceSellValue(resource: ResourceKind) {
