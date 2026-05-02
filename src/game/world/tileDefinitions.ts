@@ -17,6 +17,7 @@ export const tileDefinitions: Record<TileKind, TileDefinition> = {
   obsidian: { breakable: true, hardness: 3.8 },
   crystal: { breakable: true, hardness: 4.4 },
   fossil: { breakable: true, hardness: 5.2 },
+  prismatic: { breakable: true, hardness: 6.4 },
   chest: { breakable: false, hardness: 0 },
   bedrock: { breakable: false, hardness: 999 },
 };

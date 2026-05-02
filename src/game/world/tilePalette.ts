@@ -81,6 +81,13 @@ export const tilePalette: Record<TileKind, TileMaterial> = {
     detail: 0xfff3c7,
     glow: 0xe7bd63,
   },
+  prismatic: {
+    base: 0x335773,
+    top: 0xb8fff6,
+    edge: 0x16233b,
+    detail: 0xffe0ff,
+    glow: 0x89f7ff,
+  },
   chest: {
     base: 0x92541e,
     top: 0xc78435,

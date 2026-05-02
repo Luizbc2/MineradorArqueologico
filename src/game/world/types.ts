@@ -10,6 +10,7 @@ export const tileKinds = [
   "obsidian",
   "crystal",
   "fossil",
+  "prismatic",
   "chest",
   "bedrock",
 ] as const;
