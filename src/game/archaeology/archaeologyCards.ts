@@ -12,6 +12,8 @@ export const archaeologyFacts = [
   "Fragmentos fossilizados encontrados em camadas profundas ajudam a indicar mudanças ambientais antigas preservadas na rocha.",
   "Marcas de ossos mineralizados podem revelar antigas rotas de água, soterramento e transformação do solo ao longo do tempo.",
   "A análise de fósseis e sedimentos permite relacionar vestígios naturais com a ocupação humana de uma região.",
+  "Cristais prismáticos em veios profundos podem surgir quando minerais diferentes se reorganizam sob pressão e temperatura elevadas.",
+  "Camadas muito profundas guardam pistas sobre ciclos geológicos longos, bem anteriores aos vestígios humanos encontrados na superfície.",
 ] as const;
 
 export type ArchaeologyDeck = {
