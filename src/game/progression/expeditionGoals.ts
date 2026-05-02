@@ -302,6 +302,15 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     perk: { comboWindowBonus: 0.3 },
   },
   {
+    id: "prismatic-pickaxe",
+    title: "Ferramenta Radiante",
+    description: "Leve a picareta ao nível 10.",
+    rewardLabel: "Mineração +14%",
+    type: "pickaxe",
+    target: 10,
+    perk: { miningSpeedBonus: 0.14 },
+  },
+  {
     id: "sell-20000",
     title: "Tesouro da Base",
     description: "Venda 20.000 moedas em minérios.",
