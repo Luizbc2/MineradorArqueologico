@@ -9,6 +9,7 @@ export const pickaxeIds = [
   "ancientCrystal",
   "fossil",
   "prismatic",
+  "galactic",
 ] as const;
 
 export type PickaxeId = (typeof pickaxeIds)[number];
@@ -113,6 +114,15 @@ export const pickaxeCatalog: Record<PickaxeId, PickaxeDefinition> = {
     power: 1150,
     baseSpeed: 1.82,
     unlockDepth: 420,
+  },
+  galactic: {
+    id: "galactic",
+    name: "Picareta Galáctica",
+    tier: 11,
+    cost: 16000,
+    power: 1750,
+    baseSpeed: 2,
+    unlockDepth: 560,
   },
 };
 
