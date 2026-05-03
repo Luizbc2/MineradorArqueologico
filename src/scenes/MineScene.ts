@@ -1082,7 +1082,8 @@ export class MineScene extends Phaser.Scene {
       kind === "diamond" ||
       kind === "obsidian" ||
       kind === "fossil" ||
-      kind === "prismatic"
+      kind === "prismatic" ||
+      kind === "galactic"
     ) {
       for (let cluster = 0; cluster < 2; cluster += 1) {
         const px = tileX + 7 + ((variant + cluster * 7) % 14);
@@ -1092,7 +1093,14 @@ export class MineScene extends Phaser.Scene {
       }
     }
 
-    if (kind === "gold" || kind === "diamond" || kind === "obsidian" || kind === "fossil" || kind === "prismatic") {
+    if (
+      kind === "gold" ||
+      kind === "diamond" ||
+      kind === "obsidian" ||
+      kind === "fossil" ||
+      kind === "prismatic" ||
+      kind === "galactic"
+    ) {
       ground.fillStyle(material.top, 0.22);
       ground.fillRect(tileX + 6, tileY + 6, 20, 20);
     }
@@ -1148,6 +1156,28 @@ export class MineScene extends Phaser.Scene {
         ground.fillStyle(material.glow ?? material.detail, 0.38);
         ground.fillRect(px - 1, py - 1, 5, 2);
       }
+    }
+
+    if (kind === "galactic") {
+      ground.fillStyle(material.glow ?? material.detail, 0.2);
+      ground.fillRect(tileX + 4, tileY + 4, 24, 24);
+      ground.fillStyle(material.edge, 0.58);
+      ground.fillRect(tileX + 7, tileY + 8, 18, 17);
+
+      for (let star = 0; star < 5; star += 1) {
+        const px = tileX + 6 + ((variant + star * 7) % 18);
+        const py = tileY + 6 + ((variant * 3 + star * 5) % 18);
+        const size = star % 2 === 0 ? 2 : 1;
+
+        ground.fillStyle(star % 2 === 0 ? material.detail : material.top, 0.98);
+        ground.fillRect(px, py, size, size);
+        ground.fillStyle(material.glow ?? material.detail, 0.34);
+        ground.fillRect(px - 1, py, size + 2, 1);
+      }
+
+      ground.fillStyle(material.detail, 0.85);
+      ground.fillRect(tileX + 10, tileY + 14, 12, 3);
+      ground.fillRect(tileX + 14, tileY + 10, 4, 11);
     }
 
     if (kind === "chest") {
