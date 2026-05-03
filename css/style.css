@@ -923,6 +923,10 @@ body { image-rendering: auto; }
   filter: hue-rotate(42deg) saturate(1.35) brightness(1.16);
 }
 
+.pickaxe-image--galactic {
+  filter: hue-rotate(88deg) saturate(1.55) brightness(1.2);
+}
+
 .game-modal-pickaxe-card__stats {
   display: grid;
   grid-template-columns: minmax(48px, 0.9fr) minmax(54px, 1fr) minmax(54px, 1fr);
