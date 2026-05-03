@@ -88,6 +88,13 @@ export const tilePalette: Record<TileKind, TileMaterial> = {
     detail: 0xffe0ff,
     glow: 0x89f7ff,
   },
+  galactic: {
+    base: 0x38275f,
+    top: 0xf5d4ff,
+    edge: 0x120923,
+    detail: 0x9ffcff,
+    glow: 0xf6a6ff,
+  },
   chest: {
     base: 0x92541e,
     top: 0xc78435,
