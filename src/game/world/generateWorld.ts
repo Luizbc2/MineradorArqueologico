@@ -8,7 +8,7 @@ import type { TileCell, TileKind, WorldGrid } from "./types";
 
 type RandomFn = () => number;
 type OreChance = {
-  kind: Extract<TileKind, "coal" | "iron" | "gold" | "diamond" | "obsidian" | "crystal" | "fossil" | "prismatic">;
+  kind: Extract<TileKind, "coal" | "iron" | "gold" | "diamond" | "obsidian" | "crystal" | "fossil" | "prismatic" | "galactic">;
   chance: number;
 };
 
@@ -78,15 +78,29 @@ function getOreChances(depth: number): OreChance[] {
     ];
   }
 
+  if (depth < 520) {
+    return [
+      { kind: "coal", chance: 0.006 },
+      { kind: "iron", chance: 0.014 },
+      { kind: "gold", chance: 0.036 },
+      { kind: "diamond", chance: 0.026 },
+      { kind: "obsidian", chance: 0.022 },
+      { kind: "crystal", chance: 0.018 },
+      { kind: "fossil", chance: 0.014 },
+      { kind: "prismatic", chance: 0.006 },
+    ];
+  }
+
   return [
     { kind: "coal", chance: 0.006 },
-    { kind: "iron", chance: 0.014 },
-    { kind: "gold", chance: 0.036 },
+    { kind: "iron", chance: 0.012 },
+    { kind: "gold", chance: 0.03 },
     { kind: "diamond", chance: 0.026 },
-    { kind: "obsidian", chance: 0.022 },
-    { kind: "crystal", chance: 0.018 },
-    { kind: "fossil", chance: 0.014 },
-    { kind: "prismatic", chance: 0.006 },
+    { kind: "obsidian", chance: 0.024 },
+    { kind: "crystal", chance: 0.02 },
+    { kind: "fossil", chance: 0.016 },
+    { kind: "prismatic", chance: 0.01 },
+    { kind: "galactic", chance: 0.004 },
   ];
 }
 
@@ -147,7 +161,14 @@ export function generateWorld(seed = 0x0badc0de): WorldGrid {
             }
           }
 
-          if (!nearChest && kind !== "obsidian" && kind !== "crystal" && kind !== "fossil" && kind !== "prismatic") {
+          if (
+            !nearChest &&
+            kind !== "obsidian" &&
+            kind !== "crystal" &&
+            kind !== "fossil" &&
+            kind !== "prismatic" &&
+            kind !== "galactic"
+          ) {
             kind = "chest";
             rowChestCount[y] += 1;
           }
@@ -182,6 +203,7 @@ export function generateWorld(seed = 0x0badc0de): WorldGrid {
         current === "obsidian" ||
         current === "fossil" ||
         current === "prismatic" ||
+        current === "galactic" ||
         (current === "diamond" && random() < 0.6)
       ) {
         continue;
