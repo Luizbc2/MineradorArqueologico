@@ -1252,6 +1252,9 @@ body { image-rendering: auto; }
 .resource-diamond .game-hud-resource__icon { color: #89dff5; }
 .resource-obsidian .game-hud-resource__icon { color: #b7a3f2; }
 .resource-crystal .game-hud-resource__icon { color: #d9c5ff; }
+.resource-fossil .game-hud-resource__icon { color: #ffe7a6; }
+.resource-prismatic .game-hud-resource__icon { color: #b8fff6; }
+.resource-galactic .game-hud-resource__icon { color: #f5d4ff; }
 #game-root { display:flex; flex-direction:column; min-height:100vh; }
 
 .pixel-font { font-family:'Sora', 'Segoe UI', sans-serif; }
