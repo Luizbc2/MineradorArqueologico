@@ -339,6 +339,15 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     perk: { comboWindowBonus: 0.35 },
   },
   {
+    id: "galactic-pickaxe",
+    title: "Catálogo Cósmico",
+    description: "Leve a picareta ao nível 11.",
+    rewardLabel: "Mineração +16%",
+    type: "pickaxe",
+    target: 11,
+    perk: { miningSpeedBonus: 0.16 },
+  },
+  {
     id: "sell-50000",
     title: "Fortuna Profunda",
     description: "Venda 50.000 moedas em minérios.",
