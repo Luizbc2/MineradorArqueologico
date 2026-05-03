@@ -319,6 +319,34 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     target: 20000,
     perk: { moveTempoBonus: 0.08 },
   },
+  {
+    id: "reach-560",
+    title: "Mina Galáctica",
+    description: "Atinga 560m de profundidade.",
+    rewardLabel: "Mineração +14%",
+    type: "depth",
+    target: 560,
+    perk: { miningSpeedBonus: 0.14 },
+  },
+  {
+    id: "collect-galactic",
+    title: "Estrela Enterrada",
+    description: "Colete 2 minérios galácticos.",
+    rewardLabel: "Combo +0.35s",
+    type: "resource",
+    resource: "galactic",
+    target: 2,
+    perk: { comboWindowBonus: 0.35 },
+  },
+  {
+    id: "sell-50000",
+    title: "Fortuna Profunda",
+    description: "Venda 50.000 moedas em minérios.",
+    rewardLabel: "Velocidade de passo +10%",
+    type: "coinsSold",
+    target: 50000,
+    perk: { moveTempoBonus: 0.1 },
+  },
 ];
 
 export function createDefaultExpeditionProgressionState(): ExpeditionProgressionState {
