@@ -14,6 +14,8 @@ export const archaeologyFacts = [
   "A análise de fósseis e sedimentos permite relacionar vestígios naturais com a ocupação humana de uma região.",
   "Cristais prismáticos em veios profundos podem surgir quando minerais diferentes se reorganizam sob pressão e temperatura elevadas.",
   "Camadas muito profundas guardam pistas sobre ciclos geológicos longos, bem anteriores aos vestígios humanos encontrados na superfície.",
+  "Veios galácticos do jogo representam minerais raríssimos imaginários, inspirados em rochas com brilho metálico e inclusões cristalinas.",
+  "Quanto mais profunda a camada, maior a pressão sobre os sedimentos e maior a chance de alterações minerais incomuns.",
 ] as const;
 
 export type ArchaeologyDeck = {
