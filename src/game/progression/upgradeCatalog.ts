@@ -6,6 +6,7 @@ export const upgradeIds = [
   "chestValue",
   "yieldChance",
   "comboFocus",
+  "stepSpeed",
 ] as const;
 
 export type UpgradeId = (typeof upgradeIds)[number];
@@ -17,7 +18,8 @@ export type UpgradeEffectKind =
   | "saleMultiplier"
   | "chestCoinMultiplier"
   | "extraDropChance"
-  | "comboWindowBonus";
+  | "comboWindowBonus"
+  | "moveTempoBonus";
 
 export type UpgradeDefinition = {
   id: UpgradeId;
@@ -100,6 +102,16 @@ export const upgradeCatalog: Record<UpgradeId, UpgradeDefinition> = {
     effectKind: "comboWindowBonus",
     effectPerLevel: 0.12,
     maxLevel: 12,
+  },
+  stepSpeed: {
+    id: "stepSpeed",
+    name: "Velocidade de Passo",
+    description: "Aumenta a velocidade para andar pela mina.",
+    baseCost: 240,
+    growth: 1.5,
+    effectKind: "moveTempoBonus",
+    effectPerLevel: 0.025,
+    maxLevel: 10,
   },
 };
 

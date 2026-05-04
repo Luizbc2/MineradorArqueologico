@@ -351,6 +351,10 @@ function formatUpgradeCurrentEffect(line: UpgradeShopLine) {
     return `Atual: +${total.toFixed(1).replace(".", ",")}s combo`;
   }
 
+  if (line.upgrade.effectKind === "moveTempoBonus") {
+    return `Atual: +${Math.round(total * 100)}% passo`;
+  }
+
   return `Atual: +${Math.round(total * 100)}% velocidade`;
 }
 
@@ -381,6 +385,10 @@ function formatUpgradeNextEffect(line: UpgradeShopLine) {
 
   if (line.upgrade.effectKind === "comboWindowBonus") {
     return `Próximo: +${line.upgrade.effectPerLevel.toFixed(1).replace(".", ",")}s combo por nível`;
+  }
+
+  if (line.upgrade.effectKind === "moveTempoBonus") {
+    return `Próximo: +${Math.round(line.upgrade.effectPerLevel * 100)}% passo por nível`;
   }
 
   return `Próximo: +${Math.round(line.upgrade.effectPerLevel * 100)}% velocidade por nível`;

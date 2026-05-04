@@ -19,6 +19,7 @@ export type UpgradeBonusSummary = {
   chestCoinMultiplier: number;
   extraDropChance: number;
   comboWindowBonus: number;
+  moveTempoBonus: number;
 };
 
 export type UpgradePurchaseResult =
@@ -92,8 +93,10 @@ export function getUpgradeBonusSummary(
         summary.chestCoinMultiplier += value;
       } else if (upgrade.effectKind === "extraDropChance") {
         summary.extraDropChance += value;
-      } else {
+      } else if (upgrade.effectKind === "comboWindowBonus") {
         summary.comboWindowBonus += value;
+      } else {
+        summary.moveTempoBonus += value;
       }
 
       return summary;
@@ -106,6 +109,7 @@ export function getUpgradeBonusSummary(
       chestCoinMultiplier: 0,
       extraDropChance: 0,
       comboWindowBonus: 0,
+      moveTempoBonus: 0,
     },
   );
 }

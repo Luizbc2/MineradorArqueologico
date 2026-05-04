@@ -455,7 +455,10 @@ export class MineScene extends Phaser.Scene {
       return;
     }
 
-    const moveTempoScale = 1 - this.progressionSnapshot.perks.moveTempoBonus;
+    const moveTempoScale = Math.max(
+      0.48,
+      1 - this.progressionSnapshot.perks.moveTempoBonus - getUpgradeBonusSummary(this.upgradeState).moveTempoBonus,
+    );
 
     const leftPressed =
       this.cursors?.left.isDown || this.moveKeys?.left.isDown;
