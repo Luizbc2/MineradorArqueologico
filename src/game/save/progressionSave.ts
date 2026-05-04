@@ -8,13 +8,23 @@ import {
   resourceKinds,
 } from "../inventory/resourceInventory";
 import type { ResourceInventory } from "../inventory/resourceInventory";
+import { getResourceSellValue } from "../economy/resourceSellValues";
+import {
+  getPickaxeList,
+} from "../progression/pickaxeCatalog";
+import type { PickaxeId } from "../progression/pickaxeCatalog";
 import {
   createPickaxeOwnershipState,
   normalizePickaxeOwnershipState,
 } from "../progression/pickaxeState";
 import type { PickaxeOwnershipState } from "../progression/pickaxeState";
 import {
+  getUpgradeList,
+} from "../progression/upgradeCatalog";
+import {
   createUpgradeLevelState,
+  getUpgradeCost,
+  getUpgradeLevel,
   getUpgradeBonusSummary,
   normalizeUpgradeLevelState,
 } from "../progression/upgradeState";
@@ -35,6 +45,8 @@ const SAVE_CHECKSUM_SALT = "minerador-arqueologico-save-v2";
 const MAX_SAVED_COINS = 250_000;
 const BASE_BACKPACK_CAPACITY = 24;
 const MAX_SAVED_DEPTH = WORLD_HEIGHT_TILES - SURFACE_ROW - 1;
+const MAX_SALE_MULTIPLIER_AUDIT = 4;
+const MAX_CHEST_MULTIPLIER_AUDIT = 2.8;
 const RESOURCE_MIN_DEPTH: Partial<Record<keyof ResourceInventory, number>> = {
   fossil: 300,
   prismatic: 360,
@@ -160,17 +172,102 @@ function normalizeProgressionSave(
   const maxDepthReached = normalizePositiveInteger(payload.maxDepthReached, MAX_SAVED_DEPTH);
   const upgrades = normalizeUpgradeLevelState(payload.upgrades ?? {});
   const maxInventoryLoad = BASE_BACKPACK_CAPACITY + getUpgradeBonusSummary(upgrades).backpackCapacity;
-
-  return {
-    coins: normalizePositiveInteger(payload.coins, MAX_SAVED_COINS),
-    maxDepthReached,
-    inventory: normalizeInventory(payload.inventory, maxDepthReached, maxInventoryLoad),
+  const expedition = normalizeExpeditionProgressionState(payload.expedition ?? {});
+  const auditedBudget = getAuditedEarnedBudget(expedition, maxDepthReached);
+  const auditedProgression = auditPurchasedProgression({
     pickaxes: normalizePickaxeOwnershipState(payload.pickaxes ?? {}, maxDepthReached),
     upgrades,
-    expedition: normalizeExpeditionProgressionState(payload.expedition ?? {}),
+    maxDepthReached,
+    earnedBudget: auditedBudget,
+  });
+  const remainingBudget = Math.max(0, auditedBudget - auditedProgression.spent);
+
+  return {
+    coins: Math.min(normalizePositiveInteger(payload.coins, MAX_SAVED_COINS), remainingBudget),
+    maxDepthReached,
+    inventory: normalizeInventory(payload.inventory, maxDepthReached, maxInventoryLoad),
+    pickaxes: auditedProgression.pickaxes,
+    upgrades: auditedProgression.upgrades,
+    expedition,
     archaeology: normalizeArchaeologyDeckState(payload.archaeology ?? {}),
     audioMuted: payload.audioMuted === true,
   };
+}
+
+function getAuditedEarnedBudget(
+  expedition: ExpeditionProgressionState,
+  maxDepthReached: number,
+) {
+  const maxResourceSales = resourceKinds.reduce(
+    (total, resource) => total + expedition.resources[resource] * getResourceSellValue(resource),
+    0,
+  ) * MAX_SALE_MULTIPLIER_AUDIT;
+  const chestRewardAtDepth = 35 + Math.floor(maxDepthReached * 0.7);
+  const maxChestCoins = expedition.chestsOpened * chestRewardAtDepth * MAX_CHEST_MULTIPLIER_AUDIT;
+
+  return Math.min(MAX_SAVED_COINS, Math.floor(maxResourceSales + maxChestCoins));
+}
+
+function auditPurchasedProgression(input: {
+  pickaxes: PickaxeOwnershipState;
+  upgrades: UpgradeLevelState;
+  maxDepthReached: number;
+  earnedBudget: number;
+}) {
+  let remainingBudget = input.earnedBudget;
+  let spent = 0;
+  const pickaxes = createPickaxeOwnershipState();
+
+  for (const pickaxe of getPickaxeList()) {
+    if (pickaxe.id === "wood" || !input.pickaxes.owned[pickaxe.id] || pickaxe.unlockDepth > input.maxDepthReached) {
+      continue;
+    }
+
+    if (remainingBudget < pickaxe.cost) {
+      continue;
+    }
+
+    pickaxes.owned[pickaxe.id] = true;
+    remainingBudget -= pickaxe.cost;
+    spent += pickaxe.cost;
+  }
+
+  pickaxes.equipped = input.pickaxes.owned[input.pickaxes.equipped] && pickaxes.owned[input.pickaxes.equipped]
+    ? input.pickaxes.equipped
+    : getBestOwnedPickaxeId(pickaxes);
+
+  const upgrades = createUpgradeLevelState();
+
+  for (const upgrade of getUpgradeList()) {
+    const requestedLevel = getUpgradeLevel(input.upgrades, upgrade.id);
+
+    for (let level = 0; level < requestedLevel; level += 1) {
+      const cost = getUpgradeCost(upgrades, upgrade.id);
+
+      if (cost === null || remainingBudget < cost) {
+        break;
+      }
+
+      upgrades.levels[upgrade.id] += 1;
+      remainingBudget -= cost;
+      spent += cost;
+    }
+  }
+
+  return {
+    pickaxes,
+    upgrades,
+    spent,
+  };
+}
+
+function getBestOwnedPickaxeId(state: PickaxeOwnershipState): PickaxeId {
+  return getPickaxeList().reduce<PickaxeId>(
+    (best, pickaxe) => state.owned[pickaxe.id] && pickaxe.tier > getPickaxeList().find((item) => item.id === best)!.tier
+      ? pickaxe.id
+      : best,
+    "wood",
+  );
 }
 
 function normalizeInventory(
