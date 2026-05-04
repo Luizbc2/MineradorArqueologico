@@ -123,6 +123,11 @@ const FULL_BACKPACK_SELL_THRESHOLD = 0.9;
 const FULL_BACKPACK_SELL_BONUS = 0.1;
 const MAX_COMBO_MINING_SPEED_BONUS = 0.25;
 const BACKPACK_NEAR_FULL_THRESHOLD = 0.8;
+const ORE_MIN_DEPTH: Partial<Record<TileKind, number>> = {
+  fossil: 300,
+  prismatic: 360,
+  galactic: 520,
+};
 
 export class MineScene extends Phaser.Scene {
   private worldGrid: WorldGrid = [];
@@ -607,16 +612,21 @@ export class MineScene extends Phaser.Scene {
         const tileX = x * TILE_SIZE;
         const tileY = y * TILE_SIZE;
         const tile = this.worldGrid[y][x];
+        const safeKind = this.getDepthAllowedTileKind(tile.kind, y);
 
-        if (tile.kind === "empty") {
+        if (safeKind !== tile.kind) {
+          tile.kind = safeKind;
+        }
+
+        if (safeKind === "empty") {
           continue;
         }
 
         const depthTint =
-          tile.kind === "grass"
+          safeKind === "grass"
             ? 1
             : y < SURFACE_ROW ? 0.08 : Math.min(0.92, 0.3 + y / WORLD_HEIGHT_TILES / 1.8);
-        this.drawTileMaterial(ground, tile.kind, tileX, tileY, x, y, depthTint);
+        this.drawTileMaterial(ground, safeKind, tileX, tileY, x, y, depthTint);
       }
     }
   }
@@ -1301,10 +1311,13 @@ export class MineScene extends Phaser.Scene {
 
     const camera = this.cameras.main;
     camera.setRoundPixels(true);
-    camera.setDeadzone(0, 0);
-    camera.setFollowOffset(0, 0);
+    camera.setDeadzone(
+      Math.min(this.viewportWidth * 0.12, 160),
+      Math.min(this.viewportHeight * 0.1, 96),
+    );
+    camera.setFollowOffset(0, -52);
     this.updateCameraZoom(0, true);
-    this.centerCameraOnPlayer();
+    camera.centerOn(this.player.sprite.x, this.player.sprite.y - 52);
   }
 
   private updateCameraZoom(deltaSeconds: number, snap = false) {
@@ -1314,7 +1327,9 @@ export class MineScene extends Phaser.Scene {
 
     if (snap) {
       camera.setZoom(targetZoom);
-      this.centerCameraOnPlayer();
+      if (this.player) {
+        camera.centerOn(this.player.sprite.x, this.player.sprite.y - 52);
+      }
       return;
     }
 
@@ -1324,21 +1339,17 @@ export class MineScene extends Phaser.Scene {
     if (Math.abs(nextZoom - currentZoom) < 0.0005) {
       if (Math.abs(targetZoom - currentZoom) >= 0.0005) {
         camera.setZoom(targetZoom);
-        this.centerCameraOnPlayer();
+        if (this.player) {
+          camera.centerOn(this.player.sprite.x, this.player.sprite.y - 52);
+        }
       }
       return;
     }
 
     camera.setZoom(nextZoom);
-    this.centerCameraOnPlayer();
-  }
-
-  private centerCameraOnPlayer() {
-    if (!this.player) {
-      return;
+    if (this.player) {
+      camera.centerOn(this.player.sprite.x, this.player.sprite.y - 52);
     }
-
-    this.cameras.main.centerOn(this.player.sprite.x, this.player.sprite.y);
   }
 
   private adjustManualZoom(step: number) {
@@ -2307,6 +2318,16 @@ export class MineScene extends Phaser.Scene {
 
   private isMineable(kind: TileKind) {
     return tileDefinitions[kind].breakable;
+  }
+
+  private getDepthAllowedTileKind(kind: TileKind, tileY: number): TileKind {
+    const minDepth = ORE_MIN_DEPTH[kind];
+
+    if (minDepth === undefined || this.getSurfaceDepth(tileY) >= minDepth) {
+      return kind;
+    }
+
+    return "stone";
   }
 
   private tryJump() {
