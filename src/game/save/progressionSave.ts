@@ -15,6 +15,7 @@ import {
 import type { PickaxeOwnershipState } from "../progression/pickaxeState";
 import {
   createUpgradeLevelState,
+  getUpgradeBonusSummary,
   normalizeUpgradeLevelState,
 } from "../progression/upgradeState";
 import type { UpgradeLevelState } from "../progression/upgradeState";
@@ -23,8 +24,20 @@ import {
   normalizeExpeditionProgressionState,
 } from "../progression/expeditionGoals";
 import type { ExpeditionProgressionState } from "../progression/expeditionGoals";
+import {
+  SURFACE_ROW,
+  WORLD_HEIGHT_TILES,
+} from "../world/constants";
 
 const SAVE_KEY = "minerador-arqueologico:progression:v1";
+const MAX_SAVED_COINS = 250_000;
+const BASE_BACKPACK_CAPACITY = 24;
+const MAX_SAVED_DEPTH = WORLD_HEIGHT_TILES - SURFACE_ROW - 1;
+const RESOURCE_MIN_DEPTH: Partial<Record<keyof ResourceInventory, number>> = {
+  fossil: 300,
+  prismatic: 360,
+  galactic: 520,
+};
 
 export type ProgressionSaveData = {
   coins: number;
@@ -90,12 +103,16 @@ export function saveProgression(data: ProgressionSaveData) {
 function normalizeProgressionSave(
   payload: ProgressionSavePayload,
 ): ProgressionSaveData {
+  const maxDepthReached = normalizePositiveInteger(payload.maxDepthReached, MAX_SAVED_DEPTH);
+  const upgrades = normalizeUpgradeLevelState(payload.upgrades ?? {});
+  const maxInventoryLoad = BASE_BACKPACK_CAPACITY + getUpgradeBonusSummary(upgrades).backpackCapacity;
+
   return {
-    coins: normalizePositiveInteger(payload.coins),
-    maxDepthReached: normalizePositiveInteger(payload.maxDepthReached),
-    inventory: normalizeInventory(payload.inventory),
+    coins: normalizePositiveInteger(payload.coins, MAX_SAVED_COINS),
+    maxDepthReached,
+    inventory: normalizeInventory(payload.inventory, maxDepthReached, maxInventoryLoad),
     pickaxes: normalizePickaxeOwnershipState(payload.pickaxes ?? {}),
-    upgrades: normalizeUpgradeLevelState(payload.upgrades ?? {}),
+    upgrades,
     expedition: normalizeExpeditionProgressionState(payload.expedition ?? {}),
     archaeology: normalizeArchaeologyDeckState(payload.archaeology ?? {}),
     audioMuted: payload.audioMuted === true,
@@ -104,16 +121,35 @@ function normalizeProgressionSave(
 
 function normalizeInventory(
   inventory: ProgressionSavePayload["inventory"],
+  maxDepthReached: number,
+  maxInventoryLoad: number,
 ): ResourceInventory {
+  let remainingLoad = maxInventoryLoad;
+
   return resourceKinds.reduce(
-    (normalized, resource) => ({
-      ...normalized,
-      [resource]: normalizePositiveInteger(inventory?.[resource]),
-    }),
+    (normalized, resource) => {
+      const minDepth = RESOURCE_MIN_DEPTH[resource] ?? 0;
+      const quantity = maxDepthReached >= minDepth
+        ? Math.min(remainingLoad, normalizePositiveInteger(inventory?.[resource], maxInventoryLoad))
+        : 0;
+
+      remainingLoad -= quantity;
+
+      return {
+        ...normalized,
+        [resource]: quantity,
+      };
+    },
     createResourceInventory(),
   );
 }
 
-function normalizePositiveInteger(value: unknown) {
-  return Number.isFinite(value) ? Math.max(0, Math.floor(Number(value))) : 0;
+function normalizePositiveInteger(value: unknown, max = Number.MAX_SAFE_INTEGER) {
+  const parsed = typeof value === "number" ? value : Number(value);
+
+  if (!Number.isFinite(parsed)) {
+    return 0;
+  }
+
+  return Math.min(max, Math.max(0, Math.floor(parsed)));
 }
