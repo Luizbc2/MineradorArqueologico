@@ -39,9 +39,12 @@ import {
   WORLD_HEIGHT_TILES,
 } from "../world/constants";
 
-const SAVE_KEY = "minerador-arqueologico:progression:v1";
-const SAVE_VERSION = 2;
-const SAVE_CHECKSUM_SALT = "minerador-arqueologico-save-v2";
+const LEGACY_SAVE_KEYS = [
+  "minerador-arqueologico:progression:v1",
+] as const;
+const SAVE_KEY = "minerador-arqueologico:progression:v3";
+const SAVE_VERSION = 3;
+const SAVE_CHECKSUM_SALT = "minerador-arqueologico-save-v3";
 const MAX_SAVED_COINS = 250_000;
 const BASE_BACKPACK_CAPACITY = 24;
 const MAX_SAVED_DEPTH = WORLD_HEIGHT_TILES - SURFACE_ROW - 1;
@@ -99,6 +102,7 @@ export function loadProgressionSave(): ProgressionSaveData {
     return createDefaultProgressionSave();
   }
 
+  clearLegacyProgressionSaves();
   const raw = localStorage.getItem(SAVE_KEY);
 
   if (!raw) {
@@ -116,6 +120,12 @@ export function loadProgressionSave(): ProgressionSaveData {
     return normalizeProgressionSave(payload);
   } catch {
     return createDefaultProgressionSave();
+  }
+}
+
+function clearLegacyProgressionSaves() {
+  for (const key of LEGACY_SAVE_KEYS) {
+    localStorage.removeItem(key);
   }
 }
 
