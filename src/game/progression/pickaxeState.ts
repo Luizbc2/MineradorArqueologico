@@ -117,9 +117,16 @@ export function getEquippedPickaxe(state: PickaxeOwnershipState) {
 
 export function normalizePickaxeOwnershipState(
   state: Partial<PickaxeOwnershipState>,
+  maxDepthReached = Number.MAX_SAFE_INTEGER,
 ): PickaxeOwnershipState {
   const fallback = createPickaxeOwnershipState();
-  const owned = { ...fallback.owned, ...state.owned, wood: true };
+  const owned = pickaxeIds.reduce(
+    (normalized, id) => ({
+      ...normalized,
+      [id]: id === "wood" || (state.owned?.[id] === true && canUnlockPickaxe(id, maxDepthReached)),
+    }),
+    fallback.owned,
+  );
   const equipped = state.equipped && owned[state.equipped]
     ? state.equipped
     : fallback.equipped;

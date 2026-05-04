@@ -111,7 +111,7 @@ function normalizeProgressionSave(
     coins: normalizePositiveInteger(payload.coins, MAX_SAVED_COINS),
     maxDepthReached,
     inventory: normalizeInventory(payload.inventory, maxDepthReached, maxInventoryLoad),
-    pickaxes: normalizePickaxeOwnershipState(payload.pickaxes ?? {}),
+    pickaxes: normalizePickaxeOwnershipState(payload.pickaxes ?? {}, maxDepthReached),
     upgrades,
     expedition: normalizeExpeditionProgressionState(payload.expedition ?? {}),
     archaeology: normalizeArchaeologyDeckState(payload.archaeology ?? {}),
