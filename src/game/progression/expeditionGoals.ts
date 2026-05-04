@@ -348,6 +348,15 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     perk: { comboWindowBonus: 0.35 },
   },
   {
+    id: "return-520",
+    title: "Volta Impossível",
+    description: "Retorne a base depois de chegar a 520m.",
+    rewardLabel: "Velocidade de passo +8%",
+    type: "surfaceReturnDepth",
+    target: 520,
+    perk: { moveTempoBonus: 0.08 },
+  },
+  {
     id: "galactic-pickaxe",
     title: "Catálogo Cósmico",
     description: "Leve a picareta ao nível 11.",
