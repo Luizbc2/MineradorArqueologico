@@ -57,7 +57,14 @@ export function getInventorySaleSummary(
         totalPrice: quantity * unitPrice,
       };
     })
-    .filter((line) => line.quantity > 0);
+    .filter((line) => line.quantity > 0)
+    .sort((left, right) => {
+      if (right.totalPrice !== left.totalPrice) {
+        return right.totalPrice - left.totalPrice;
+      }
+
+      return right.unitPrice - left.unitPrice;
+    });
 
   return {
     lines,
