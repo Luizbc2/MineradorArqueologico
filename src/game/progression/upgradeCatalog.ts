@@ -41,7 +41,7 @@ export const upgradeCatalog: Record<UpgradeId, UpgradeDefinition> = {
     growth: 1.45,
     effectKind: "flatPower",
     effectPerLevel: 6,
-    maxLevel: 20,
+    maxLevel: 26,
   },
   speed: {
     id: "speed",
@@ -51,7 +51,7 @@ export const upgradeCatalog: Record<UpgradeId, UpgradeDefinition> = {
     growth: 1.5,
     effectKind: "speedMultiplier",
     effectPerLevel: 0.04,
-    maxLevel: 15,
+    maxLevel: 20,
   },
   backpack: {
     id: "backpack",
@@ -61,7 +61,7 @@ export const upgradeCatalog: Record<UpgradeId, UpgradeDefinition> = {
     growth: 1.32,
     effectKind: "backpackCapacity",
     effectPerLevel: 6,
-    maxLevel: 18,
+    maxLevel: 24,
   },
   saleValue: {
     id: "saleValue",
@@ -71,7 +71,7 @@ export const upgradeCatalog: Record<UpgradeId, UpgradeDefinition> = {
     growth: 1.48,
     effectKind: "saleMultiplier",
     effectPerLevel: 0.05,
-    maxLevel: 12,
+    maxLevel: 16,
   },
   chestValue: {
     id: "chestValue",
