@@ -16,6 +16,9 @@ export const archaeologyFacts = [
   "Camadas muito profundas guardam pistas sobre ciclos geológicos longos, bem anteriores aos vestígios humanos encontrados na superfície.",
   "Veios galácticos do jogo representam minerais raríssimos imaginários, inspirados em rochas com brilho metálico e inclusões cristalinas.",
   "Quanto mais profunda a camada, maior a pressão sobre os sedimentos e maior a chance de alterações minerais incomuns.",
+  "A leitura de camadas sedimentares compara cor, textura e composição para entender diferentes momentos de formação do terreno.",
+  "No trabalho arqueológico real, a posição exata de cada achado importa tanto quanto o objeto encontrado.",
+  "Mudanças bruscas entre camadas podem indicar eventos ambientais, ocupações diferentes ou transporte de materiais por água.",
 ] as const;
 
 export type ArchaeologyDeck = {
