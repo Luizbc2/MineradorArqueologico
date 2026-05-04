@@ -11,6 +11,7 @@ function applyRootStyles(root: HTMLElement) {
   root.style.background = "radial-gradient(circle at top, #0f1830 0%, #090d15 42%, #06080f 100%)";
   root.style.boxSizing = "border-box";
   root.style.zIndex = "0";
+  root.style.contain = "layout size paint";
 }
 
 function ensurePhaserRoot() {
@@ -36,11 +37,12 @@ function applyPixelCanvasStyles(game: Phaser.Game) {
     return;
   }
 
-  canvas.style.width = `${Math.round(root.clientWidth)}px`;
-  canvas.style.height = `${Math.round(root.clientHeight)}px`;
+  canvas.style.position = "absolute";
+  canvas.style.inset = "0";
+  canvas.style.width = "100%";
+  canvas.style.height = "100%";
   canvas.style.display = "block";
   canvas.style.imageRendering = "pixelated";
-  canvas.style.transform = "translateZ(0)";
 
   const context = canvas.getContext("2d");
 
@@ -49,12 +51,26 @@ function applyPixelCanvasStyles(game: Phaser.Game) {
   }
 }
 
-export function createPhaserGame() {
-  ensurePhaserRoot();
-  const game = new Phaser.Game(phaserGameConfig);
+function resizeGameToRoot(game: Phaser.Game) {
+  const root = ensurePhaserRoot();
+  const width = Math.max(1, Math.round(root.clientWidth));
+  const height = Math.max(1, Math.round(root.clientHeight));
+
+  game.scale.resize(width, height);
   applyPixelCanvasStyles(game);
+}
+
+export function createPhaserGame() {
+  const root = ensurePhaserRoot();
+  const game = new Phaser.Game(phaserGameConfig);
+  resizeGameToRoot(game);
   game.scale.on(Phaser.Scale.Events.RESIZE, () => {
     applyPixelCanvasStyles(game);
   });
+
+  const observer = new ResizeObserver(() => resizeGameToRoot(game));
+  observer.observe(root);
+  window.addEventListener("resize", () => resizeGameToRoot(game));
+
   return game;
 }
