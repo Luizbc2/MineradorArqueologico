@@ -134,8 +134,12 @@ export function saveProgression(data: ProgressionSaveData) {
     return;
   }
 
-  const normalized = normalizeProgressionSave(data as ProgressionSavePayload);
+  const normalized = sanitizeProgressionSave(data);
   localStorage.setItem(SAVE_KEY, JSON.stringify(wrapSavePayload(normalized)));
+}
+
+export function sanitizeProgressionSave(data: ProgressionSaveData): ProgressionSaveData {
+  return normalizeProgressionSave(data as ProgressionSavePayload);
 }
 
 function unwrapSavePayload(

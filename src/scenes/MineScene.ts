@@ -38,6 +38,7 @@ import {
 } from "../game/economy/resourceSellValues";
 import {
   loadProgressionSave,
+  sanitizeProgressionSave,
   saveProgression,
 } from "../game/save/progressionSave";
 import { MineAudioDirector } from "../game/audio/MineAudioDirector";
@@ -337,7 +338,11 @@ export class MineScene extends Phaser.Scene {
   }
 
   private saveProgression() {
-    saveProgression({
+    saveProgression(this.getProgressionSaveData());
+  }
+
+  private getProgressionSaveData() {
+    return {
       coins: this.coins,
       maxDepthReached: this.maxDepthReached,
       inventory: this.inventory,
@@ -348,7 +353,17 @@ export class MineScene extends Phaser.Scene {
         collectedCount: this.archaeologyDeck.collectedCount,
       },
       audioMuted: this.audioDirector?.isMuted ?? this.audioMuted,
-    });
+    };
+  }
+
+  private enforceRuntimeProgressionIntegrity() {
+    const sanitized = sanitizeProgressionSave(this.getProgressionSaveData());
+
+    this.coins = sanitized.coins;
+    this.maxDepthReached = sanitized.maxDepthReached;
+    this.inventory = sanitized.inventory;
+    this.pickaxeState = sanitized.pickaxes;
+    this.upgradeState = sanitized.upgrades;
   }
 
   update(_: number, delta: number) {
@@ -358,6 +373,7 @@ export class MineScene extends Phaser.Scene {
 
     const deltaSeconds = delta / 1000;
     this.enforcePlayerPositionIntegrity();
+    this.enforceRuntimeProgressionIntegrity();
     this.updateSurfacePrompt();
     this.updateMouseMiningPreview();
 
@@ -2796,6 +2812,8 @@ export class MineScene extends Phaser.Scene {
   }
 
   private toggleUpgradeOverlay() {
+    this.enforceRuntimeProgressionIntegrity();
+
     if (this.pauseOverlay?.isVisible || this.vendorOverlay?.isVisible) {
       return;
     }
@@ -2839,6 +2857,8 @@ export class MineScene extends Phaser.Scene {
   }
 
   private refreshUpgradeOverlay() {
+    this.enforceRuntimeProgressionIntegrity();
+
     this.upgradeOverlay?.show({
       coins: this.coins,
       maxDepthReached: this.maxDepthReached,
@@ -2866,6 +2886,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   private handlePickaxeBuy(id: PickaxeId) {
+    this.enforceRuntimeProgressionIntegrity();
     const result = buyPickaxe(this.pickaxeState, id, this.coins, this.maxDepthReached);
 
     if (!result.ok) {
@@ -2886,6 +2907,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   private handlePickaxeEquip(id: PickaxeId) {
+    this.enforceRuntimeProgressionIntegrity();
     this.pickaxeState = equipPickaxe(this.pickaxeState, id);
     const equippedPickaxe = getEquippedPickaxe(this.pickaxeState);
     this.syncExpeditionProgress(this.expeditionProgression.applyPickaxeLevel(equippedPickaxe.tier));
@@ -2897,6 +2919,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   private handleUpgradeBuy(id: UpgradeId) {
+    this.enforceRuntimeProgressionIntegrity();
     const result = buyUpgrade(this.upgradeState, id, this.coins);
 
     if (!result.ok) {
@@ -2934,6 +2957,8 @@ export class MineScene extends Phaser.Scene {
   }
 
   private toggleVendorOverlay() {
+    this.enforceRuntimeProgressionIntegrity();
+
     if (this.pauseOverlay?.isVisible || this.upgradeOverlay?.isVisible || this.surfaceReturnLocked) {
       return;
     }
@@ -2958,6 +2983,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   private handleVendorSellAll() {
+    this.enforceRuntimeProgressionIntegrity();
     const bonusActive = this.getBackpackSaleBonusMultiplier() > 1;
     const sale = this.sellInventory();
 
