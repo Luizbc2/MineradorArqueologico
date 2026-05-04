@@ -30,6 +30,8 @@ import {
 } from "../world/constants";
 
 const SAVE_KEY = "minerador-arqueologico:progression:v1";
+const SAVE_VERSION = 2;
+const SAVE_CHECKSUM_SALT = "minerador-arqueologico-save-v2";
 const MAX_SAVED_COINS = 250_000;
 const BASE_BACKPACK_CAPACITY = 24;
 const MAX_SAVED_DEPTH = WORLD_HEIGHT_TILES - SURFACE_ROW - 1;
@@ -61,6 +63,12 @@ type ProgressionSavePayload = Partial<{
   audioMuted: unknown;
 }>;
 
+type ProgressionSaveEnvelope = {
+  version?: unknown;
+  data?: ProgressionSavePayload;
+  checksum?: unknown;
+};
+
 export function createDefaultProgressionSave(): ProgressionSaveData {
   return {
     coins: 0,
@@ -86,7 +94,14 @@ export function loadProgressionSave(): ProgressionSaveData {
   }
 
   try {
-    return normalizeProgressionSave(JSON.parse(raw) as ProgressionSavePayload);
+    const parsed = JSON.parse(raw) as ProgressionSavePayload | ProgressionSaveEnvelope;
+    const payload = unwrapSavePayload(parsed);
+
+    if (!payload) {
+      return createDefaultProgressionSave();
+    }
+
+    return normalizeProgressionSave(payload);
   } catch {
     return createDefaultProgressionSave();
   }
@@ -97,7 +112,45 @@ export function saveProgression(data: ProgressionSaveData) {
     return;
   }
 
-  localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+  localStorage.setItem(SAVE_KEY, JSON.stringify(wrapSavePayload(data)));
+}
+
+function unwrapSavePayload(
+  parsed: ProgressionSavePayload | ProgressionSaveEnvelope,
+): ProgressionSavePayload | null {
+  if ("data" in parsed || "checksum" in parsed || "version" in parsed) {
+    const envelope = parsed as ProgressionSaveEnvelope;
+
+    if (envelope.version !== SAVE_VERSION || !envelope.data || typeof envelope.checksum !== "string") {
+      return null;
+    }
+
+    return envelope.checksum === createSaveChecksum(envelope.data)
+      ? envelope.data
+      : null;
+  }
+
+  return parsed as ProgressionSavePayload;
+}
+
+function wrapSavePayload(data: ProgressionSaveData): ProgressionSaveEnvelope {
+  return {
+    version: SAVE_VERSION,
+    data,
+    checksum: createSaveChecksum(data),
+  };
+}
+
+function createSaveChecksum(payload: unknown) {
+  const input = `${SAVE_CHECKSUM_SALT}:${JSON.stringify(payload)}`;
+  let hash = 2166136261;
+
+  for (let index = 0; index < input.length; index += 1) {
+    hash ^= input.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return (hash >>> 0).toString(16).padStart(8, "0");
 }
 
 function normalizeProgressionSave(
