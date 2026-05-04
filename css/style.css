@@ -1325,4 +1325,6 @@ body { image-rendering: auto; }
   .hud-center { font-size:10px; }
   #game { width:100%; height:auto; aspect-ratio:640/576; }
   .panel { width:90%; padding:16px; }
+  .game-hud-resource-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .game-hud-resource { min-height: 54px; }
 }
