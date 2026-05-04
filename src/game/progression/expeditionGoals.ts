@@ -320,6 +320,15 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     perk: { moveTempoBonus: 0.08 },
   },
   {
+    id: "expert-upgrades",
+    title: "Oficina Especialista",
+    description: "Compre 40 níveis de upgrades.",
+    rewardLabel: "Combo +0.30s",
+    type: "upgrade",
+    target: 40,
+    perk: { comboWindowBonus: 0.3 },
+  },
+  {
     id: "reach-560",
     title: "Mina Galáctica",
     description: "Atinga 560m de profundidade.",
@@ -355,6 +364,15 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     type: "coinsSold",
     target: 50000,
     perk: { moveTempoBonus: 0.1 },
+  },
+  {
+    id: "legendary-upgrades",
+    title: "Oficina Lendária",
+    description: "Compre 60 níveis de upgrades.",
+    rewardLabel: "Mineração +14%",
+    type: "upgrade",
+    target: 60,
+    perk: { miningSpeedBonus: 0.14 },
   },
 ];
 
