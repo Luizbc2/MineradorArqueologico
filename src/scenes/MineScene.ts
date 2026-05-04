@@ -2635,7 +2635,13 @@ export class MineScene extends Phaser.Scene {
   private getChestCoinReward(tileY: number) {
     const depth = this.getSurfaceDepth(tileY);
     const baseReward = 35 + Math.floor(depth * 0.7);
-    return Math.round(baseReward * (1 + getUpgradeBonusSummary(this.upgradeState).chestCoinMultiplier));
+    const deepBonus =
+      depth >= 520 ? 1.35 :
+      depth >= 420 ? 1.24 :
+      depth >= 320 ? 1.15 :
+      1;
+
+    return Math.round(baseReward * deepBonus * (1 + getUpgradeBonusSummary(this.upgradeState).chestCoinMultiplier));
   }
 
   private openArchaeologyCard() {

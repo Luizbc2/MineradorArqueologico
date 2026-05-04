@@ -172,6 +172,15 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     perk: { comboWindowBonus: 0.25 },
   },
   {
+    id: "open-8-chests",
+    title: "Caçador de Baús",
+    description: "Abra 8 baús arqueológicos.",
+    rewardLabel: "Combo +0.25s",
+    type: "chest",
+    target: 8,
+    perk: { comboWindowBonus: 0.25 },
+  },
+  {
     id: "gold-pickaxe",
     title: "Ferramenta Dourada",
     description: "Leve a picareta ao nível 5.",
@@ -373,6 +382,15 @@ const expeditionGoals: ExpeditionGoalDefinition[] = [
     type: "coinsSold",
     target: 50000,
     perk: { moveTempoBonus: 0.1 },
+  },
+  {
+    id: "open-20-chests",
+    title: "Curador da Mina",
+    description: "Abra 20 baús arqueológicos.",
+    rewardLabel: "Mineração +12%",
+    type: "chest",
+    target: 20,
+    perk: { miningSpeedBonus: 0.12 },
   },
   {
     id: "legendary-upgrades",
