@@ -52,7 +52,10 @@ export function createUpgradeLevelState(): UpgradeLevelState {
 }
 
 export function getUpgradeLevel(state: UpgradeLevelState, id: UpgradeId) {
-  return state.levels[id] ?? 0;
+  const rawLevel = state.levels[id] ?? 0;
+  const level = Number.isFinite(rawLevel) ? Math.floor(rawLevel) : 0;
+
+  return clampLevel(level, getUpgradeDefinition(id).maxLevel);
 }
 
 export function getUpgradeCost(state: UpgradeLevelState, id: UpgradeId) {
