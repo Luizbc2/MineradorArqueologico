@@ -1982,7 +1982,8 @@ export class MineScene extends Phaser.Scene {
   private registerReward(resource: ResourceKind) {
     const meta = getResourceMeta(resource);
     const chainActive = this.rewardComboTimer > 0;
-    const comboBonus = this.progressionSnapshot.perks.comboWindowBonus;
+    const upgradeBonuses = getUpgradeBonusSummary(this.upgradeState);
+    const comboBonus = this.progressionSnapshot.perks.comboWindowBonus + upgradeBonuses.comboWindowBonus;
 
     this.rewardComboCount = chainActive ? this.rewardComboCount + 1 : 1;
     this.rewardComboWindow =

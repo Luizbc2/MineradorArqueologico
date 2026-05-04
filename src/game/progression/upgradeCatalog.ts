@@ -5,6 +5,7 @@ export const upgradeIds = [
   "saleValue",
   "chestValue",
   "yieldChance",
+  "comboFocus",
 ] as const;
 
 export type UpgradeId = (typeof upgradeIds)[number];
@@ -15,7 +16,8 @@ export type UpgradeEffectKind =
   | "backpackCapacity"
   | "saleMultiplier"
   | "chestCoinMultiplier"
-  | "extraDropChance";
+  | "extraDropChance"
+  | "comboWindowBonus";
 
 export type UpgradeDefinition = {
   id: UpgradeId;
@@ -87,6 +89,16 @@ export const upgradeCatalog: Record<UpgradeId, UpgradeDefinition> = {
     growth: 1.52,
     effectKind: "extraDropChance",
     effectPerLevel: 0.025,
+    maxLevel: 12,
+  },
+  comboFocus: {
+    id: "comboFocus",
+    name: "Combo Maior",
+    description: "Aumenta o tempo para manter o combo ativo.",
+    baseCost: 210,
+    growth: 1.46,
+    effectKind: "comboWindowBonus",
+    effectPerLevel: 0.12,
     maxLevel: 12,
   },
 };

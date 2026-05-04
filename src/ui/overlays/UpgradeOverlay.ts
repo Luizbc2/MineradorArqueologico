@@ -347,6 +347,10 @@ function formatUpgradeCurrentEffect(line: UpgradeShopLine) {
     return `Atual: ${Math.round(total * 100)}% minério extra`;
   }
 
+  if (line.upgrade.effectKind === "comboWindowBonus") {
+    return `Atual: +${total.toFixed(1).replace(".", ",")}s combo`;
+  }
+
   return `Atual: +${Math.round(total * 100)}% velocidade`;
 }
 
@@ -373,6 +377,10 @@ function formatUpgradeNextEffect(line: UpgradeShopLine) {
 
   if (line.upgrade.effectKind === "extraDropChance") {
     return `Próximo: +${Math.round(line.upgrade.effectPerLevel * 100)}% chance por nível`;
+  }
+
+  if (line.upgrade.effectKind === "comboWindowBonus") {
+    return `Próximo: +${line.upgrade.effectPerLevel.toFixed(1).replace(".", ",")}s combo por nível`;
   }
 
   return `Próximo: +${Math.round(line.upgrade.effectPerLevel * 100)}% velocidade por nível`;
