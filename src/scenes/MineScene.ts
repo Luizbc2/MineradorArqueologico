@@ -87,6 +87,8 @@ type FixedUiElement =
 
 type SurfaceStationKind = "vendor" | "workshop";
 
+const canonicalWorldState = new WeakMap<MineScene, WorldGrid>();
+
 const SURFACE_RETURN_TILE = {
   x: PLAYER_SPAWN_TILE.x,
   y: SURFACE_ROW - 1,
@@ -203,6 +205,7 @@ export class MineScene extends Phaser.Scene {
   private readonly zoomSmoothing = 10;
   private surfaceReturnLocked = false;
   private lastAppliedDepth = -1;
+  private lastTrustedPlayerPosition: TilePoint = { ...PLAYER_SPAWN_TILE };
   private readonly fixedUiElements = new Map<
     FixedUiElement,
     {
@@ -245,6 +248,7 @@ export class MineScene extends Phaser.Scene {
     this.loadSavedProgression();
     this.worldGrid = generateWorld();
     this.prepareSurfaceSafeZone();
+    canonicalWorldState.set(this, this.cloneWorldGrid(this.worldGrid));
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH_PX, WORLD_HEIGHT_PX);
     this.physics.world.setBounds(0, 0, WORLD_WIDTH_PX, WORLD_HEIGHT_PX);
     this.cameras.main.setBackgroundColor("#06080f");
@@ -353,6 +357,7 @@ export class MineScene extends Phaser.Scene {
     }
 
     const deltaSeconds = delta / 1000;
+    this.enforcePlayerPositionIntegrity();
     this.updateSurfacePrompt();
     this.updateMouseMiningPreview();
 
@@ -541,7 +546,7 @@ export class MineScene extends Phaser.Scene {
   private restoreSurfaceHubFloor() {
     for (let x = SURFACE_BASE_CLEAR_ZONE.startX; x <= SURFACE_BASE_CLEAR_ZONE.endX; x += 1) {
       if (this.worldGrid[SURFACE_ROW]?.[x]) {
-        this.worldGrid[SURFACE_ROW][x] = { kind: "grass" };
+        this.setWorldTileKind(x, SURFACE_ROW, "grass");
       }
     }
   }
@@ -550,7 +555,7 @@ export class MineScene extends Phaser.Scene {
     for (let y = 0; y <= SURFACE_ROW - 1; y += 1) {
       for (let x = SURFACE_BASE_CLEAR_ZONE.startX; x <= SURFACE_BASE_CLEAR_ZONE.endX; x += 1) {
         if (this.worldGrid[y]?.[x]) {
-          this.worldGrid[y][x] = { kind: "empty" };
+          this.setWorldTileKind(x, y, "empty");
         }
       }
     }
@@ -612,7 +617,7 @@ export class MineScene extends Phaser.Scene {
         const tileX = x * TILE_SIZE;
         const tileY = y * TILE_SIZE;
         const tile = this.worldGrid[y][x];
-        const safeKind = this.getDepthAllowedTileKind(tile.kind, y);
+        const safeKind = this.getTrustedTileKind(x, y);
 
         if (safeKind !== tile.kind) {
           tile.kind = safeKind;
@@ -1266,6 +1271,7 @@ export class MineScene extends Phaser.Scene {
 
   private createPlayer() {
     this.player = new PlayerMiner(this, PLAYER_SPAWN_TILE);
+    this.lastTrustedPlayerPosition = { ...PLAYER_SPAWN_TILE };
   }
 
   private createUiCamera() {
@@ -1469,13 +1475,19 @@ export class MineScene extends Phaser.Scene {
     }
 
     const tile = this.worldGrid[target.y]?.[target.x];
+    const trustedKind = this.getTrustedTileKind(target.x, target.y);
 
-    if (!tile || !this.isMineable(tile.kind)) {
+    if (!tile || !this.isMineable(trustedKind)) {
       this.clearMiningTarget();
       return false;
     }
 
-    if (getResourceFromTile(tile.kind) && this.getInventoryLoad() >= this.getBackpackCapacity()) {
+    if (tile.kind !== trustedKind) {
+      tile.kind = trustedKind;
+      this.groundDirty = true;
+    }
+
+    if (getResourceFromTile(trustedKind) && this.getInventoryLoad() >= this.getBackpackCapacity()) {
       this.clearMiningTarget();
       this.showSurfaceToast("Mochila cheia. Volte para vender.");
       return false;
@@ -1491,7 +1503,7 @@ export class MineScene extends Phaser.Scene {
     const effectivePower = equippedPickaxe.power + upgradeBonuses.flatPower;
     const required = Math.max(
       0.08,
-      (tileDefinitions[tile.kind].hardness * depthHardnessMultiplier * 6) /
+      (tileDefinitions[trustedKind].hardness * depthHardnessMultiplier * 6) /
         (effectivePower * speedMultiplier),
     );
 
@@ -1506,8 +1518,8 @@ export class MineScene extends Phaser.Scene {
         required,
         impacts: 0,
       };
-      this.spawnMiningImpact(target.x, target.y, tile.kind, false, 0.18);
-      this.audioDirector?.playMiningTick(tile.kind, 0.24);
+      this.spawnMiningImpact(target.x, target.y, trustedKind, false, 0.18);
+      this.audioDirector?.playMiningTick(trustedKind, 0.24);
     }
 
     this.player.facing = target.x < this.player.position.x ? -1 : target.x > this.player.position.x ? 1 : this.player.facing;
@@ -1523,13 +1535,13 @@ export class MineScene extends Phaser.Scene {
 
     if (impactThreshold > this.miningTarget.impacts) {
       this.miningTarget.impacts = impactThreshold;
-      this.spawnMiningImpact(target.x, target.y, tile.kind, false, completion);
-      this.audioDirector?.playMiningTick(tile.kind, completion);
+      this.spawnMiningImpact(target.x, target.y, trustedKind, false, completion);
+      this.audioDirector?.playMiningTick(trustedKind, completion);
     }
 
     if (this.miningTarget.progress >= this.miningTarget.required) {
-      const brokenKind = this.worldGrid[target.y][target.x].kind;
-      this.worldGrid[target.y][target.x] = { kind: "empty" };
+      const brokenKind = this.getTrustedTileKind(target.x, target.y);
+      this.setWorldTileKind(target.x, target.y, "empty");
       this.groundDirty = true;
       this.drawWorldGrid(true);
       this.spawnMiningImpact(target.x, target.y, brokenKind, true, 1);
@@ -1807,12 +1819,18 @@ export class MineScene extends Phaser.Scene {
     }
 
     const tile = this.worldGrid[target.y]?.[target.x];
+    const trustedKind = this.getTrustedTileKind(target.x, target.y);
 
-    if (!tile || !this.isMineable(tile.kind)) {
+    if (!tile || !this.isMineable(trustedKind)) {
       return;
     }
 
-    const material = tilePalette[tile.kind];
+    if (tile.kind !== trustedKind) {
+      tile.kind = trustedKind;
+      this.groundDirty = true;
+    }
+
+    const material = tilePalette[trustedKind];
     const tileX = target.x * TILE_SIZE;
     const tileY = target.y * TILE_SIZE;
     const pulse = 0.42 + Math.sin(this.time.now / 120) * 0.1;
@@ -2309,7 +2327,14 @@ export class MineScene extends Phaser.Scene {
     }
 
     const tile = this.worldGrid[tileY]?.[tileX];
-    return tile ? this.isPassable(tile.kind) : false;
+    const trustedKind = this.getTrustedTileKind(tileX, tileY);
+
+    if (tile && tile.kind !== trustedKind) {
+      tile.kind = trustedKind;
+      this.groundDirty = true;
+    }
+
+    return tile ? this.isPassable(trustedKind) : false;
   }
 
   private isPassable(kind: TileKind) {
@@ -2320,6 +2345,28 @@ export class MineScene extends Phaser.Scene {
     return tileDefinitions[kind].breakable;
   }
 
+  private cloneWorldGrid(grid: WorldGrid): WorldGrid {
+    return grid.map((row) => row.map((cell) => ({ ...cell })));
+  }
+
+  private getTrustedTileKind(tileX: number, tileY: number): TileKind {
+    const canonicalKind = canonicalWorldState.get(this)?.[tileY]?.[tileX]?.kind ?? "bedrock";
+    return this.getDepthAllowedTileKind(canonicalKind, tileY);
+  }
+
+  private setWorldTileKind(tileX: number, tileY: number, kind: TileKind) {
+    if (!this.worldGrid[tileY]?.[tileX]) {
+      return;
+    }
+
+    this.worldGrid[tileY][tileX] = { kind };
+    const canonical = canonicalWorldState.get(this);
+
+    if (canonical?.[tileY]?.[tileX]) {
+      canonical[tileY][tileX] = { kind };
+    }
+  }
+
   private getDepthAllowedTileKind(kind: TileKind, tileY: number): TileKind {
     const minDepth = ORE_MIN_DEPTH[kind];
 
@@ -2328,6 +2375,30 @@ export class MineScene extends Phaser.Scene {
     }
 
     return "stone";
+  }
+
+  private enforcePlayerPositionIntegrity() {
+    if (!this.player) {
+      return;
+    }
+
+    const current = this.player.position;
+    const deltaX = Math.abs(current.x - this.lastTrustedPlayerPosition.x);
+    const deltaY = Math.abs(current.y - this.lastTrustedPlayerPosition.y);
+    const inBounds =
+      current.x >= 0 &&
+      current.x < WORLD_WIDTH_TILES &&
+      current.y >= 0 &&
+      current.y < WORLD_HEIGHT_TILES;
+
+    if (!inBounds || deltaX > 1 || deltaY > 1) {
+      this.player.warpToTile(this.lastTrustedPlayerPosition);
+      this.clearMiningTarget();
+      this.showSurfaceToast("Movimento inválido bloqueado.");
+      return;
+    }
+
+    this.lastTrustedPlayerPosition = { ...current };
   }
 
   private tryJump() {
@@ -2465,6 +2536,7 @@ export class MineScene extends Phaser.Scene {
       this.groundDirty = true;
       this.drawWorldGrid(true);
       this.player?.warpToTile(SURFACE_RETURN_TILE);
+      this.lastTrustedPlayerPosition = { ...SURFACE_RETURN_TILE };
       if (this.player) {
         this.player.moveCooldown = 0.2;
         this.player.fallCooldown = 0.2;
@@ -2635,7 +2707,7 @@ export class MineScene extends Phaser.Scene {
         continue;
       }
 
-      this.worldGrid[candidate.y][candidate.x] = { kind: "empty" };
+      this.setWorldTileKind(candidate.x, candidate.y, "empty");
       this.groundDirty = true;
       this.drawWorldGrid(true);
       this.spawnMiningImpact(candidate.x, candidate.y, "chest", true, 1);
