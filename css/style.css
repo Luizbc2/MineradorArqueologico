@@ -593,18 +593,18 @@ body { image-rendering: auto; }
 
 .game-modal-vendor-list {
   display: grid;
-  gap: 7px;
-  max-height: 232px;
+  gap: 5px;
+  max-height: min(292px, calc(100vh - 430px));
   overflow-y: auto;
   padding-right: 4px;
 }
 
 .game-modal-vendor-row {
   display: grid;
-  grid-template-columns: 18px minmax(0, 1fr) auto auto auto;
+  grid-template-columns: 16px minmax(0, 1fr) 64px 42px 92px;
   align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
+  gap: 6px;
+  padding: 7px 8px;
   border: 1px solid rgba(86, 70, 51, 0.72);
   background: rgba(31, 24, 18, 0.92);
 }
@@ -615,8 +615,8 @@ body { image-rendering: auto; }
 }
 
 .game-modal-vendor-row__marker {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   border: 2px solid rgba(255, 255, 255, 0.18);
   transform: rotate(45deg);
   background: var(--resource-accent, #e7bd63);
@@ -628,7 +628,7 @@ body { image-rendering: auto; }
 .game-modal-vendor-row__qty,
 .game-modal-vendor-row__total {
   font-size: 13px;
-  line-height: 1.12;
+  line-height: 1.08;
   font-weight: 700;
 }
 
@@ -649,7 +649,7 @@ body { image-rendering: auto; }
 }
 
 .game-modal-vendor-row__tier {
-  font-size: 10px;
+  font-size: 9px;
   line-height: 1;
   font-weight: 800;
   letter-spacing: 0.06em;
