@@ -249,7 +249,7 @@ export class MineScene extends Phaser.Scene {
     this.loadSavedProgression();
     this.worldGrid = generateWorld();
     this.prepareSurfaceSafeZone();
-    canonicalWorldState.set(this, this.cloneWorldGrid(this.worldGrid));
+    canonicalWorldState.set(this, this.#cloneWorldGrid(this.worldGrid));
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH_PX, WORLD_HEIGHT_PX);
     this.physics.world.setBounds(0, 0, WORLD_WIDTH_PX, WORLD_HEIGHT_PX);
     this.cameras.main.setBackgroundColor("#06080f");
@@ -356,7 +356,7 @@ export class MineScene extends Phaser.Scene {
     };
   }
 
-  private enforceRuntimeProgressionIntegrity() {
+  #enforceRuntimeProgressionIntegrity() {
     const sanitized = sanitizeProgressionSave(this.getProgressionSaveData());
 
     this.coins = sanitized.coins;
@@ -372,8 +372,8 @@ export class MineScene extends Phaser.Scene {
     }
 
     const deltaSeconds = delta / 1000;
-    this.enforcePlayerPositionIntegrity();
-    this.enforceRuntimeProgressionIntegrity();
+    this.#enforcePlayerPositionIntegrity();
+    this.#enforceRuntimeProgressionIntegrity();
     this.updateSurfacePrompt();
     this.updateMouseMiningPreview();
 
@@ -395,7 +395,7 @@ export class MineScene extends Phaser.Scene {
 
     if (this.vendorOverlay?.isVisible) {
       if (Phaser.Input.Keyboard.JustDown(this.sellKey!)) {
-        this.handleVendorSellAll();
+        this.#handleVendorSellAll();
       }
 
       if (Phaser.Input.Keyboard.JustDown(this.escapeKey!)) {
@@ -562,7 +562,7 @@ export class MineScene extends Phaser.Scene {
   private restoreSurfaceHubFloor() {
     for (let x = SURFACE_BASE_CLEAR_ZONE.startX; x <= SURFACE_BASE_CLEAR_ZONE.endX; x += 1) {
       if (this.worldGrid[SURFACE_ROW]?.[x]) {
-        this.setWorldTileKind(x, SURFACE_ROW, "grass");
+        this.#setWorldTileKind(x, SURFACE_ROW, "grass");
       }
     }
   }
@@ -571,7 +571,7 @@ export class MineScene extends Phaser.Scene {
     for (let y = 0; y <= SURFACE_ROW - 1; y += 1) {
       for (let x = SURFACE_BASE_CLEAR_ZONE.startX; x <= SURFACE_BASE_CLEAR_ZONE.endX; x += 1) {
         if (this.worldGrid[y]?.[x]) {
-          this.setWorldTileKind(x, y, "empty");
+          this.#setWorldTileKind(x, y, "empty");
         }
       }
     }
@@ -633,7 +633,7 @@ export class MineScene extends Phaser.Scene {
         const tileX = x * TILE_SIZE;
         const tileY = y * TILE_SIZE;
         const tile = this.worldGrid[y][x];
-        const safeKind = this.getTrustedTileKind(x, y);
+        const safeKind = this.#getTrustedTileKind(x, y);
 
         if (safeKind !== tile.kind) {
           tile.kind = safeKind;
@@ -1491,7 +1491,7 @@ export class MineScene extends Phaser.Scene {
     }
 
     const tile = this.worldGrid[target.y]?.[target.x];
-    const trustedKind = this.getTrustedTileKind(target.x, target.y);
+    const trustedKind = this.#getTrustedTileKind(target.x, target.y);
 
     if (!tile || !this.isMineable(trustedKind)) {
       this.clearMiningTarget();
@@ -1556,13 +1556,13 @@ export class MineScene extends Phaser.Scene {
     }
 
     if (this.miningTarget.progress >= this.miningTarget.required) {
-      const brokenKind = this.getTrustedTileKind(target.x, target.y);
-      this.setWorldTileKind(target.x, target.y, "empty");
+      const brokenKind = this.#getTrustedTileKind(target.x, target.y);
+      this.#setWorldTileKind(target.x, target.y, "empty");
       this.groundDirty = true;
       this.drawWorldGrid(true);
       this.spawnMiningImpact(target.x, target.y, brokenKind, true, 1);
       this.audioDirector?.playBlockBreak(brokenKind);
-      this.collectTileDrop(brokenKind, target.x, target.y);
+      this.#collectTileDrop(brokenKind, target.x, target.y);
       this.clearMiningTarget();
       this.player.moveCooldown = 0.08;
       return true;
@@ -1835,7 +1835,7 @@ export class MineScene extends Phaser.Scene {
     }
 
     const tile = this.worldGrid[target.y]?.[target.x];
-    const trustedKind = this.getTrustedTileKind(target.x, target.y);
+    const trustedKind = this.#getTrustedTileKind(target.x, target.y);
 
     if (!tile || !this.isMineable(trustedKind)) {
       return;
@@ -1908,7 +1908,7 @@ export class MineScene extends Phaser.Scene {
     this.effectLayer?.clear();
   }
 
-  private collectTileDrop(kind: TileKind, tileX: number, tileY: number) {
+  #collectTileDrop(kind: TileKind, tileX: number, tileY: number) {
     const resource = getResourceFromTile(kind);
 
     if (!resource) {
@@ -1989,7 +1989,7 @@ export class MineScene extends Phaser.Scene {
     return BASE_BACKPACK_CAPACITY + getUpgradeBonusSummary(this.upgradeState).backpackCapacity;
   }
 
-  private sellInventory() {
+  #sellInventory() {
     const sale = this.getInventorySaleSummary();
 
     if (sale.totalCoins <= 0 || !this.canSellInventory()) {
@@ -2343,7 +2343,7 @@ export class MineScene extends Phaser.Scene {
     }
 
     const tile = this.worldGrid[tileY]?.[tileX];
-    const trustedKind = this.getTrustedTileKind(tileX, tileY);
+    const trustedKind = this.#getTrustedTileKind(tileX, tileY);
 
     if (tile && tile.kind !== trustedKind) {
       tile.kind = trustedKind;
@@ -2361,16 +2361,16 @@ export class MineScene extends Phaser.Scene {
     return tileDefinitions[kind].breakable;
   }
 
-  private cloneWorldGrid(grid: WorldGrid): WorldGrid {
+  #cloneWorldGrid(grid: WorldGrid): WorldGrid {
     return grid.map((row) => row.map((cell) => ({ ...cell })));
   }
 
-  private getTrustedTileKind(tileX: number, tileY: number): TileKind {
+  #getTrustedTileKind(tileX: number, tileY: number): TileKind {
     const canonicalKind = canonicalWorldState.get(this)?.[tileY]?.[tileX]?.kind ?? "bedrock";
-    return this.getDepthAllowedTileKind(canonicalKind, tileY);
+    return this.#getDepthAllowedTileKind(canonicalKind, tileY);
   }
 
-  private setWorldTileKind(tileX: number, tileY: number, kind: TileKind) {
+  #setWorldTileKind(tileX: number, tileY: number, kind: TileKind) {
     if (!this.worldGrid[tileY]?.[tileX]) {
       return;
     }
@@ -2383,7 +2383,7 @@ export class MineScene extends Phaser.Scene {
     }
   }
 
-  private getDepthAllowedTileKind(kind: TileKind, tileY: number): TileKind {
+  #getDepthAllowedTileKind(kind: TileKind, tileY: number): TileKind {
     const minDepth = ORE_MIN_DEPTH[kind];
 
     if (minDepth === undefined || this.getSurfaceDepth(tileY) >= minDepth) {
@@ -2393,7 +2393,7 @@ export class MineScene extends Phaser.Scene {
     return "stone";
   }
 
-  private enforcePlayerPositionIntegrity() {
+  #enforcePlayerPositionIntegrity() {
     if (!this.player) {
       return;
     }
@@ -2723,7 +2723,7 @@ export class MineScene extends Phaser.Scene {
         continue;
       }
 
-      this.setWorldTileKind(candidate.x, candidate.y, "empty");
+      this.#setWorldTileKind(candidate.x, candidate.y, "empty");
       this.groundDirty = true;
       this.drawWorldGrid(true);
       this.spawnMiningImpact(candidate.x, candidate.y, "chest", true, 1);
@@ -2812,7 +2812,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   private toggleUpgradeOverlay() {
-    this.enforceRuntimeProgressionIntegrity();
+    this.#enforceRuntimeProgressionIntegrity();
 
     if (this.pauseOverlay?.isVisible || this.vendorOverlay?.isVisible) {
       return;
@@ -2832,9 +2832,9 @@ export class MineScene extends Phaser.Scene {
       maxDepthReached: this.maxDepthReached,
       pickaxes: this.getPickaxeShopLines(),
       upgrades: this.getUpgradeShopLines(),
-      onBuy: (id) => this.handlePickaxeBuy(id),
-      onEquip: (id) => this.handlePickaxeEquip(id),
-      onUpgradeBuy: (id) => this.handleUpgradeBuy(id),
+      onBuy: (id) => this.#handlePickaxeBuy(id),
+      onEquip: (id) => this.#handlePickaxeEquip(id),
+      onUpgradeBuy: (id) => this.#handleUpgradeBuy(id),
       onClose: () => this.closeUpgradeOverlay(),
     });
     this.updateSurfacePrompt();
@@ -2857,16 +2857,16 @@ export class MineScene extends Phaser.Scene {
   }
 
   private refreshUpgradeOverlay() {
-    this.enforceRuntimeProgressionIntegrity();
+    this.#enforceRuntimeProgressionIntegrity();
 
     this.upgradeOverlay?.show({
       coins: this.coins,
       maxDepthReached: this.maxDepthReached,
       pickaxes: this.getPickaxeShopLines(),
       upgrades: this.getUpgradeShopLines(),
-      onBuy: (id) => this.handlePickaxeBuy(id),
-      onEquip: (id) => this.handlePickaxeEquip(id),
-      onUpgradeBuy: (id) => this.handleUpgradeBuy(id),
+      onBuy: (id) => this.#handlePickaxeBuy(id),
+      onEquip: (id) => this.#handlePickaxeEquip(id),
+      onUpgradeBuy: (id) => this.#handleUpgradeBuy(id),
       onClose: () => this.closeUpgradeOverlay(),
     });
   }
@@ -2885,8 +2885,8 @@ export class MineScene extends Phaser.Scene {
     });
   }
 
-  private handlePickaxeBuy(id: PickaxeId) {
-    this.enforceRuntimeProgressionIntegrity();
+  #handlePickaxeBuy(id: PickaxeId) {
+    this.#enforceRuntimeProgressionIntegrity();
     const result = buyPickaxe(this.pickaxeState, id, this.coins, this.maxDepthReached);
 
     if (!result.ok) {
@@ -2906,8 +2906,8 @@ export class MineScene extends Phaser.Scene {
     this.refreshUpgradeOverlay();
   }
 
-  private handlePickaxeEquip(id: PickaxeId) {
-    this.enforceRuntimeProgressionIntegrity();
+  #handlePickaxeEquip(id: PickaxeId) {
+    this.#enforceRuntimeProgressionIntegrity();
     this.pickaxeState = equipPickaxe(this.pickaxeState, id);
     const equippedPickaxe = getEquippedPickaxe(this.pickaxeState);
     this.syncExpeditionProgress(this.expeditionProgression.applyPickaxeLevel(equippedPickaxe.tier));
@@ -2918,8 +2918,8 @@ export class MineScene extends Phaser.Scene {
     this.refreshUpgradeOverlay();
   }
 
-  private handleUpgradeBuy(id: UpgradeId) {
-    this.enforceRuntimeProgressionIntegrity();
+  #handleUpgradeBuy(id: UpgradeId) {
+    this.#enforceRuntimeProgressionIntegrity();
     const result = buyUpgrade(this.upgradeState, id, this.coins);
 
     if (!result.ok) {
@@ -2957,7 +2957,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   private toggleVendorOverlay() {
-    this.enforceRuntimeProgressionIntegrity();
+    this.#enforceRuntimeProgressionIntegrity();
 
     if (this.pauseOverlay?.isVisible || this.upgradeOverlay?.isVisible || this.surfaceReturnLocked) {
       return;
@@ -2976,16 +2976,16 @@ export class MineScene extends Phaser.Scene {
       coins: this.coins,
       sale: this.getInventorySaleSummary(),
       saleBonusPercent: this.getSaleBonusPercent(),
-      onSellAll: () => this.handleVendorSellAll(),
+      onSellAll: () => this.#handleVendorSellAll(),
       onClose: () => this.closeVendorOverlay(),
     });
     this.updateSurfacePrompt();
   }
 
-  private handleVendorSellAll() {
-    this.enforceRuntimeProgressionIntegrity();
+  #handleVendorSellAll() {
+    this.#enforceRuntimeProgressionIntegrity();
     const bonusActive = this.getBackpackSaleBonusMultiplier() > 1;
-    const sale = this.sellInventory();
+    const sale = this.#sellInventory();
 
     if (sale.totalCoins <= 0) {
       this.showSurfaceToast("Mochila vazia.");
@@ -3003,7 +3003,7 @@ export class MineScene extends Phaser.Scene {
       coins: this.coins,
       sale: this.getInventorySaleSummary(),
       saleBonusPercent: this.getSaleBonusPercent(),
-      onSellAll: () => this.handleVendorSellAll(),
+      onSellAll: () => this.#handleVendorSellAll(),
       onClose: () => this.closeVendorOverlay(),
     });
     this.updateSurfacePrompt();
@@ -3014,7 +3014,7 @@ export class MineScene extends Phaser.Scene {
       return false;
     }
 
-    this.handleVendorSellAll();
+    this.#handleVendorSellAll();
     return true;
   }
 
