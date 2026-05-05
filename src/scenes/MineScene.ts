@@ -1242,13 +1242,21 @@ export class MineScene extends Phaser.Scene {
     }
 
     if (kind === "chest") {
+      ground.fillStyle(material.glow ?? material.detail, 0.18);
+      ground.fillRect(tileX + 2, tileY + 4, 28, 20);
+      ground.fillStyle(0x271407, 0.95);
+      ground.fillRect(tileX + 3, tileY + 7, 26, 17);
       ground.fillStyle(material.top, 1);
       ground.fillRect(tileX + 4, tileY + 6, 24, 16);
+      ground.fillStyle(0xf2b85d, 0.95);
+      ground.fillRect(tileX + 6, tileY + 8, 20, 3);
       ground.fillStyle(material.edge, 1);
       ground.fillRect(tileX + 4, tileY + 14, 24, 3);
       ground.fillRect(tileX + 14, tileY + 8, 4, 12);
       ground.fillStyle(material.detail, 1);
       ground.fillRect(tileX + 14, tileY + 14, 4, 4);
+      ground.fillStyle(0xfff0a8, 0.7);
+      ground.fillRect(tileX + 22, tileY + 9, 3, 2);
     }
   }
 
