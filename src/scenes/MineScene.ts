@@ -1326,6 +1326,24 @@ export class MineScene extends Phaser.Scene {
       guides.lineStyle(1, gameTheme.colors.accent, 0.06);
       guides.lineBetween(0, y, WORLD_WIDTH_PX, y);
     }
+
+    for (let depth = 100; depth < WORLD_HEIGHT_TILES - SURFACE_RETURN_TILE.y; depth += 100) {
+      const y = (SURFACE_RETURN_TILE.y + depth) * TILE_SIZE;
+      const label = this.add.text(
+        20,
+        y + 8,
+        `${depth}m`,
+        makeGameTextStyle({
+          family: "body",
+          color: "#d7c49c",
+          fontSize: "13px",
+          fontStyle: "800",
+          strokeThickness: 3,
+        }),
+      );
+      label.setAlpha(0.42);
+      label.setDepth(2);
+    }
   }
 
   private createPlayer() {
