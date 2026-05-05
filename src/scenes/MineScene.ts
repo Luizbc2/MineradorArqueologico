@@ -1938,23 +1938,6 @@ export class MineScene extends Phaser.Scene {
     const pulse = 0.42 + Math.sin(this.time.now / 120) * 0.1;
     const color = this.smartMiningEnabled ? gameTheme.colors.accent : material.glow ?? material.detail;
 
-    if (this.smartMiningEnabled) {
-      const playerX = this.#player.position.x * TILE_SIZE + TILE_SIZE / 2;
-      const playerY = this.#player.position.y * TILE_SIZE + TILE_SIZE / 2;
-      const targetCenterX = tileX + TILE_SIZE / 2;
-      const targetCenterY = tileY + TILE_SIZE / 2;
-      const reachRadius = MOUSE_MINING_REACH_TILES * TILE_SIZE + TILE_SIZE / 2;
-
-      this.mouseTargetLayer.lineStyle(1, color, 0.12 + pulse * 0.08);
-      this.mouseTargetLayer.strokeCircle(playerX, playerY, reachRadius);
-      this.mouseTargetLayer.lineStyle(3, 0x0a0d12, 0.42);
-      this.mouseTargetLayer.lineBetween(playerX, playerY, targetCenterX, targetCenterY);
-      this.mouseTargetLayer.lineStyle(2, color, 0.36 + pulse * 0.24);
-      this.mouseTargetLayer.lineBetween(playerX, playerY, targetCenterX, targetCenterY);
-      this.mouseTargetLayer.fillStyle(color, 0.72);
-      this.mouseTargetLayer.fillCircle(targetCenterX, targetCenterY, 3);
-    }
-
     this.mouseTargetLayer.lineStyle(2, color, pulse);
     this.mouseTargetLayer.strokeRect(tileX + 3, tileY + 3, TILE_SIZE - 6, TILE_SIZE - 6);
     this.mouseTargetLayer.fillStyle(color, 0.04);
