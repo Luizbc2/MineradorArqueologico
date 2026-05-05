@@ -482,13 +482,13 @@ export class MineScene extends Phaser.Scene {
       return;
     }
 
-    if (hasAirBelow) {
-      this.clearMiningTarget();
-      this.finalizeFrame(deltaSeconds, { falling: true });
+    if (this.tryMoveHorizontal(deltaSeconds)) {
       return;
     }
 
-    if (this.tryMoveHorizontal(deltaSeconds)) {
+    if (hasAirBelow) {
+      this.clearMiningTarget();
+      this.finalizeFrame(deltaSeconds, { falling: true });
       return;
     }
 
