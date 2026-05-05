@@ -156,6 +156,7 @@ export class MineScene extends Phaser.Scene {
   private effectLayer?: Phaser.GameObjects.Graphics;
   private mouseTargetLayer?: Phaser.GameObjects.Graphics;
   private screenFlash?: Phaser.GameObjects.Rectangle;
+  private depthVignette?: Phaser.GameObjects.Rectangle;
   private surfacePadLayer?: Phaser.GameObjects.Graphics;
   private surfaceVendorSignSprite?: Phaser.GameObjects.Image;
   private surfaceWorkshopSignSprite?: Phaser.GameObjects.Image;
@@ -264,6 +265,7 @@ export class MineScene extends Phaser.Scene {
     this.createPlayer();
     this.createUiCamera();
     this.createScreenFlash();
+    this.createDepthVignette();
     this.createHud();
     this.createGoalsPanel();
     this.createArchaeologyOverlay();
@@ -553,6 +555,7 @@ export class MineScene extends Phaser.Scene {
 
     this.wasFallingLastFrame = falling;
     this.updateCameraZoom(deltaSeconds);
+    this.updateDepthVignette();
 
     const currentDepth = this.getSurfaceDepth(this.#player.position.y);
 
@@ -1479,6 +1482,31 @@ export class MineScene extends Phaser.Scene {
     this.registerFixedUiElement(this.screenFlash);
   }
 
+  private createDepthVignette() {
+    this.depthVignette = this.add.rectangle(
+      this.viewportWidth / 2,
+      this.viewportHeight / 2,
+      this.viewportWidth,
+      this.viewportHeight,
+      0x02040a,
+      0,
+    );
+    this.depthVignette.setScrollFactor(0);
+    this.depthVignette.setDepth(1390);
+    this.depthVignette.setBlendMode(Phaser.BlendModes.MULTIPLY);
+    this.depthVignette.setAlpha(0);
+    this.registerFixedUiElement(this.depthVignette);
+  }
+
+  private updateDepthVignette() {
+    if (!this.depthVignette || !this.#player) {
+      return;
+    }
+
+    const depthRatio = Phaser.Math.Clamp(this.getSurfaceDepth(this.#player.position.y) / 560, 0, 1);
+    this.depthVignette.setAlpha(depthRatio * 0.16);
+  }
+
   private createArchaeologyOverlay() {
     this.archaeologyOverlay = new ArchaeologyCardOverlay(this);
     this.registerFixedUiElement(this.archaeologyOverlay.getRoot());
@@ -2384,6 +2412,9 @@ export class MineScene extends Phaser.Scene {
     this.screenFlash?.setPosition(width / 2, height / 2);
     this.screenFlash?.setSize(width, height);
     this.updateFixedUiElementLayout(this.screenFlash);
+    this.depthVignette?.setPosition(width / 2, height / 2);
+    this.depthVignette?.setSize(width, height);
+    this.updateFixedUiElementLayout(this.depthVignette);
 
     this.createHud();
     this.createGoalsPanel();
