@@ -133,17 +133,17 @@ const ORE_MIN_DEPTH: Partial<Record<TileKind, number>> = {
 };
 
 export class MineScene extends Phaser.Scene {
-  private worldGrid: WorldGrid = [];
-  private archaeologyDeck = createArchaeologyDeck();
-  private expeditionProgression = createExpeditionProgression();
-  private progressionSnapshot: ExpeditionProgressionSnapshot = this.expeditionProgression.getSnapshot();
-  private inventory: ResourceInventory = createResourceInventory();
-  private pickaxeState = createPickaxeOwnershipState();
-  private upgradeState = createUpgradeLevelState();
-  private coins = 0;
+  #worldGrid: WorldGrid = [];
+  #archaeologyDeck = createArchaeologyDeck();
+  #expeditionProgression = createExpeditionProgression();
+  #progressionSnapshot: ExpeditionProgressionSnapshot = this.#expeditionProgression.getSnapshot();
+  #inventory: ResourceInventory = createResourceInventory();
+  #pickaxeState = createPickaxeOwnershipState();
+  #upgradeState = createUpgradeLevelState();
+  #coins = 0;
   private energy = 100;
   private audioMuted = false;
-  private maxDepthReached = 0;
+  #maxDepthReached = 0;
   private groundLayer?: Phaser.GameObjects.Graphics;
   private groundDirty = true;
   private lastGroundWindow?: {
@@ -191,7 +191,7 @@ export class MineScene extends Phaser.Scene {
   private surfaceKey?: Phaser.Input.Keyboard.Key;
   private sellKey?: Phaser.Input.Keyboard.Key;
   private smartMiningKey?: Phaser.Input.Keyboard.Key;
-  private player?: PlayerMiner;
+  #player?: PlayerMiner;
   private miningTarget?: MiningTarget;
   private smartMiningEnabled = false;
   private rewardComboCount = 0;
@@ -247,9 +247,9 @@ export class MineScene extends Phaser.Scene {
 
   create() {
     this.loadSavedProgression();
-    this.worldGrid = generateWorld();
+    this.#worldGrid = generateWorld();
     this.prepareSurfaceSafeZone();
-    canonicalWorldState.set(this, this.#cloneWorldGrid(this.worldGrid));
+    canonicalWorldState.set(this, this.#cloneWorldGrid(this.#worldGrid));
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH_PX, WORLD_HEIGHT_PX);
     this.physics.world.setBounds(0, 0, WORLD_WIDTH_PX, WORLD_HEIGHT_PX);
     this.cameras.main.setBackgroundColor("#06080f");
@@ -271,10 +271,10 @@ export class MineScene extends Phaser.Scene {
     this.createSurfacePrompt();
     this.createSurfaceToast();
     this.createAudioDirector();
-    this.progressionSnapshot = this.expeditionProgression.getSnapshot();
+    this.#progressionSnapshot = this.#expeditionProgression.getSnapshot();
 
-    if (this.player) {
-      this.cameras.main.startFollow(this.player.sprite, true, 0.14, 0.18);
+    if (this.#player) {
+      this.cameras.main.startFollow(this.#player.sprite, true, 0.14, 0.18);
       this.applyCameraFraming();
     }
 
@@ -326,14 +326,14 @@ export class MineScene extends Phaser.Scene {
   private loadSavedProgression() {
     const save = loadProgressionSave();
 
-    this.coins = save.coins;
-    this.maxDepthReached = save.maxDepthReached;
-    this.inventory = save.inventory;
-    this.pickaxeState = save.pickaxes;
-    this.upgradeState = save.upgrades;
-    this.expeditionProgression = createExpeditionProgression(save.expedition);
-    this.progressionSnapshot = this.expeditionProgression.getSnapshot();
-    this.archaeologyDeck = createArchaeologyDeck(save.archaeology);
+    this.#coins = save.coins;
+    this.#maxDepthReached = save.maxDepthReached;
+    this.#inventory = save.inventory;
+    this.#pickaxeState = save.pickaxes;
+    this.#upgradeState = save.upgrades;
+    this.#expeditionProgression = createExpeditionProgression(save.expedition);
+    this.#progressionSnapshot = this.#expeditionProgression.getSnapshot();
+    this.#archaeologyDeck = createArchaeologyDeck(save.archaeology);
     this.audioMuted = save.audioMuted;
   }
 
@@ -343,14 +343,14 @@ export class MineScene extends Phaser.Scene {
 
   private getProgressionSaveData() {
     return {
-      coins: this.coins,
-      maxDepthReached: this.maxDepthReached,
-      inventory: this.inventory,
-      pickaxes: this.pickaxeState,
-      upgrades: this.upgradeState,
-      expedition: this.expeditionProgression.getState(),
+      coins: this.#coins,
+      maxDepthReached: this.#maxDepthReached,
+      inventory: this.#inventory,
+      pickaxes: this.#pickaxeState,
+      upgrades: this.#upgradeState,
+      expedition: this.#expeditionProgression.getState(),
       archaeology: {
-        collectedCount: this.archaeologyDeck.collectedCount,
+        collectedCount: this.#archaeologyDeck.collectedCount,
       },
       audioMuted: this.audioDirector?.isMuted ?? this.audioMuted,
     };
@@ -359,15 +359,15 @@ export class MineScene extends Phaser.Scene {
   #enforceRuntimeProgressionIntegrity() {
     const sanitized = sanitizeProgressionSave(this.getProgressionSaveData());
 
-    this.coins = sanitized.coins;
-    this.maxDepthReached = sanitized.maxDepthReached;
-    this.inventory = sanitized.inventory;
-    this.pickaxeState = sanitized.pickaxes;
-    this.upgradeState = sanitized.upgrades;
+    this.#coins = sanitized.coins;
+    this.#maxDepthReached = sanitized.maxDepthReached;
+    this.#inventory = sanitized.inventory;
+    this.#pickaxeState = sanitized.pickaxes;
+    this.#upgradeState = sanitized.upgrades;
   }
 
   update(_: number, delta: number) {
-    if (!this.player) {
+    if (!this.#player) {
       return;
     }
 
@@ -465,25 +465,25 @@ export class MineScene extends Phaser.Scene {
       return;
     }
 
-    if (this.player.fallCooldown === 0 && this.canOccupy(this.player.position.x, this.player.position.y + 1)) {
-      this.player.snapToTile({
-        x: this.player.position.x,
-        y: this.player.position.y + 1,
+    if (this.#player.fallCooldown === 0 && this.canOccupy(this.#player.position.x, this.#player.position.y + 1)) {
+      this.#player.snapToTile({
+        x: this.#player.position.x,
+        y: this.#player.position.y + 1,
       });
-      this.player.fallCooldown = 0.08;
+      this.#player.fallCooldown = 0.08;
       this.clearMiningTarget();
       this.finalizeFrame(deltaSeconds, { falling: true });
       return;
     }
 
-    if (this.player.moveCooldown > 0) {
+    if (this.#player.moveCooldown > 0) {
       this.finalizeFrame(deltaSeconds);
       return;
     }
 
     const moveTempoScale = Math.max(
       0.48,
-      1 - this.progressionSnapshot.perks.moveTempoBonus - getUpgradeBonusSummary(this.upgradeState).moveTempoBonus,
+      1 - this.#progressionSnapshot.perks.moveTempoBonus - getUpgradeBonusSummary(this.#upgradeState).moveTempoBonus,
     );
 
     const leftPressed =
@@ -498,20 +498,20 @@ export class MineScene extends Phaser.Scene {
       return;
     }
 
-    const nextX = this.player.position.x + nextDirection;
-    const nextY = this.player.position.y;
+    const nextX = this.#player.position.x + nextDirection;
+    const nextY = this.#player.position.y;
 
     if (!this.canOccupy(nextX, nextY)) {
-      this.player.facing = nextDirection;
-      this.player.moveCooldown = 0.08 * moveTempoScale;
+      this.#player.facing = nextDirection;
+      this.#player.moveCooldown = 0.08 * moveTempoScale;
       this.finalizeFrame(deltaSeconds);
       return;
     }
 
-    this.player.facing = nextDirection;
-    this.player.snapToTile({ x: nextX, y: nextY });
-    this.player.moveCooldown = 0.11 * moveTempoScale;
-    this.audioDirector?.playStep(this.player.position.y / WORLD_HEIGHT_TILES);
+    this.#player.facing = nextDirection;
+    this.#player.snapToTile({ x: nextX, y: nextY });
+    this.#player.moveCooldown = 0.11 * moveTempoScale;
+    this.audioDirector?.playStep(this.#player.position.y / WORLD_HEIGHT_TILES);
     this.finalizeFrame(deltaSeconds);
   }
 
@@ -522,25 +522,25 @@ export class MineScene extends Phaser.Scene {
       falling?: boolean;
     },
   ) {
-    if (!this.player) {
+    if (!this.#player) {
       return;
     }
 
-    this.player.setMining(Boolean(state?.mining));
-    this.player.setFalling(Boolean(state?.falling));
-    this.player.update(deltaSeconds);
+    this.#player.setMining(Boolean(state?.mining));
+    this.#player.setFalling(Boolean(state?.falling));
+    this.#player.update(deltaSeconds);
     this.updateCameraZoom(deltaSeconds);
 
-    const currentDepth = this.getSurfaceDepth(this.player.position.y);
+    const currentDepth = this.getSurfaceDepth(this.#player.position.y);
 
     if (currentDepth !== this.lastAppliedDepth) {
       this.lastAppliedDepth = currentDepth;
-      this.syncExpeditionProgress(this.expeditionProgression.applyDepth(currentDepth));
+      this.syncExpeditionProgress(this.#expeditionProgression.applyDepth(currentDepth));
     }
 
     this.updateRewardLoop(deltaSeconds);
     this.audioDirector?.update(deltaSeconds, {
-      depthRatio: this.player.position.y / WORLD_HEIGHT_TILES,
+      depthRatio: this.#player.position.y / WORLD_HEIGHT_TILES,
       atSurface: this.isAtSurface(),
       comboCount: this.rewardComboCount,
     });
@@ -552,8 +552,8 @@ export class MineScene extends Phaser.Scene {
   private prepareSurfaceSafeZone() {
     for (let y = 0; y <= SURFACE_ROW - 1; y += 1) {
       for (let x = SURFACE_BASE_CLEAR_ZONE.startX; x <= SURFACE_BASE_CLEAR_ZONE.endX; x += 1) {
-        if (this.worldGrid[y]?.[x]) {
-          this.worldGrid[y][x] = { kind: "empty" };
+        if (this.#worldGrid[y]?.[x]) {
+          this.#worldGrid[y][x] = { kind: "empty" };
         }
       }
     }
@@ -561,7 +561,7 @@ export class MineScene extends Phaser.Scene {
 
   private restoreSurfaceHubFloor() {
     for (let x = SURFACE_BASE_CLEAR_ZONE.startX; x <= SURFACE_BASE_CLEAR_ZONE.endX; x += 1) {
-      if (this.worldGrid[SURFACE_ROW]?.[x]) {
+      if (this.#worldGrid[SURFACE_ROW]?.[x]) {
         this.#setWorldTileKind(x, SURFACE_ROW, "grass");
       }
     }
@@ -570,7 +570,7 @@ export class MineScene extends Phaser.Scene {
   private restoreSurfaceHub() {
     for (let y = 0; y <= SURFACE_ROW - 1; y += 1) {
       for (let x = SURFACE_BASE_CLEAR_ZONE.startX; x <= SURFACE_BASE_CLEAR_ZONE.endX; x += 1) {
-        if (this.worldGrid[y]?.[x]) {
+        if (this.#worldGrid[y]?.[x]) {
           this.#setWorldTileKind(x, y, "empty");
         }
       }
@@ -606,9 +606,9 @@ export class MineScene extends Phaser.Scene {
     const view = this.cameras.main.worldView;
     const nextWindow = {
       startX: Math.max(0, Math.floor(view.x / TILE_SIZE) - 1),
-      endX: Math.min(this.worldGrid[0].length - 1, Math.ceil((view.x + view.width) / TILE_SIZE) + 1),
+      endX: Math.min(this.#worldGrid[0].length - 1, Math.ceil((view.x + view.width) / TILE_SIZE) + 1),
       startY: Math.max(0, Math.floor(view.y / TILE_SIZE) - 1),
-      endY: Math.min(this.worldGrid.length - 1, Math.ceil((view.y + view.height) / TILE_SIZE) + 1),
+      endY: Math.min(this.#worldGrid.length - 1, Math.ceil((view.y + view.height) / TILE_SIZE) + 1),
     };
 
     if (
@@ -632,7 +632,7 @@ export class MineScene extends Phaser.Scene {
       for (let x = nextWindow.startX; x <= nextWindow.endX; x += 1) {
         const tileX = x * TILE_SIZE;
         const tileY = y * TILE_SIZE;
-        const tile = this.worldGrid[y][x];
+        const tile = this.#worldGrid[y][x];
         const safeKind = this.#getTrustedTileKind(x, y);
 
         if (safeKind !== tile.kind) {
@@ -1286,7 +1286,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   private createPlayer() {
-    this.player = new PlayerMiner(this, PLAYER_SPAWN_TILE);
+    this.#player = new PlayerMiner(this, PLAYER_SPAWN_TILE);
     this.lastTrustedPlayerPosition = { ...PLAYER_SPAWN_TILE };
   }
 
@@ -1327,7 +1327,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   private applyCameraFraming() {
-    if (!this.player) {
+    if (!this.#player) {
       return;
     }
 
@@ -1339,7 +1339,7 @@ export class MineScene extends Phaser.Scene {
     );
     camera.setFollowOffset(0, -52);
     this.updateCameraZoom(0, true);
-    camera.centerOn(this.player.sprite.x, this.player.sprite.y - 52);
+    camera.centerOn(this.#player.sprite.x, this.#player.sprite.y - 52);
   }
 
   private updateCameraZoom(deltaSeconds: number, snap = false) {
@@ -1349,8 +1349,8 @@ export class MineScene extends Phaser.Scene {
 
     if (snap) {
       camera.setZoom(targetZoom);
-      if (this.player) {
-        camera.centerOn(this.player.sprite.x, this.player.sprite.y - 52);
+      if (this.#player) {
+        camera.centerOn(this.#player.sprite.x, this.#player.sprite.y - 52);
       }
       return;
     }
@@ -1361,16 +1361,16 @@ export class MineScene extends Phaser.Scene {
     if (Math.abs(nextZoom - currentZoom) < 0.0005) {
       if (Math.abs(targetZoom - currentZoom) >= 0.0005) {
         camera.setZoom(targetZoom);
-        if (this.player) {
-          camera.centerOn(this.player.sprite.x, this.player.sprite.y - 52);
+        if (this.#player) {
+          camera.centerOn(this.#player.sprite.x, this.#player.sprite.y - 52);
         }
       }
       return;
     }
 
     camera.setZoom(nextZoom);
-    if (this.player) {
-      camera.centerOn(this.player.sprite.x, this.player.sprite.y - 52);
+    if (this.#player) {
+      camera.centerOn(this.#player.sprite.x, this.#player.sprite.y - 52);
     }
   }
 
@@ -1471,7 +1471,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   private handleMining(deltaSeconds: number) {
-    if (!this.player) {
+    if (!this.#player) {
       return false;
     }
 
@@ -1490,7 +1490,7 @@ export class MineScene extends Phaser.Scene {
       return false;
     }
 
-    const tile = this.worldGrid[target.y]?.[target.x];
+    const tile = this.#worldGrid[target.y]?.[target.x];
     const trustedKind = this.#getTrustedTileKind(target.x, target.y);
 
     if (!tile || !this.isMineable(trustedKind)) {
@@ -1509,13 +1509,13 @@ export class MineScene extends Phaser.Scene {
       return false;
     }
 
-    const equippedPickaxe = getEquippedPickaxe(this.pickaxeState);
-    const upgradeBonuses = getUpgradeBonusSummary(this.upgradeState);
+    const equippedPickaxe = getEquippedPickaxe(this.#pickaxeState);
+    const upgradeBonuses = getUpgradeBonusSummary(this.#upgradeState);
     const depthHardnessMultiplier = this.getDepthHardnessMultiplier(target.y);
     const comboMiningBonus = Math.min(MAX_COMBO_MINING_SPEED_BONUS, this.rewardComboCount * 0.01);
     const speedMultiplier =
       equippedPickaxe.baseSpeed *
-      (1 + this.progressionSnapshot.perks.miningSpeedBonus + upgradeBonuses.speedMultiplier + comboMiningBonus);
+      (1 + this.#progressionSnapshot.perks.miningSpeedBonus + upgradeBonuses.speedMultiplier + comboMiningBonus);
     const effectivePower = equippedPickaxe.power + upgradeBonuses.flatPower;
     const required = Math.max(
       0.08,
@@ -1538,9 +1538,9 @@ export class MineScene extends Phaser.Scene {
       this.audioDirector?.playMiningTick(trustedKind, 0.24);
     }
 
-    this.player.facing = target.x < this.player.position.x ? -1 : target.x > this.player.position.x ? 1 : this.player.facing;
+    this.#player.facing = target.x < this.#player.position.x ? -1 : target.x > this.#player.position.x ? 1 : this.#player.facing;
     this.miningTarget.progress += deltaSeconds;
-    this.player.moveCooldown = 0.05;
+    this.#player.moveCooldown = 0.05;
 
     const completion = Phaser.Math.Clamp(
       this.miningTarget.progress / this.miningTarget.required,
@@ -1564,7 +1564,7 @@ export class MineScene extends Phaser.Scene {
       this.audioDirector?.playBlockBreak(brokenKind);
       this.#collectTileDrop(brokenKind, target.x, target.y);
       this.clearMiningTarget();
-      this.player.moveCooldown = 0.08;
+      this.#player.moveCooldown = 0.08;
       return true;
     }
 
@@ -1577,7 +1577,7 @@ export class MineScene extends Phaser.Scene {
     rightPressed: boolean;
     downPressed: boolean;
   }) {
-    if (!this.player) {
+    if (!this.#player) {
       return null;
     }
 
@@ -1589,8 +1589,8 @@ export class MineScene extends Phaser.Scene {
 
     if (input.downPressed) {
       return {
-        x: this.player.position.x,
-        y: this.player.position.y + 1,
+        x: this.#player.position.x,
+        y: this.#player.position.y + 1,
       };
     }
 
@@ -1598,7 +1598,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   private resolveMouseMiningTarget() {
-    if (!this.player) {
+    if (!this.#player) {
       return null;
     }
 
@@ -1620,7 +1620,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   private getSmartMiningTarget() {
-    if (!this.player) {
+    if (!this.#player) {
       return null;
     }
 
@@ -1630,8 +1630,8 @@ export class MineScene extends Phaser.Scene {
       return null;
     }
 
-    const playerWorldX = this.player.position.x * TILE_SIZE + TILE_SIZE / 2;
-    const playerWorldY = this.player.position.y * TILE_SIZE + TILE_SIZE / 2;
+    const playerWorldX = this.#player.position.x * TILE_SIZE + TILE_SIZE / 2;
+    const playerWorldY = this.#player.position.y * TILE_SIZE + TILE_SIZE / 2;
     const deltaX = worldPoint.x - playerWorldX;
     const deltaY = worldPoint.y - playerWorldY;
     const distance = Math.hypot(deltaX, deltaY);
@@ -1645,9 +1645,9 @@ export class MineScene extends Phaser.Scene {
     let bestTarget: TilePoint | null = null;
     let bestScore = Number.POSITIVE_INFINITY;
 
-    for (let y = this.player.position.y - SMART_MINING_REACH_TILES; y <= this.player.position.y + SMART_MINING_REACH_TILES; y += 1) {
-      for (let x = this.player.position.x - SMART_MINING_REACH_TILES; x <= this.player.position.x + SMART_MINING_REACH_TILES; x += 1) {
-        if (x === this.player.position.x && y === this.player.position.y) {
+    for (let y = this.#player.position.y - SMART_MINING_REACH_TILES; y <= this.#player.position.y + SMART_MINING_REACH_TILES; y += 1) {
+      for (let x = this.#player.position.x - SMART_MINING_REACH_TILES; x <= this.#player.position.x + SMART_MINING_REACH_TILES; x += 1) {
+        if (x === this.#player.position.x && y === this.#player.position.y) {
           continue;
         }
 
@@ -1656,21 +1656,21 @@ export class MineScene extends Phaser.Scene {
         }
 
         const gridDistance = Math.max(
-          Math.abs(x - this.player.position.x),
-          Math.abs(y - this.player.position.y),
+          Math.abs(x - this.#player.position.x),
+          Math.abs(y - this.#player.position.y),
         );
 
         if (gridDistance > 1) {
           continue;
         }
 
-        const tile = this.worldGrid[y]?.[x];
+        const tile = this.#worldGrid[y]?.[x];
 
         if (!tile || !this.isMineable(tile.kind)) {
           continue;
         }
 
-        if (!this.hasMiningLineOfSight(this.player.position, { x, y })) {
+        if (!this.hasMiningLineOfSight(this.#player.position, { x, y })) {
           continue;
         }
 
@@ -1710,7 +1710,7 @@ export class MineScene extends Phaser.Scene {
     const targetX = Math.floor((playerWorldX + directionX * targetDistance) / TILE_SIZE);
     const targetY = Math.floor((playerWorldY + directionY * targetDistance) / TILE_SIZE);
     return this.getFirstMineableTileOnLine(
-      this.player.position,
+      this.#player.position,
       { x: targetX, y: targetY },
     );
   }
@@ -1751,7 +1751,7 @@ export class MineScene extends Phaser.Scene {
         return null;
       }
 
-      const tile = this.worldGrid[y]?.[x];
+      const tile = this.#worldGrid[y]?.[x];
 
       if (!tile || this.isPassable(tile.kind)) {
         continue;
@@ -1787,7 +1787,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   private isMiningTargetInReach(tileX: number, tileY: number) {
-    if (!this.player) {
+    if (!this.#player) {
       return false;
     }
 
@@ -1800,8 +1800,8 @@ export class MineScene extends Phaser.Scene {
       return false;
     }
 
-    const deltaX = Math.abs(tileX - this.player.position.x);
-    const deltaY = Math.abs(tileY - this.player.position.y);
+    const deltaX = Math.abs(tileX - this.#player.position.x);
+    const deltaY = Math.abs(tileY - this.#player.position.y);
     return deltaX <= MOUSE_MINING_REACH_TILES && deltaY <= MOUSE_MINING_REACH_TILES;
   }
 
@@ -1813,7 +1813,7 @@ export class MineScene extends Phaser.Scene {
     this.mouseTargetLayer.clear();
 
     if (
-      !this.player ||
+      !this.#player ||
       this.miningTarget ||
       this.pauseOverlay?.isVisible ||
       this.archaeologyOverlay?.isVisible ||
@@ -1834,7 +1834,7 @@ export class MineScene extends Phaser.Scene {
       return;
     }
 
-    const tile = this.worldGrid[target.y]?.[target.x];
+    const tile = this.#worldGrid[target.y]?.[target.x];
     const trustedKind = this.#getTrustedTileKind(target.x, target.y);
 
     if (!tile || !this.isMineable(trustedKind)) {
@@ -1853,8 +1853,8 @@ export class MineScene extends Phaser.Scene {
     const color = this.smartMiningEnabled ? gameTheme.colors.accent : material.glow ?? material.detail;
 
     if (this.smartMiningEnabled) {
-      const playerX = this.player.position.x * TILE_SIZE + TILE_SIZE / 2;
-      const playerY = this.player.position.y * TILE_SIZE + TILE_SIZE / 2;
+      const playerX = this.#player.position.x * TILE_SIZE + TILE_SIZE / 2;
+      const playerY = this.#player.position.y * TILE_SIZE + TILE_SIZE / 2;
       const targetCenterX = tileX + TILE_SIZE / 2;
       const targetCenterY = tileY + TILE_SIZE / 2;
 
@@ -1889,7 +1889,7 @@ export class MineScene extends Phaser.Scene {
       1,
     );
     const pulse = 0.52 + Math.sin(this.time.now / 60) * 0.16;
-    const material = tilePalette[this.worldGrid[this.miningTarget.y]?.[this.miningTarget.x]?.kind ?? "stone"];
+    const material = tilePalette[this.#worldGrid[this.miningTarget.y]?.[this.miningTarget.x]?.kind ?? "stone"];
 
     this.effectLayer.lineStyle(2, material.detail, pulse + completion * 0.18);
     this.effectLayer.strokeRect(tileX + 2, tileY + 2, TILE_SIZE - 4, TILE_SIZE - 4);
@@ -1919,15 +1919,15 @@ export class MineScene extends Phaser.Scene {
     const previousLoad = this.getInventoryLoad();
     const capacity = this.getBackpackCapacity();
     const quantity = Math.min(this.rollResourceDropQuantity(), Math.max(1, capacity - previousLoad));
-    this.inventory[resource] += quantity;
+    this.#inventory[resource] += quantity;
     const rewardState = this.registerReward(resource);
-    this.syncExpeditionProgress(this.expeditionProgression.applyResource(resource, quantity));
-    this.game.events.emit("inventory:changed", { ...this.inventory });
+    this.syncExpeditionProgress(this.#expeditionProgression.applyResource(resource, quantity));
+    this.game.events.emit("inventory:changed", { ...this.#inventory });
     this.saveProgression();
     this.updateHud();
     this.showBackpackLoadWarning(previousLoad, this.getInventoryLoad(), capacity);
     this.audioDirector?.playPickup(resource, rewardState.streak);
-    this.spawnPickupFeedback(tileX, tileY, this.inventory[resource], rewardState, quantity);
+    this.spawnPickupFeedback(tileX, tileY, this.#inventory[resource], rewardState, quantity);
   }
 
   private showBackpackLoadWarning(previousLoad: number, nextLoad: number, capacity: number) {
@@ -1945,20 +1945,20 @@ export class MineScene extends Phaser.Scene {
   }
 
   private rollResourceDropQuantity() {
-    const chance = getUpgradeBonusSummary(this.upgradeState).extraDropChance;
+    const chance = getUpgradeBonusSummary(this.#upgradeState).extraDropChance;
     return chance > 0 && Math.random() < chance ? 2 : 1;
   }
 
   private canSellInventory() {
-    return hasSellableResources(this.inventory);
+    return hasSellableResources(this.#inventory);
   }
 
   private getInventorySaleSummary() {
-    return getInventorySaleSummary(this.inventory, this.getEffectiveSaleValueMultiplier());
+    return getInventorySaleSummary(this.#inventory, this.getEffectiveSaleValueMultiplier());
   }
 
   private getSaleValueMultiplier() {
-    return 1 + getUpgradeBonusSummary(this.upgradeState).saleMultiplier;
+    return 1 + getUpgradeBonusSummary(this.#upgradeState).saleMultiplier;
   }
 
   private getEffectiveSaleValueMultiplier() {
@@ -1982,11 +1982,11 @@ export class MineScene extends Phaser.Scene {
   }
 
   private getInventoryLoad() {
-    return resourceKinds.reduce((total, resource) => total + this.inventory[resource], 0);
+    return resourceKinds.reduce((total, resource) => total + this.#inventory[resource], 0);
   }
 
   private getBackpackCapacity() {
-    return BASE_BACKPACK_CAPACITY + getUpgradeBonusSummary(this.upgradeState).backpackCapacity;
+    return BASE_BACKPACK_CAPACITY + getUpgradeBonusSummary(this.#upgradeState).backpackCapacity;
   }
 
   #sellInventory() {
@@ -1996,15 +1996,15 @@ export class MineScene extends Phaser.Scene {
       return sale;
     }
 
-    this.coins += sale.totalCoins;
+    this.#coins += sale.totalCoins;
 
     for (const resource of resourceKinds) {
-      this.inventory[resource] = 0;
+      this.#inventory[resource] = 0;
     }
 
-    this.syncExpeditionProgress(this.expeditionProgression.applyCoinsSold(sale.totalCoins));
-    this.game.events.emit("economy:changed", { coins: this.coins });
-    this.game.events.emit("inventory:changed", { ...this.inventory });
+    this.syncExpeditionProgress(this.#expeditionProgression.applyCoinsSold(sale.totalCoins));
+    this.game.events.emit("economy:changed", { coins: this.#coins });
+    this.game.events.emit("inventory:changed", { ...this.#inventory });
     this.saveProgression();
     this.updateHud();
 
@@ -2030,8 +2030,8 @@ export class MineScene extends Phaser.Scene {
   private registerReward(resource: ResourceKind) {
     const meta = getResourceMeta(resource);
     const chainActive = this.rewardComboTimer > 0;
-    const upgradeBonuses = getUpgradeBonusSummary(this.upgradeState);
-    const comboBonus = this.progressionSnapshot.perks.comboWindowBonus + upgradeBonuses.comboWindowBonus;
+    const upgradeBonuses = getUpgradeBonusSummary(this.#upgradeState);
+    const comboBonus = this.#progressionSnapshot.perks.comboWindowBonus + upgradeBonuses.comboWindowBonus;
 
     this.rewardComboCount = chainActive ? this.rewardComboCount + 1 : 1;
     this.rewardComboWindow =
@@ -2330,7 +2330,7 @@ export class MineScene extends Phaser.Scene {
     this.createHud();
     this.createGoalsPanel();
 
-    if (this.player) {
+    if (this.#player) {
       this.applyCameraFraming();
     }
 
@@ -2338,11 +2338,11 @@ export class MineScene extends Phaser.Scene {
   }
 
   private canOccupy(tileX: number, tileY: number) {
-    if (tileX < 0 || tileY < 0 || tileY >= this.worldGrid.length) {
+    if (tileX < 0 || tileY < 0 || tileY >= this.#worldGrid.length) {
       return false;
     }
 
-    const tile = this.worldGrid[tileY]?.[tileX];
+    const tile = this.#worldGrid[tileY]?.[tileX];
     const trustedKind = this.#getTrustedTileKind(tileX, tileY);
 
     if (tile && tile.kind !== trustedKind) {
@@ -2371,11 +2371,11 @@ export class MineScene extends Phaser.Scene {
   }
 
   #setWorldTileKind(tileX: number, tileY: number, kind: TileKind) {
-    if (!this.worldGrid[tileY]?.[tileX]) {
+    if (!this.#worldGrid[tileY]?.[tileX]) {
       return;
     }
 
-    this.worldGrid[tileY][tileX] = { kind };
+    this.#worldGrid[tileY][tileX] = { kind };
     const canonical = canonicalWorldState.get(this);
 
     if (canonical?.[tileY]?.[tileX]) {
@@ -2394,11 +2394,11 @@ export class MineScene extends Phaser.Scene {
   }
 
   #enforcePlayerPositionIntegrity() {
-    if (!this.player) {
+    if (!this.#player) {
       return;
     }
 
-    const current = this.player.position;
+    const current = this.#player.position;
     const deltaX = Math.abs(current.x - this.lastTrustedPlayerPosition.x);
     const deltaY = Math.abs(current.y - this.lastTrustedPlayerPosition.y);
     const inBounds =
@@ -2408,7 +2408,7 @@ export class MineScene extends Phaser.Scene {
       current.y < WORLD_HEIGHT_TILES;
 
     if (!inBounds || deltaX > 1 || deltaY > 1) {
-      this.player.warpToTile(this.lastTrustedPlayerPosition);
+      this.#player.warpToTile(this.lastTrustedPlayerPosition);
       this.clearMiningTarget();
       this.showSurfaceToast("Movimento inválido bloqueado.");
       return;
@@ -2418,61 +2418,61 @@ export class MineScene extends Phaser.Scene {
   }
 
   private tryJump() {
-    if (!this.player) {
+    if (!this.#player) {
       return false;
     }
 
-    const grounded = !this.canOccupy(this.player.position.x, this.player.position.y + 1);
+    const grounded = !this.canOccupy(this.#player.position.x, this.#player.position.y + 1);
 
     if (
       !grounded ||
-      this.player.fallCooldown > 0 ||
-      !this.canOccupy(this.player.position.x, this.player.position.y - 1)
+      this.#player.fallCooldown > 0 ||
+      !this.canOccupy(this.#player.position.x, this.#player.position.y - 1)
     ) {
       return false;
     }
 
-    this.player.snapToTile({
-      x: this.player.position.x,
-      y: this.player.position.y - 1,
+    this.#player.snapToTile({
+      x: this.#player.position.x,
+      y: this.#player.position.y - 1,
     });
-    this.player.playJump();
-    this.player.moveCooldown = 0.11;
-    this.player.fallCooldown = 0.16;
+    this.#player.playJump();
+    this.#player.moveCooldown = 0.11;
+    this.#player.fallCooldown = 0.16;
     this.clearMiningTarget();
-    this.audioDirector?.playStep(this.player.position.y / WORLD_HEIGHT_TILES);
+    this.audioDirector?.playStep(this.#player.position.y / WORLD_HEIGHT_TILES);
     return true;
   }
 
   private updateHud() {
-    if (!this.player || !this.hud) {
+    if (!this.#player || !this.hud) {
       return;
     }
 
-    const currentDepth = this.getSurfaceDepth(this.player.position.y);
-    const previousMaxDepth = this.maxDepthReached;
-    this.maxDepthReached = Math.max(this.maxDepthReached, currentDepth);
+    const currentDepth = this.getSurfaceDepth(this.#player.position.y);
+    const previousMaxDepth = this.#maxDepthReached;
+    this.#maxDepthReached = Math.max(this.#maxDepthReached, currentDepth);
 
-    if (this.maxDepthReached !== previousMaxDepth) {
+    if (this.#maxDepthReached !== previousMaxDepth) {
       this.saveProgression();
     }
 
-    const equippedPickaxe = getEquippedPickaxe(this.pickaxeState);
+    const equippedPickaxe = getEquippedPickaxe(this.#pickaxeState);
 
     this.hud.update({
       depth: currentDepth,
-      coins: this.coins,
+      coins: this.#coins,
       energy: this.energy,
       pickaxeLevel: equippedPickaxe.tier,
-      cardsFound: this.archaeologyDeck.collectedCount,
-      cardsTotal: this.archaeologyDeck.totalCount,
+      cardsFound: this.#archaeologyDeck.collectedCount,
+      cardsTotal: this.#archaeologyDeck.totalCount,
       comboCount: this.rewardComboCount,
       comboWindowRatio:
         this.rewardComboWindow > 0
           ? Phaser.Math.Clamp(this.rewardComboTimer / this.rewardComboWindow, 0, 1)
           : 0,
       comboColor: this.rewardColor,
-      inventory: this.inventory,
+      inventory: this.#inventory,
       backpackLoad: this.getInventoryLoad(),
       backpackCapacity: this.getBackpackCapacity(),
       saleValueMultiplier: this.getEffectiveSaleValueMultiplier(),
@@ -2482,7 +2482,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   private updateGoalsPanel(
-    snapshot = this.progressionSnapshot,
+    snapshot = this.#progressionSnapshot,
   ) {
     this.goalsPanel?.update({
       rank: snapshot.rank,
@@ -2496,7 +2496,7 @@ export class MineScene extends Phaser.Scene {
   private syncExpeditionProgress(
     snapshot: ExpeditionProgressionSnapshot,
   ) {
-    this.progressionSnapshot = snapshot;
+    this.#progressionSnapshot = snapshot;
     this.updateGoalsPanel(snapshot);
 
     for (const completed of snapshot.newlyCompleted) {
@@ -2506,7 +2506,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   private isAtSurface() {
-    return Boolean(this.player && this.player.position.y <= SURFACE_RETURN_TILE.y);
+    return Boolean(this.#player && this.#player.position.y <= SURFACE_RETURN_TILE.y);
   }
 
   private getSurfaceDepth(tileY: number) {
@@ -2519,7 +2519,7 @@ export class MineScene extends Phaser.Scene {
 
   private tryReturnToSurface() {
     if (
-      !this.player ||
+      !this.#player ||
       this.surfaceReturnLocked ||
       this.archaeologyOverlay?.isVisible ||
       this.pauseOverlay?.isVisible ||
@@ -2534,7 +2534,7 @@ export class MineScene extends Phaser.Scene {
     }
 
     this.surfaceReturnLocked = true;
-    const departureDepth = this.getSurfaceDepth(this.player.position.y);
+    const departureDepth = this.getSurfaceDepth(this.#player.position.y);
     this.clearMiningTarget();
     this.rewardComboCount = 0;
     this.rewardComboTimer = 0;
@@ -2551,18 +2551,18 @@ export class MineScene extends Phaser.Scene {
       this.restoreSurfaceHub();
       this.groundDirty = true;
       this.drawWorldGrid(true);
-      this.player?.warpToTile(SURFACE_RETURN_TILE);
+      this.#player?.warpToTile(SURFACE_RETURN_TILE);
       this.lastTrustedPlayerPosition = { ...SURFACE_RETURN_TILE };
-      if (this.player) {
-        this.player.moveCooldown = 0.2;
-        this.player.fallCooldown = 0.2;
+      if (this.#player) {
+        this.#player.moveCooldown = 0.2;
+        this.#player.fallCooldown = 0.2;
       }
       this.energy = 100;
-      this.syncExpeditionProgress(this.expeditionProgression.applySurfaceReturn(departureDepth));
+      this.syncExpeditionProgress(this.#expeditionProgression.applySurfaceReturn(departureDepth));
       this.spawnSurfaceArrivalEffect();
       this.audioDirector?.playSurfaceArrive();
-      camera.startFollow(this.player!.sprite, true, 0.16, 0.2);
-      camera.centerOn(this.player!.sprite.x, this.player!.sprite.y);
+      camera.startFollow(this.#player!.sprite, true, 0.16, 0.2);
+      camera.centerOn(this.#player!.sprite.x, this.#player!.sprite.y);
       camera.fadeIn(220, 7, 14, 22);
       this.surfaceReturnLocked = false;
       this.showSurfaceToast("Base segura alcançada.");
@@ -2704,20 +2704,20 @@ export class MineScene extends Phaser.Scene {
   }
 
   private tryOpenNearbyChest() {
-    if (!this.player) {
+    if (!this.#player) {
       return false;
     }
 
     const candidates = [
-      { x: this.player.position.x, y: this.player.position.y + 1 },
-      { x: this.player.position.x + this.player.facing, y: this.player.position.y },
-      { x: this.player.position.x, y: this.player.position.y },
-      { x: this.player.position.x - 1, y: this.player.position.y },
-      { x: this.player.position.x + 1, y: this.player.position.y },
+      { x: this.#player.position.x, y: this.#player.position.y + 1 },
+      { x: this.#player.position.x + this.#player.facing, y: this.#player.position.y },
+      { x: this.#player.position.x, y: this.#player.position.y },
+      { x: this.#player.position.x - 1, y: this.#player.position.y },
+      { x: this.#player.position.x + 1, y: this.#player.position.y },
     ];
 
     for (const candidate of candidates) {
-      const tile = this.worldGrid[candidate.y]?.[candidate.x];
+      const tile = this.#worldGrid[candidate.y]?.[candidate.x];
 
       if (tile?.kind !== "chest") {
         continue;
@@ -2728,9 +2728,9 @@ export class MineScene extends Phaser.Scene {
       this.drawWorldGrid(true);
       this.spawnMiningImpact(candidate.x, candidate.y, "chest", true, 1);
       const coinReward = this.getChestCoinReward(candidate.y);
-      this.coins += coinReward;
-      this.game.events.emit("economy:changed", { coins: this.coins });
-      this.syncExpeditionProgress(this.expeditionProgression.applyChestOpened());
+      this.#coins += coinReward;
+      this.game.events.emit("economy:changed", { coins: this.#coins });
+      this.syncExpeditionProgress(this.#expeditionProgression.applyChestOpened());
       this.audioDirector?.playChestOpen();
       this.audioDirector?.playCoins();
       this.showSurfaceToast(`Baú aberto: +${coinReward} moedas.`, "coins");
@@ -2750,17 +2750,17 @@ export class MineScene extends Phaser.Scene {
       depth >= 320 ? 1.15 :
       1;
 
-    return Math.round(baseReward * deepBonus * (1 + getUpgradeBonusSummary(this.upgradeState).chestCoinMultiplier));
+    return Math.round(baseReward * deepBonus * (1 + getUpgradeBonusSummary(this.#upgradeState).chestCoinMultiplier));
   }
 
   private openArchaeologyCard() {
-    const cardBody = this.archaeologyDeck.drawNextCard();
-    this.syncExpeditionProgress(this.expeditionProgression.applyCardFound());
+    const cardBody = this.#archaeologyDeck.drawNextCard();
+    this.syncExpeditionProgress(this.#expeditionProgression.applyCardFound());
     this.saveProgression();
     this.archaeologyOverlay?.show({
       body: cardBody,
-      collectedCount: this.archaeologyDeck.collectedCount,
-      totalCount: this.archaeologyDeck.totalCount,
+      collectedCount: this.#archaeologyDeck.collectedCount,
+      totalCount: this.#archaeologyDeck.totalCount,
       onClose: () => this.closeArchaeologyOverlay(),
     });
     this.updateHud();
@@ -2823,13 +2823,13 @@ export class MineScene extends Phaser.Scene {
       return;
     }
 
-    if (!this.player || this.player.position.y > 5) {
+    if (!this.#player || this.#player.position.y > 5) {
       return;
     }
 
     this.upgradeOverlay?.show({
-      coins: this.coins,
-      maxDepthReached: this.maxDepthReached,
+      coins: this.#coins,
+      maxDepthReached: this.#maxDepthReached,
       pickaxes: this.getPickaxeShopLines(),
       upgrades: this.getUpgradeShopLines(),
       onBuy: (id) => this.#handlePickaxeBuy(id),
@@ -2842,16 +2842,16 @@ export class MineScene extends Phaser.Scene {
 
   private getPickaxeShopLines() {
     return getPickaxeList().map((pickaxe) => {
-      const owned = ownsPickaxe(this.pickaxeState, pickaxe.id);
-      const equipped = this.pickaxeState.equipped === pickaxe.id;
-      const locked = !canUnlockPickaxe(pickaxe.id, this.maxDepthReached);
+      const owned = ownsPickaxe(this.#pickaxeState, pickaxe.id);
+      const equipped = this.#pickaxeState.equipped === pickaxe.id;
+      const locked = !canUnlockPickaxe(pickaxe.id, this.#maxDepthReached);
 
       return {
         pickaxe,
         owned,
         equipped,
         locked,
-        canBuy: !owned && !locked && this.coins >= pickaxe.cost,
+        canBuy: !owned && !locked && this.#coins >= pickaxe.cost,
       };
     });
   }
@@ -2860,8 +2860,8 @@ export class MineScene extends Phaser.Scene {
     this.#enforceRuntimeProgressionIntegrity();
 
     this.upgradeOverlay?.show({
-      coins: this.coins,
-      maxDepthReached: this.maxDepthReached,
+      coins: this.#coins,
+      maxDepthReached: this.#maxDepthReached,
       pickaxes: this.getPickaxeShopLines(),
       upgrades: this.getUpgradeShopLines(),
       onBuy: (id) => this.#handlePickaxeBuy(id),
@@ -2873,21 +2873,21 @@ export class MineScene extends Phaser.Scene {
 
   private getUpgradeShopLines() {
     return getUpgradeList().map((upgrade) => {
-      const level = getUpgradeLevel(this.upgradeState, upgrade.id);
-      const cost = getUpgradeCost(this.upgradeState, upgrade.id);
+      const level = getUpgradeLevel(this.#upgradeState, upgrade.id);
+      const cost = getUpgradeCost(this.#upgradeState, upgrade.id);
 
       return {
         upgrade,
         level,
         cost,
-        canBuy: cost !== null && this.coins >= cost,
+        canBuy: cost !== null && this.#coins >= cost,
       };
     });
   }
 
   #handlePickaxeBuy(id: PickaxeId) {
     this.#enforceRuntimeProgressionIntegrity();
-    const result = buyPickaxe(this.pickaxeState, id, this.coins, this.maxDepthReached);
+    const result = buyPickaxe(this.#pickaxeState, id, this.#coins, this.#maxDepthReached);
 
     if (!result.ok) {
       this.showSurfaceToast(getPickaxePurchaseFailureMessage(result.reason));
@@ -2895,9 +2895,9 @@ export class MineScene extends Phaser.Scene {
       return;
     }
 
-    this.pickaxeState = result.state;
-    this.coins = result.coins;
-    this.syncExpeditionProgress(this.expeditionProgression.applyPickaxeLevel(result.pickaxe.tier));
+    this.#pickaxeState = result.state;
+    this.#coins = result.coins;
+    this.syncExpeditionProgress(this.#expeditionProgression.applyPickaxeLevel(result.pickaxe.tier));
     this.saveProgression();
     this.audioDirector?.playUpgrade();
     this.audioDirector?.playCoins();
@@ -2908,9 +2908,9 @@ export class MineScene extends Phaser.Scene {
 
   #handlePickaxeEquip(id: PickaxeId) {
     this.#enforceRuntimeProgressionIntegrity();
-    this.pickaxeState = equipPickaxe(this.pickaxeState, id);
-    const equippedPickaxe = getEquippedPickaxe(this.pickaxeState);
-    this.syncExpeditionProgress(this.expeditionProgression.applyPickaxeLevel(equippedPickaxe.tier));
+    this.#pickaxeState = equipPickaxe(this.#pickaxeState, id);
+    const equippedPickaxe = getEquippedPickaxe(this.#pickaxeState);
+    this.syncExpeditionProgress(this.#expeditionProgression.applyPickaxeLevel(equippedPickaxe.tier));
     this.saveProgression();
     this.audioDirector?.playUpgrade();
     this.updateHud();
@@ -2920,7 +2920,7 @@ export class MineScene extends Phaser.Scene {
 
   #handleUpgradeBuy(id: UpgradeId) {
     this.#enforceRuntimeProgressionIntegrity();
-    const result = buyUpgrade(this.upgradeState, id, this.coins);
+    const result = buyUpgrade(this.#upgradeState, id, this.#coins);
 
     if (!result.ok) {
       this.showSurfaceToast(getUpgradePurchaseFailureMessage(result.reason));
@@ -2928,9 +2928,9 @@ export class MineScene extends Phaser.Scene {
       return;
     }
 
-    this.upgradeState = result.state;
-    this.coins = result.coins;
-    this.syncExpeditionProgress(this.expeditionProgression.applyUpgradeLevels(this.getTotalUpgradeLevels()));
+    this.#upgradeState = result.state;
+    this.#coins = result.coins;
+    this.syncExpeditionProgress(this.#expeditionProgression.applyUpgradeLevels(this.getTotalUpgradeLevels()));
     this.saveProgression();
     this.audioDirector?.playUpgrade();
     this.audioDirector?.playCoins();
@@ -2941,7 +2941,7 @@ export class MineScene extends Phaser.Scene {
 
   private getTotalUpgradeLevels() {
     return getUpgradeList().reduce(
-      (total, upgrade) => total + getUpgradeLevel(this.upgradeState, upgrade.id),
+      (total, upgrade) => total + getUpgradeLevel(this.#upgradeState, upgrade.id),
       0,
     );
   }
@@ -2968,12 +2968,12 @@ export class MineScene extends Phaser.Scene {
       return;
     }
 
-    if (!this.player || this.player.position.y > 5) {
+    if (!this.#player || this.#player.position.y > 5) {
       return;
     }
 
     this.vendorOverlay?.show({
-      coins: this.coins,
+      coins: this.#coins,
       sale: this.getInventorySaleSummary(),
       saleBonusPercent: this.getSaleBonusPercent(),
       onSellAll: () => this.#handleVendorSellAll(),
@@ -3000,7 +3000,7 @@ export class MineScene extends Phaser.Scene {
     }
 
     this.vendorOverlay?.show({
-      coins: this.coins,
+      coins: this.#coins,
       sale: this.getInventorySaleSummary(),
       saleBonusPercent: this.getSaleBonusPercent(),
       onSellAll: () => this.#handleVendorSellAll(),
@@ -3119,11 +3119,11 @@ export class MineScene extends Phaser.Scene {
   }
 
   private getNearbySurfaceStation(): SurfaceStationKind | null {
-    if (!this.player || this.player.position.y > SURFACE_RETURN_TILE.y + 1) {
+    if (!this.#player || this.#player.position.y > SURFACE_RETURN_TILE.y + 1) {
       return null;
     }
 
-    const playerWorldX = this.player.position.x * TILE_SIZE + TILE_SIZE / 2;
+    const playerWorldX = this.#player.position.x * TILE_SIZE + TILE_SIZE / 2;
     const baseCenterX = SURFACE_RETURN_TILE.x * TILE_SIZE + TILE_SIZE / 2;
     let nearestStation: SurfaceStationKind | null = null;
     let nearestDistance = Number.POSITIVE_INFINITY;
