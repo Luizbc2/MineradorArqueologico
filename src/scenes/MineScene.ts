@@ -199,6 +199,7 @@ export class MineScene extends Phaser.Scene {
   private rewardComboWindow = 2.6;
   private rewardLabel = "Mina fria";
   private rewardColor: string = gameTheme.colors.textSoft;
+  private wasFallingLastFrame = false;
   private manualZoomOffset = 0;
   private readonly zoomStep = 0.15;
   private readonly minCameraZoom = 0.8;
@@ -539,9 +540,17 @@ export class MineScene extends Phaser.Scene {
       return;
     }
 
+    const falling = Boolean(state?.falling);
+
     this.#player.setMining(Boolean(state?.mining));
-    this.#player.setFalling(Boolean(state?.falling));
+    this.#player.setFalling(falling);
     this.#player.update(deltaSeconds);
+
+    if (this.wasFallingLastFrame && !falling) {
+      this.spawnLandingDust();
+    }
+
+    this.wasFallingLastFrame = falling;
     this.updateCameraZoom(deltaSeconds);
 
     const currentDepth = this.getSurfaceDepth(this.#player.position.y);
@@ -2308,6 +2317,40 @@ export class MineScene extends Phaser.Scene {
       ease: "sine.out",
       onComplete: () => dust.destroy(),
     });
+  }
+
+  private spawnLandingDust() {
+    if (!this.#player) {
+      return;
+    }
+
+    const worldX = this.#player.position.x * TILE_SIZE + TILE_SIZE / 2;
+    const worldY = this.#player.position.y * TILE_SIZE + TILE_SIZE - 4;
+
+    this.cameras.main.shake(70, 0.0016);
+
+    for (let index = 0; index < 8; index += 1) {
+      const dust = this.add.rectangle(
+        worldX + Phaser.Math.Between(-6, 6),
+        worldY,
+        Phaser.Math.Between(3, 6),
+        Phaser.Math.Between(2, 4),
+        0xc9a37a,
+        0.28,
+      );
+
+      this.tweens.add({
+        targets: dust,
+        x: dust.x + Phaser.Math.Between(-18, 18),
+        y: dust.y - Phaser.Math.Between(3, 10),
+        alpha: 0,
+        scaleX: 1.8,
+        scaleY: 0.45,
+        duration: 260,
+        ease: "quad.out",
+        onComplete: () => dust.destroy(),
+      });
+    }
   }
 
   private pulseScreenFlash(color: number, alpha: number, duration: number) {
