@@ -460,25 +460,36 @@ export class MineScene extends Phaser.Scene {
       }
     }
 
+    if (this.canOccupy(this.#player.position.x, this.#player.position.y + 1)) {
+      this.clearMiningTarget();
+
+      if (this.#player.fallCooldown === 0) {
+        this.#player.snapToTile({
+          x: this.#player.position.x,
+          y: this.#player.position.y + 1,
+        });
+        this.#player.fallCooldown = 0.08;
+      }
+
+      this.finalizeFrame(deltaSeconds, { falling: true });
+      return;
+    }
+
+    if (this.tryMoveHorizontal(deltaSeconds)) {
+      return;
+    }
+
     if (this.handleMining(deltaSeconds)) {
       this.finalizeFrame(deltaSeconds, { mining: true });
       return;
     }
 
-    if (this.#player.fallCooldown === 0 && this.canOccupy(this.#player.position.x, this.#player.position.y + 1)) {
-      this.#player.snapToTile({
-        x: this.#player.position.x,
-        y: this.#player.position.y + 1,
-      });
-      this.#player.fallCooldown = 0.08;
-      this.clearMiningTarget();
-      this.finalizeFrame(deltaSeconds, { falling: true });
-      return;
-    }
+    this.finalizeFrame(deltaSeconds);
+  }
 
-    if (this.#player.moveCooldown > 0) {
-      this.finalizeFrame(deltaSeconds);
-      return;
+  private tryMoveHorizontal(deltaSeconds: number) {
+    if (!this.#player || this.#player.moveCooldown > 0) {
+      return false;
     }
 
     const moveTempoScale = Math.max(
@@ -494,8 +505,7 @@ export class MineScene extends Phaser.Scene {
     const nextDirection = leftPressed ? -1 : rightPressed ? 1 : 0;
 
     if (nextDirection === 0) {
-      this.finalizeFrame(deltaSeconds);
-      return;
+      return false;
     }
 
     const nextX = this.#player.position.x + nextDirection;
@@ -504,15 +514,18 @@ export class MineScene extends Phaser.Scene {
     if (!this.canOccupy(nextX, nextY)) {
       this.#player.facing = nextDirection;
       this.#player.moveCooldown = 0.08 * moveTempoScale;
+      this.clearMiningTarget();
       this.finalizeFrame(deltaSeconds);
-      return;
+      return true;
     }
 
     this.#player.facing = nextDirection;
     this.#player.snapToTile({ x: nextX, y: nextY });
     this.#player.moveCooldown = 0.11 * moveTempoScale;
+    this.clearMiningTarget();
     this.audioDirector?.playStep(this.#player.position.y / WORLD_HEIGHT_TILES);
     this.finalizeFrame(deltaSeconds);
+    return true;
   }
 
   private finalizeFrame(
