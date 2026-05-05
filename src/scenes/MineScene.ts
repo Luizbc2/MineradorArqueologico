@@ -477,13 +477,18 @@ export class MineScene extends Phaser.Scene {
       return;
     }
 
-    if (this.tryMoveHorizontal(deltaSeconds)) {
+    if (!hasAirBelow && this.hasActiveMiningTarget() && this.handleMining(deltaSeconds)) {
+      this.finalizeFrame(deltaSeconds, { mining: true });
       return;
     }
 
     if (hasAirBelow) {
       this.clearMiningTarget();
       this.finalizeFrame(deltaSeconds, { falling: true });
+      return;
+    }
+
+    if (this.tryMoveHorizontal(deltaSeconds)) {
       return;
     }
 
@@ -511,14 +516,12 @@ export class MineScene extends Phaser.Scene {
       return false;
     }
 
-    const hasAirBelow = this.canOccupy(this.#player.position.x, this.#player.position.y + 1);
-
     if (this.miningTarget) {
       this.clearMiningTarget();
       this.#player.moveCooldown = 0;
     }
 
-    if (this.#player.moveCooldown > 0 && !hasAirBelow) {
+    if (this.#player.moveCooldown > 0) {
       return false;
     }
 
@@ -544,6 +547,28 @@ export class MineScene extends Phaser.Scene {
     this.audioDirector?.playStep(this.#player.position.y / WORLD_HEIGHT_TILES);
     this.finalizeFrame(deltaSeconds);
     return true;
+  }
+
+  private hasActiveMiningTarget() {
+    if (!this.#player || !this.input.activePointer?.leftButtonDown()) {
+      return false;
+    }
+
+    const target = this.smartMiningEnabled
+      ? this.getSmartMiningTarget()
+      : this.getMouseMiningTile();
+
+    if (
+      !target ||
+      (!this.smartMiningEnabled && !this.isMiningTargetInReach(target.x, target.y))
+    ) {
+      return false;
+    }
+
+    const tile = this.#worldGrid[target.y]?.[target.x];
+    const trustedKind = this.#getTrustedTileKind(target.x, target.y);
+
+    return Boolean(tile && this.isMineable(trustedKind));
   }
 
   private finalizeFrame(
