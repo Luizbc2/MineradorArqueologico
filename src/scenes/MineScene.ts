@@ -2286,6 +2286,28 @@ export class MineScene extends Phaser.Scene {
     if (rewardState.streak >= 3) {
       this.spawnComboToast(worldX, worldY - 56, rewardState);
     }
+
+    if (rewardState.streak > 0 && rewardState.streak % 5 === 0) {
+      this.spawnComboSurge(worldX, worldY, rewardState.accent);
+    }
+  }
+
+  private spawnComboSurge(worldX: number, worldY: number, accent: string) {
+    const colorValue = Phaser.Display.Color.HexStringToColor(accent).color;
+    const ring = this.add.circle(worldX, worldY, 14, colorValue, 0);
+
+    ring.setStrokeStyle(3, colorValue, 0.82);
+    ring.setBlendMode(Phaser.BlendModes.ADD);
+    this.pulseScreenFlash(colorValue, 0.06, 150);
+
+    this.tweens.add({
+      targets: ring,
+      scale: 3.2,
+      alpha: 0,
+      duration: 520,
+      ease: "cubic.out",
+      onComplete: () => ring.destroy(),
+    });
   }
 
   private spawnComboToast(
