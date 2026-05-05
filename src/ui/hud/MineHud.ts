@@ -201,13 +201,18 @@ export class MineHud {
       this.codexValue.textContent = `${snapshot.cardsFound}/${snapshot.cardsTotal}`;
       this.backpackValue.textContent = `${formatHudNumber(sale.totalCoins)} moedas`;
       const backpackFull = snapshot.backpackLoad >= snapshot.backpackCapacity;
+      const backpackNearFull = !backpackFull && snapshot.backpackLoad / snapshot.backpackCapacity >= 0.8;
       this.backpackHint.textContent =
         backpackFull
           ? `MOCHILA CHEIA ${snapshot.backpackLoad}/${snapshot.backpackCapacity}`
-          : `${snapshot.backpackLoad}/${snapshot.backpackCapacity} ESPAÇOS`;
+          : backpackNearFull
+            ? `QUASE CHEIA ${snapshot.backpackLoad}/${snapshot.backpackCapacity}`
+            : `${snapshot.backpackLoad}/${snapshot.backpackCapacity} ESPAÇOS`;
       this.backpackHint.classList.toggle("has-value", sale.totalCoins > 0);
+      this.backpackHint.classList.toggle("is-warning", backpackNearFull);
       this.backpackHint.classList.toggle("is-full", backpackFull);
       this.backpackFill.style.width = `${Math.round((snapshot.backpackLoad / snapshot.backpackCapacity) * 100)}%`;
+      this.backpackFill.classList.toggle("is-warning", backpackNearFull);
       this.backpackFill.classList.toggle("is-full", backpackFull);
       for (const resource of resourceKinds) {
         this.updateResourceSlot(resource, snapshot.inventory[resource], sale);
