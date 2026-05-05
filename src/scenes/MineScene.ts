@@ -464,22 +464,26 @@ export class MineScene extends Phaser.Scene {
       }
     }
 
-    if (this.canOccupy(this.#player.position.x, this.#player.position.y + 1)) {
+    const hasAirBelow = this.canOccupy(this.#player.position.x, this.#player.position.y + 1);
+
+    if (hasAirBelow && this.#player.fallCooldown === 0) {
       this.clearMiningTarget();
-
-      if (this.#player.fallCooldown === 0) {
-        this.#player.snapToTile({
-          x: this.#player.position.x,
-          y: this.#player.position.y + 1,
-        });
-        this.#player.fallCooldown = 0.08;
-      }
-
+      this.#player.snapToTile({
+        x: this.#player.position.x,
+        y: this.#player.position.y + 1,
+      });
+      this.#player.fallCooldown = 0.08;
       this.finalizeFrame(deltaSeconds, { falling: true });
       return;
     }
 
     if (this.tryMoveHorizontal(deltaSeconds)) {
+      return;
+    }
+
+    if (hasAirBelow) {
+      this.clearMiningTarget();
+      this.finalizeFrame(deltaSeconds, { falling: true });
       return;
     }
 
@@ -492,14 +496,9 @@ export class MineScene extends Phaser.Scene {
   }
 
   private tryMoveHorizontal(deltaSeconds: number) {
-    if (!this.#player || this.#player.moveCooldown > 0) {
+    if (!this.#player) {
       return false;
     }
-
-    const moveTempoScale = Math.max(
-      0.48,
-      1 - this.#progressionSnapshot.perks.moveTempoBonus - getUpgradeBonusSummary(this.#upgradeState).moveTempoBonus,
-    );
 
     const leftPressed =
       this.cursors?.left.isDown || this.moveKeys?.left.isDown;
@@ -512,6 +511,21 @@ export class MineScene extends Phaser.Scene {
       return false;
     }
 
+    const hasAirBelow = this.canOccupy(this.#player.position.x, this.#player.position.y + 1);
+
+    if (this.miningTarget) {
+      this.clearMiningTarget();
+      this.#player.moveCooldown = 0;
+    }
+
+    if (this.#player.moveCooldown > 0 && !hasAirBelow) {
+      return false;
+    }
+
+    const moveTempoScale = Math.max(
+      0.48,
+      1 - this.#progressionSnapshot.perks.moveTempoBonus - getUpgradeBonusSummary(this.#upgradeState).moveTempoBonus,
+    );
     const nextX = this.#player.position.x + nextDirection;
     const nextY = this.#player.position.y;
 
@@ -2581,7 +2595,7 @@ export class MineScene extends Phaser.Scene {
       y: this.#player.position.y - 1,
     });
     this.#player.playJump();
-    this.#player.moveCooldown = 0.11;
+    this.#player.moveCooldown = 0;
     this.#player.fallCooldown = 0.16;
     this.clearMiningTarget();
     this.audioDirector?.playStep(this.#player.position.y / WORLD_HEIGHT_TILES);
