@@ -1164,6 +1164,14 @@ export class MineScene extends Phaser.Scene {
     ) {
       ground.fillStyle(material.top, 0.22);
       ground.fillRect(tileX + 6, tileY + 6, 20, 20);
+
+      const glintX = tileX + 8 + (variant % 14);
+      const glintY = tileY + 7 + ((variant >>> 4) % 13);
+      ground.fillStyle(material.detail, 0.72);
+      ground.fillRect(glintX, glintY, 5, 1);
+      ground.fillRect(glintX + 2, glintY - 2, 1, 5);
+      ground.fillStyle(material.glow ?? material.detail, 0.2);
+      ground.fillRect(glintX - 2, glintY - 1, 9, 3);
     }
 
     if (kind === "fossil") {
