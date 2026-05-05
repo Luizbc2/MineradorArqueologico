@@ -1988,6 +1988,17 @@ export class MineScene extends Phaser.Scene {
     this.effectLayer.fillStyle(material.glow ?? material.detail, 0.08 + completion * 0.06);
     this.effectLayer.fillRect(tileX + 4, tileY + 4, TILE_SIZE - 8, TILE_SIZE - 8);
 
+    const crackCount = Math.floor(completion * 5);
+
+    this.effectLayer.lineStyle(1, 0x06080f, 0.35 + completion * 0.45);
+    for (let crack = 0; crack < crackCount; crack += 1) {
+      const startX = tileX + 8 + ((this.miningTarget.x * 7 + crack * 5) % 15);
+      const startY = tileY + 8 + ((this.miningTarget.y * 5 + crack * 6) % 14);
+
+      this.effectLayer.lineBetween(startX, startY, startX + 5 + crack, startY + 2);
+      this.effectLayer.lineBetween(startX + 3, startY + 1, startX + 1, startY + 7);
+    }
+
     this.effectLayer.fillStyle(0x0d1118, 0.75);
     this.effectLayer.fillRect(tileX + 4, tileY - 10, TILE_SIZE - 8, 6);
     this.effectLayer.fillStyle(material.glow ?? gameTheme.colors.accent, 0.95);
