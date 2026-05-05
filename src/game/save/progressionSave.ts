@@ -42,10 +42,11 @@ import {
 const LEGACY_SAVE_KEYS = [
   "minerador-arqueologico:progression:v1",
   "minerador-arqueologico:progression:v3",
+  "minerador-arqueologico:progression:v4",
 ] as const;
-const SAVE_KEY = "minerador-arqueologico:progression:v4";
-const SAVE_VERSION = 4;
-const SAVE_CHECKSUM_SALT = "minerador-arqueologico-save-v4";
+const SAVE_KEY = "minerador-arqueologico:progression:v5";
+const SAVE_VERSION = 5;
+const SAVE_CHECKSUM_SALT = "minerador-arqueologico-save-v5";
 const MAX_SAVED_COINS = 250_000;
 const BASE_BACKPACK_CAPACITY = 24;
 const MAX_SAVED_DEPTH = WORLD_HEIGHT_TILES - SURFACE_ROW - 1;
@@ -149,7 +150,8 @@ export function saveProgression(data: ProgressionSaveData) {
     return;
   }
 
-  const normalized = sanitizeProgressionSave(data);
+  const previous = readStoredProgressionSave() ?? createDefaultProgressionSave();
+  const normalized = enforceTrustedSaveTransition(previous, sanitizeProgressionSave(data));
   localStorage.setItem(SAVE_KEY, JSON.stringify(wrapSavePayload(normalized)));
 }
 
@@ -173,6 +175,23 @@ function unwrapSavePayload(
   }
 
   return parsed as ProgressionSavePayload;
+}
+
+function readStoredProgressionSave(): ProgressionSaveData | null {
+  const raw = localStorage.getItem(SAVE_KEY);
+
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as ProgressionSavePayload | ProgressionSaveEnvelope;
+    const payload = unwrapSavePayload(parsed);
+
+    return payload ? normalizeProgressionSave(payload) : null;
+  } catch {
+    return null;
+  }
 }
 
 function wrapSavePayload(data: ProgressionSaveData): ProgressionSaveEnvelope {
@@ -229,6 +248,208 @@ function normalizeProgressionSave(
     archaeology: normalizeArchaeologyDeckState(payload.archaeology ?? {}),
     audioMuted: payload.audioMuted === true,
   };
+}
+
+function enforceTrustedSaveTransition(
+  previous: ProgressionSaveData,
+  next: ProgressionSaveData,
+): ProgressionSaveData {
+  const maxDepthReached = Math.min(next.maxDepthReached, previous.maxDepthReached + 1);
+  const depthLimitedNext = sanitizeProgressionSave({
+    ...next,
+    maxDepthReached,
+    expedition: {
+      ...next.expedition,
+      deepestDepth: Math.min(next.expedition.deepestDepth, maxDepthReached),
+      maxReturnDepth: Math.min(next.expedition.maxReturnDepth, maxDepthReached),
+    },
+  });
+  const inventory = enforceInventoryTransition(previous, depthLimitedNext);
+  const pickaxeResult = enforcePickaxeTransition(previous, depthLimitedNext);
+  const upgradeResult = enforceUpgradeTransition(previous, {
+    ...depthLimitedNext,
+    inventory,
+    pickaxes: pickaxeResult.pickaxes,
+    coins: pickaxeResult.coins,
+  });
+  const coins = enforceCoinTransition(previous, {
+    ...depthLimitedNext,
+    inventory,
+    pickaxes: pickaxeResult.pickaxes,
+    upgrades: upgradeResult.upgrades,
+    coins: upgradeResult.coins,
+  });
+
+  return sanitizeProgressionSave({
+    ...depthLimitedNext,
+    coins,
+    inventory,
+    pickaxes: pickaxeResult.pickaxes,
+    upgrades: upgradeResult.upgrades,
+  });
+}
+
+function enforceInventoryTransition(
+  previous: ProgressionSaveData,
+  next: ProgressionSaveData,
+) {
+  const previousLoad = getInventoryLoad(previous.inventory);
+  const nextLoad = getInventoryLoad(next.inventory);
+
+  if (nextLoad <= previousLoad) {
+    return next.inventory;
+  }
+
+  if (nextLoad > previousLoad + 2) {
+    return previous.inventory;
+  }
+
+  let increasedResource: keyof ResourceInventory | null = null;
+
+  for (const resource of resourceKinds) {
+    if (next.inventory[resource] < previous.inventory[resource]) {
+      return previous.inventory;
+    }
+
+    if (next.inventory[resource] > previous.inventory[resource]) {
+      if (increasedResource) {
+        return previous.inventory;
+      }
+
+      increasedResource = resource;
+    }
+  }
+
+  return next.inventory;
+}
+
+function enforcePickaxeTransition(
+  previous: ProgressionSaveData,
+  next: ProgressionSaveData,
+) {
+  const pickaxes = createPickaxeOwnershipState();
+  let coins = next.coins;
+  let acceptedNewPickaxe = false;
+
+  for (const pickaxe of getPickaxeList()) {
+    if (previous.pickaxes.owned[pickaxe.id]) {
+      pickaxes.owned[pickaxe.id] = true;
+      continue;
+    }
+
+    if (
+      pickaxe.id === "wood" ||
+      !next.pickaxes.owned[pickaxe.id] ||
+      acceptedNewPickaxe ||
+      previous.maxDepthReached < pickaxe.unlockDepth ||
+      previous.coins < pickaxe.cost ||
+      next.coins > previous.coins - pickaxe.cost
+    ) {
+      continue;
+    }
+
+    pickaxes.owned[pickaxe.id] = true;
+    coins = Math.min(coins, previous.coins - pickaxe.cost);
+    acceptedNewPickaxe = true;
+  }
+
+  pickaxes.equipped = pickaxes.owned[next.pickaxes.equipped]
+    ? next.pickaxes.equipped
+    : previous.pickaxes.equipped && pickaxes.owned[previous.pickaxes.equipped]
+      ? previous.pickaxes.equipped
+      : getBestOwnedPickaxeId(pickaxes);
+
+  return { pickaxes, coins };
+}
+
+function enforceUpgradeTransition(
+  previous: ProgressionSaveData,
+  next: ProgressionSaveData,
+) {
+  const upgrades = createUpgradeLevelState();
+  let coins = next.coins;
+  let acceptedUpgrade = false;
+
+  for (const upgrade of getUpgradeList()) {
+    const previousLevel = getUpgradeLevel(previous.upgrades, upgrade.id);
+    const nextLevel = getUpgradeLevel(next.upgrades, upgrade.id);
+
+    upgrades.levels[upgrade.id] = previousLevel;
+
+    if (nextLevel <= previousLevel || acceptedUpgrade) {
+      continue;
+    }
+
+    const cost = getUpgradeCost(previous.upgrades, upgrade.id);
+
+    if (cost === null || previous.coins < cost || next.coins > previous.coins - cost) {
+      continue;
+    }
+
+    upgrades.levels[upgrade.id] = previousLevel + 1;
+    coins = Math.min(coins, previous.coins - cost);
+    acceptedUpgrade = true;
+  }
+
+  return { upgrades, coins };
+}
+
+function enforceCoinTransition(
+  previous: ProgressionSaveData,
+  next: ProgressionSaveData,
+) {
+  if (next.coins <= previous.coins) {
+    return next.coins;
+  }
+
+  const maxIncrease = getAllowedCoinIncrease(previous, next);
+  return Math.min(next.coins, previous.coins + maxIncrease);
+}
+
+function getAllowedCoinIncrease(
+  previous: ProgressionSaveData,
+  next: ProgressionSaveData,
+) {
+  let allowedIncrease = 0;
+
+  if (
+    next.expedition.coinsSold > previous.expedition.coinsSold &&
+    getInventoryLoad(next.inventory) === 0 &&
+    getInventoryLoad(previous.inventory) > 0
+  ) {
+    allowedIncrease += getAuditedInventorySaleValue(previous);
+  }
+
+  if (next.expedition.chestsOpened === previous.expedition.chestsOpened + 1) {
+    allowedIncrease += getAuditedChestReward(previous.maxDepthReached, previous.upgrades);
+  }
+
+  return allowedIncrease;
+}
+
+function getInventoryLoad(inventory: ResourceInventory) {
+  return resourceKinds.reduce((total, resource) => total + inventory[resource], 0);
+}
+
+function getAuditedInventorySaleValue(save: ProgressionSaveData) {
+  const baseValue = resourceKinds.reduce(
+    (total, resource) => total + save.inventory[resource] * getResourceSellValue(resource),
+    0,
+  );
+  const saleMultiplier = 1 + getUpgradeBonusSummary(save.upgrades).saleMultiplier;
+
+  return Math.ceil(baseValue * saleMultiplier * 1.2);
+}
+
+function getAuditedChestReward(depth: number, upgrades: UpgradeLevelState) {
+  const baseReward = 35 + Math.floor(depth * 0.7);
+  const deepBonus =
+    depth >= 520 ? 1.35 :
+    depth >= 420 ? 1.24 :
+    depth >= 320 ? 1.15 :
+    1;
+
+  return Math.ceil(baseReward * deepBonus * (1 + getUpgradeBonusSummary(upgrades).chestCoinMultiplier));
 }
 
 function auditExpeditionProgression(
