@@ -200,6 +200,7 @@ export class MineScene extends Phaser.Scene {
   private rewardLabel = "Mina fria";
   private rewardColor: string = gameTheme.colors.textSoft;
   private wasFallingLastFrame = false;
+  private lastDepthMilestone = 0;
   private manualZoomOffset = 0;
   private readonly zoomStep = 0.15;
   private readonly minCameraZoom = 0.8;
@@ -558,6 +559,7 @@ export class MineScene extends Phaser.Scene {
     if (currentDepth !== this.lastAppliedDepth) {
       this.lastAppliedDepth = currentDepth;
       this.syncExpeditionProgress(this.#expeditionProgression.applyDepth(currentDepth));
+      this.updateDepthMilestone(currentDepth);
     }
 
     this.updateRewardLoop(deltaSeconds);
@@ -2757,6 +2759,18 @@ export class MineScene extends Phaser.Scene {
     this.rewardComboWindow = 2.6;
     this.rewardLabel = "Mina fria";
     this.rewardColor = gameTheme.colors.textSoft;
+  }
+
+  private updateDepthMilestone(currentDepth: number) {
+    const milestone = Math.floor(currentDepth / 50) * 50;
+
+    if (milestone <= 0 || milestone <= this.lastDepthMilestone) {
+      return;
+    }
+
+    this.lastDepthMilestone = milestone;
+    this.showSurfaceToast(`Nova marca: ${milestone}m.`);
+    this.pulseScreenFlash(gameTheme.colors.accentCool, 0.055, 160);
   }
 
   private tryOpenNearbyChest() {
