@@ -135,6 +135,9 @@ const MAX_COMBO_MINING_SPEED_BONUS = 0.25;
 const MAX_EFFECTIVE_MINING_POWER = 2_500;
 const MAX_EFFECTIVE_MINING_SPEED = 6;
 const MAX_MINING_DELTA_SECONDS = 0.08;
+const MAX_FRAME_DELTA_SECONDS = 0.05;
+const MIN_REAL_MOVE_INTERVAL_MS = 48;
+const MIN_REAL_FALL_INTERVAL_MS = 58;
 const BACKPACK_NEAR_FULL_THRESHOLD = 0.8;
 const ORE_MIN_DEPTH: Partial<Record<TileKind, number>> = {
   fossil: 300,
@@ -153,6 +156,11 @@ export class MineScene extends Phaser.Scene {
   #coins = 0;
   #adminGrantCoins = 0;
   #miningTarget?: MiningTarget;
+  #lastFrameWallClockMs = 0;
+  #lastMoveWallClockMs = 0;
+  #lastFallWallClockMs = 0;
+  #lastMiningWallClockMs = 0;
+  #speedHackToastWallClockMs = 0;
   private energy = 100;
   private audioMuted = false;
   #maxDepthReached = 0;
@@ -389,7 +397,7 @@ export class MineScene extends Phaser.Scene {
       return;
     }
 
-    const deltaSeconds = delta / 1000;
+    const deltaSeconds = this.#getTrustedFrameDeltaSeconds(delta);
     this.#enforcePlayerPositionIntegrity();
     this.#enforceRuntimeProgressionIntegrity();
     this.updateSurfacePrompt();
@@ -481,6 +489,11 @@ export class MineScene extends Phaser.Scene {
     const hasAirBelow = this.canOccupy(this.#player.position.x, this.#player.position.y + 1);
 
     if (hasAirBelow && this.#player.fallCooldown === 0) {
+      if (!this.#consumeRealActionInterval("fall")) {
+        this.finalizeFrame(deltaSeconds, { falling: true });
+        return;
+      }
+
       this.clearMiningTarget();
       this.#player.snapToTile({
         x: this.#player.position.x,
@@ -539,6 +552,11 @@ export class MineScene extends Phaser.Scene {
       return false;
     }
 
+    if (!this.#consumeRealActionInterval("move")) {
+      this.finalizeFrame(deltaSeconds);
+      return true;
+    }
+
     const moveTempoScale = Math.max(
       0.48,
       1 - this.#progressionSnapshot.perks.moveTempoBonus - getUpgradeBonusSummary(this.#upgradeState).moveTempoBonus,
@@ -561,6 +579,88 @@ export class MineScene extends Phaser.Scene {
     this.audioDirector?.playStep(this.#player.position.y / WORLD_HEIGHT_TILES);
     this.finalizeFrame(deltaSeconds);
     return true;
+  }
+
+  #getTrustedFrameDeltaSeconds(deltaMs: number) {
+    const now = this.#getWallClockMs();
+    const rawDeltaSeconds = Number.isFinite(deltaMs) ? Math.max(0, deltaMs / 1000) : 0;
+
+    if (this.#lastFrameWallClockMs === 0) {
+      this.#lastFrameWallClockMs = now;
+      return Math.min(rawDeltaSeconds, 1 / 60);
+    }
+
+    const wallDeltaSeconds = Math.max(0, (now - this.#lastFrameWallClockMs) / 1000);
+    this.#lastFrameWallClockMs = now;
+
+    if (rawDeltaSeconds > wallDeltaSeconds * 2.8 + 0.08) {
+      this.#showSpeedHackBlockedToast(now);
+    }
+
+    return Phaser.Math.Clamp(
+      Math.min(rawDeltaSeconds, wallDeltaSeconds + 1 / 60),
+      0,
+      MAX_FRAME_DELTA_SECONDS,
+    );
+  }
+
+  #consumeRealActionInterval(kind: "move" | "fall") {
+    const now = this.#getWallClockMs();
+    const minimumInterval = kind === "move" ? MIN_REAL_MOVE_INTERVAL_MS : MIN_REAL_FALL_INTERVAL_MS;
+    const previous = kind === "move" ? this.#lastMoveWallClockMs : this.#lastFallWallClockMs;
+
+    if (previous !== 0 && now - previous < minimumInterval) {
+      this.#showSpeedHackBlockedToast(now);
+      return false;
+    }
+
+    if (kind === "move") {
+      this.#lastMoveWallClockMs = now;
+    } else {
+      this.#lastFallWallClockMs = now;
+    }
+
+    return true;
+  }
+
+  #consumeMiningProgressDelta(deltaSeconds: number) {
+    const now = this.#getWallClockMs();
+
+    if (this.#lastMiningWallClockMs === 0) {
+      this.#lastMiningWallClockMs = now;
+      return Math.min(deltaSeconds, 1 / 60);
+    }
+
+    const wallDeltaSeconds = Math.max(0, (now - this.#lastMiningWallClockMs) / 1000);
+    this.#lastMiningWallClockMs = now;
+
+    if (deltaSeconds > wallDeltaSeconds * 2.8 + 0.08) {
+      this.#showSpeedHackBlockedToast(now);
+    }
+
+    return Phaser.Math.Clamp(
+      Math.min(deltaSeconds, wallDeltaSeconds),
+      0,
+      MAX_MINING_DELTA_SECONDS,
+    );
+  }
+
+  #resetMiningProgressClock() {
+    this.#lastMiningWallClockMs = 0;
+  }
+
+  #showSpeedHackBlockedToast(now = this.#getWallClockMs()) {
+    if (now - this.#speedHackToastWallClockMs < 2200) {
+      return;
+    }
+
+    this.#speedHackToastWallClockMs = now;
+    this.showSurfaceToast("Velocidade inválida bloqueada.");
+  }
+
+  #getWallClockMs() {
+    const now = Date.now();
+    return Number.isFinite(now) ? now : 0;
   }
 
   private hasActiveMiningTarget() {
@@ -1696,11 +1796,13 @@ export class MineScene extends Phaser.Scene {
     }
 
     this.#player.facing = target.x < this.#player.position.x ? -1 : target.x > this.#player.position.x ? 1 : this.#player.facing;
+    const miningDeltaSeconds = this.#consumeMiningProgressDelta(deltaSeconds);
+
     this.#miningTarget.required = required;
     this.#miningTarget.progress = Number.isFinite(this.#miningTarget.progress)
       ? Phaser.Math.Clamp(this.#miningTarget.progress, 0, required)
       : 0;
-    this.#miningTarget.progress += Phaser.Math.Clamp(deltaSeconds, 0, MAX_MINING_DELTA_SECONDS);
+    this.#miningTarget.progress += miningDeltaSeconds;
     this.#player.moveCooldown = 0.05;
 
     const completion = Phaser.Math.Clamp(
@@ -2065,6 +2167,7 @@ export class MineScene extends Phaser.Scene {
 
   private clearMiningTarget() {
     this.#miningTarget = undefined;
+    this.#resetMiningProgressClock();
     this.effectLayer?.clear();
   }
 
@@ -2648,6 +2751,10 @@ export class MineScene extends Phaser.Scene {
       this.#player.fallCooldown > 0 ||
       !this.canOccupy(this.#player.position.x, this.#player.position.y - 1)
     ) {
+      return false;
+    }
+
+    if (!this.#consumeRealActionInterval("move")) {
       return false;
     }
 
