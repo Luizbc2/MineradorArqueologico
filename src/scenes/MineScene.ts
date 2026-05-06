@@ -124,6 +124,8 @@ const MOUSE_MINING_REACH_TILES = 2;
 const SMART_MINING_REACH_TILES = MOUSE_MINING_REACH_TILES;
 const ADMIN_COIN_CODE = "fortnitebattlepass";
 const ADMIN_COIN_GRANT = 100_000_000;
+const ADMIN_TEST_COIN_CODE = "fortnitebattlepass2";
+const ADMIN_TEST_COIN_GRANT = 50_000;
 const ADMIN_DEPTH_GRANT = 620;
 const BASE_BACKPACK_CAPACITY = 24;
 const FULL_BACKPACK_SELL_THRESHOLD = 0.9;
@@ -2999,25 +3001,33 @@ export class MineScene extends Phaser.Scene {
   }
 
   private handleAdminCodeSubmit(code: string) {
-    if (code.trim().toLowerCase() !== ADMIN_COIN_CODE) {
+    const normalizedCode = code.trim().toLowerCase();
+    const coinGrant =
+      normalizedCode === ADMIN_COIN_CODE
+        ? ADMIN_COIN_GRANT
+        : normalizedCode === ADMIN_TEST_COIN_CODE
+          ? ADMIN_TEST_COIN_GRANT
+          : 0;
+
+    if (coinGrant <= 0) {
       return {
         ok: false,
         message: "Código inválido.",
       };
     }
 
-    this.#coins = Math.max(this.#coins, ADMIN_COIN_GRANT);
-    this.#adminGrantCoins = Math.max(this.#adminGrantCoins, ADMIN_COIN_GRANT);
+    this.#coins = Math.max(this.#coins, coinGrant);
+    this.#adminGrantCoins = Math.max(this.#adminGrantCoins, coinGrant);
     this.#maxDepthReached = Math.max(this.#maxDepthReached, ADMIN_DEPTH_GRANT);
     this.syncExpeditionProgress(this.#expeditionProgression.applyDepth(this.#maxDepthReached));
     saveProgressionAdminGrant(this.#getProgressionSaveData());
     this.updateHud();
     this.audioDirector?.playCoins();
-    this.showSurfaceToast(`Código aplicado: ${ADMIN_COIN_GRANT} moedas.`, "coins");
+    this.showSurfaceToast(`Código aplicado: ${coinGrant} moedas.`, "coins");
 
     return {
       ok: true,
-      message: `${ADMIN_COIN_GRANT} moedas adicionadas e catálogo liberado.`,
+      message: `${coinGrant} moedas adicionadas e catálogo liberado.`,
     };
   }
 
