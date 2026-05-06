@@ -139,7 +139,7 @@ const MAX_FRAME_DELTA_SECONDS = 0.05;
 const MIN_REAL_MOVE_INTERVAL_MS = 48;
 const MIN_REAL_FALL_INTERVAL_MS = 58;
 const SPEED_HACK_TOAST_GRACE_MS = 2600;
-const ANTI_CHEAT_STORAGE_KEY = "minerador-arqueologico:anti-cheat:v1";
+const ANTI_CHEAT_STORAGE_KEY = "minerador-arqueologico:anti-cheat:v2";
 const BACKPACK_NEAR_FULL_THRESHOLD = 0.8;
 const ORE_MIN_DEPTH: Partial<Record<TileKind, number>> = {
   fossil: 300,
@@ -632,7 +632,6 @@ export class MineScene extends Phaser.Scene {
     const previous = kind === "move" ? this.#lastMoveWallClockMs : this.#lastFallWallClockMs;
 
     if (previous !== 0 && now - previous < minimumInterval) {
-      this.#showSpeedHackBlockedToast(now);
       return false;
     }
 
