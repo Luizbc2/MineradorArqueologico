@@ -39,6 +39,7 @@ import {
 import {
   loadProgressionSave,
   sanitizeProgressionSave,
+  saveProgressionAdminGrant,
   saveProgression,
 } from "../game/save/progressionSave";
 import { MineAudioDirector } from "../game/audio/MineAudioDirector";
@@ -121,6 +122,9 @@ const SURFACE_STATION_CONFIG: Record<SurfaceStationKind, { offsetX: number; radi
 } as const;
 const MOUSE_MINING_REACH_TILES = 2;
 const SMART_MINING_REACH_TILES = MOUSE_MINING_REACH_TILES;
+const ADMIN_COIN_CODE = "arqueologo-2026";
+const ADMIN_COIN_GRANT = 250000;
+const ADMIN_DEPTH_GRANT = 620;
 const BASE_BACKPACK_CAPACITY = 24;
 const FULL_BACKPACK_SELL_THRESHOLD = 0.9;
 const FULL_BACKPACK_SELL_BONUS = 0.1;
@@ -2983,10 +2987,33 @@ export class MineScene extends Phaser.Scene {
     this.clearMiningTarget();
     this.pauseOverlay?.show({
       audioMuted: this.audioDirector?.isMuted ?? false,
+      onAdminCodeSubmit: (code) => this.handleAdminCodeSubmit(code),
       onAudioToggle: () => this.handleAudioToggle(),
       onResume: () => this.closePauseOverlay(),
     });
     this.updateSurfacePrompt();
+  }
+
+  private handleAdminCodeSubmit(code: string) {
+    if (code.trim().toLowerCase() !== ADMIN_COIN_CODE) {
+      return {
+        ok: false,
+        message: "Código inválido.",
+      };
+    }
+
+    this.#coins = Math.max(this.#coins, ADMIN_COIN_GRANT);
+    this.#maxDepthReached = Math.max(this.#maxDepthReached, ADMIN_DEPTH_GRANT);
+    this.syncExpeditionProgress(this.#expeditionProgression.applyDepth(this.#maxDepthReached));
+    saveProgressionAdminGrant(this.#getProgressionSaveData());
+    this.updateHud();
+    this.audioDirector?.playCoins();
+    this.showSurfaceToast(`Código aplicado: ${ADMIN_COIN_GRANT} moedas.`, "coins");
+
+    return {
+      ok: true,
+      message: `${ADMIN_COIN_GRANT} moedas adicionadas e catálogo liberado.`,
+    };
   }
 
   private handleAudioToggle() {

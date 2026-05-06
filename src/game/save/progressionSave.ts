@@ -188,6 +188,17 @@ export function saveProgression(data: ProgressionSaveData) {
   localStorage.setItem(SAVE_KEY, JSON.stringify(wrapSavePayload(normalized)));
 }
 
+export function saveProgressionAdminGrant(data: ProgressionSaveData) {
+  if (typeof localStorage === "undefined") {
+    return;
+  }
+
+  const normalized = sanitizeProgressionSave(data);
+  sessionSaveState = normalized;
+  resetSessionTransitionClock();
+  localStorage.setItem(SAVE_KEY, JSON.stringify(wrapSavePayload(normalized)));
+}
+
 export function sanitizeProgressionSave(data: ProgressionSaveData): ProgressionSaveData {
   return normalizeProgressionSave(data as ProgressionSavePayload);
 }

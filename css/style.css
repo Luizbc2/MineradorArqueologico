@@ -551,6 +551,46 @@ body { image-rendering: auto; }
   color: #f5efdf;
 }
 
+.game-modal-admin-code {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.game-modal-admin-code__input {
+  min-width: 0;
+  height: 44px;
+  padding: 0 14px;
+  border: 2px solid rgba(139, 115, 79, 0.78);
+  outline: none;
+  background: rgba(10, 8, 7, 0.9);
+  color: #fffaf0;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.game-modal-admin-code__input:focus {
+  border-color: rgba(231, 189, 99, 0.95);
+}
+
+.game-modal-admin-code__status {
+  min-height: 18px;
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.25;
+  font-weight: 800;
+  color: #ab987c;
+}
+
+.game-modal-admin-code__status.is-ok {
+  color: #8ecece;
+}
+
+.game-modal-admin-code__status.is-error {
+  color: #ee705b;
+}
+
 .game-modal-note {
   margin-bottom: 18px;
   padding: 14px 16px;
