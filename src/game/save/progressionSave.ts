@@ -45,10 +45,11 @@ const LEGACY_SAVE_KEYS = [
   "minerador-arqueologico:progression:v4",
   "minerador-arqueologico:progression:v5",
   "minerador-arqueologico:progression:v6",
+  "minerador-arqueologico:progression:v7",
 ] as const;
-const SAVE_KEY = "minerador-arqueologico:progression:v7";
-const SAVE_VERSION = 7;
-const SAVE_CHECKSUM_SALT = "minerador-arqueologico-save-v7";
+const SAVE_KEY = "minerador-arqueologico:progression:v8";
+const SAVE_VERSION = 8;
+const SAVE_CHECKSUM_SALT = "minerador-arqueologico-save-v8";
 const MAX_SAVED_COINS = 100_000_000;
 const BASE_BACKPACK_CAPACITY = 24;
 const MAX_SAVED_DEPTH = WORLD_HEIGHT_TILES - SURFACE_ROW - 1;
