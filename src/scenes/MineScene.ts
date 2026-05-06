@@ -145,6 +145,7 @@ export class MineScene extends Phaser.Scene {
   #pickaxeState = createPickaxeOwnershipState();
   #upgradeState = createUpgradeLevelState();
   #coins = 0;
+  #adminGrantCoins = 0;
   private energy = 100;
   private audioMuted = false;
   #maxDepthReached = 0;
@@ -335,6 +336,7 @@ export class MineScene extends Phaser.Scene {
     const save = loadProgressionSave();
 
     this.#coins = save.coins;
+    this.#adminGrantCoins = save.adminGrantCoins;
     this.#maxDepthReached = save.maxDepthReached;
     this.#inventory = save.inventory;
     this.#pickaxeState = save.pickaxes;
@@ -352,6 +354,7 @@ export class MineScene extends Phaser.Scene {
   #getProgressionSaveData() {
     return {
       coins: this.#coins,
+      adminGrantCoins: this.#adminGrantCoins,
       maxDepthReached: this.#maxDepthReached,
       inventory: this.#inventory,
       pickaxes: this.#pickaxeState,
@@ -368,6 +371,7 @@ export class MineScene extends Phaser.Scene {
     const sanitized = sanitizeProgressionSave(this.#getProgressionSaveData());
 
     this.#coins = sanitized.coins;
+    this.#adminGrantCoins = sanitized.adminGrantCoins;
     this.#maxDepthReached = sanitized.maxDepthReached;
     this.#inventory = sanitized.inventory;
     this.#pickaxeState = sanitized.pickaxes;
@@ -3003,6 +3007,7 @@ export class MineScene extends Phaser.Scene {
     }
 
     this.#coins = Math.max(this.#coins, ADMIN_COIN_GRANT);
+    this.#adminGrantCoins = Math.max(this.#adminGrantCoins, ADMIN_COIN_GRANT);
     this.#maxDepthReached = Math.max(this.#maxDepthReached, ADMIN_DEPTH_GRANT);
     this.syncExpeditionProgress(this.#expeditionProgression.applyDepth(this.#maxDepthReached));
     saveProgressionAdminGrant(this.#getProgressionSaveData());

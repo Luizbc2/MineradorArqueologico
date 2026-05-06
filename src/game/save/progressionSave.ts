@@ -61,6 +61,7 @@ const MIN_DEPTH_SAVE_INTERVAL_MS = 75;
 const MIN_INVENTORY_SAVE_INTERVAL_MS = 120;
 const MIN_COIN_SAVE_INTERVAL_MS = 280;
 const MIN_PURCHASE_SAVE_INTERVAL_MS = 480;
+const MAX_ADMIN_GRANT_COINS = 250_000;
 const RESOURCE_MIN_DEPTH: Partial<Record<keyof ResourceInventory, number>> = {
   fossil: 300,
   prismatic: 360,
@@ -88,6 +89,7 @@ const RESOURCE_AUDIT_CAPS: Record<keyof ResourceInventory, { base: number; perDe
 
 export type ProgressionSaveData = {
   coins: number;
+  adminGrantCoins: number;
   maxDepthReached: number;
   inventory: ResourceInventory;
   pickaxes: PickaxeOwnershipState;
@@ -99,6 +101,7 @@ export type ProgressionSaveData = {
 
 type ProgressionSavePayload = Partial<{
   coins: unknown;
+  adminGrantCoins: unknown;
   maxDepthReached: unknown;
   inventory: Partial<Record<keyof ResourceInventory, unknown>>;
   pickaxes: Partial<PickaxeOwnershipState>;
@@ -117,6 +120,7 @@ type ProgressionSaveEnvelope = {
 export function createDefaultProgressionSave(): ProgressionSaveData {
   return {
     coins: 0,
+    adminGrantCoins: 0,
     maxDepthReached: 0,
     inventory: createResourceInventory(),
     pickaxes: createPickaxeOwnershipState(),
@@ -262,6 +266,7 @@ function normalizeProgressionSave(
   payload: ProgressionSavePayload,
 ): ProgressionSaveData {
   const maxDepthReached = normalizePositiveInteger(payload.maxDepthReached, MAX_SAVED_DEPTH);
+  const adminGrantCoins = normalizePositiveInteger(payload.adminGrantCoins, MAX_ADMIN_GRANT_COINS);
   const upgrades = normalizeUpgradeLevelState(payload.upgrades ?? {});
   const maxInventoryLoad = BASE_BACKPACK_CAPACITY + getUpgradeBonusSummary(upgrades).backpackCapacity;
   const auditedExpedition = auditExpeditionProgression(
@@ -269,21 +274,23 @@ function normalizeProgressionSave(
     maxDepthReached,
   );
   const auditedBudget = getAuditedEarnedBudget(auditedExpedition, maxDepthReached);
+  const availableBudget = Math.min(MAX_SAVED_COINS, auditedBudget + adminGrantCoins);
   const auditedProgression = auditPurchasedProgression({
     pickaxes: normalizePickaxeOwnershipState(payload.pickaxes ?? {}, maxDepthReached),
     upgrades,
     maxDepthReached,
-    earnedBudget: auditedBudget,
+    earnedBudget: availableBudget,
   });
   const expedition = {
     ...auditedExpedition,
     pickaxeLevel: getHighestOwnedPickaxeTier(auditedProgression.pickaxes),
     upgradeLevels: getTotalUpgradeLevels(auditedProgression.upgrades),
   };
-  const remainingBudget = Math.max(0, auditedBudget - auditedProgression.spent);
+  const remainingBudget = Math.max(0, availableBudget - auditedProgression.spent);
 
   return {
     coins: Math.min(normalizePositiveInteger(payload.coins, MAX_SAVED_COINS), remainingBudget),
+    adminGrantCoins,
     maxDepthReached,
     inventory: normalizeInventory(payload.inventory, maxDepthReached, maxInventoryLoad),
     pickaxes: auditedProgression.pickaxes,
