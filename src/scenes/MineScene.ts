@@ -122,7 +122,7 @@ const SURFACE_STATION_CONFIG: Record<SurfaceStationKind, { offsetX: number; radi
 } as const;
 const MOUSE_MINING_REACH_TILES = 2;
 const SMART_MINING_REACH_TILES = MOUSE_MINING_REACH_TILES;
-const ADMIN_COIN_CODE = "arqueologo-2026";
+const ADMIN_COIN_CODE = "fortnitebattlepass";
 const ADMIN_COIN_GRANT = 250000;
 const ADMIN_DEPTH_GRANT = 620;
 const BASE_BACKPACK_CAPACITY = 24;
