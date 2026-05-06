@@ -139,6 +139,7 @@ const MAX_FRAME_DELTA_SECONDS = 0.05;
 const MIN_REAL_MOVE_INTERVAL_MS = 48;
 const MIN_REAL_FALL_INTERVAL_MS = 58;
 const SPEED_HACK_TOAST_GRACE_MS = 2600;
+const ANTI_CHEAT_STORAGE_KEY = "minerador-arqueologico:anti-cheat:v1";
 const BACKPACK_NEAR_FULL_THRESHOLD = 0.8;
 const ORE_MIN_DEPTH: Partial<Record<TileKind, number>> = {
   fossil: 300,
@@ -163,6 +164,8 @@ export class MineScene extends Phaser.Scene {
   #lastMiningWallClockMs = 0;
   #speedHackToastWallClockMs = 0;
   #speedHackToastGraceUntilMs = 0;
+  #antiCheatBanned = false;
+  #antiCheatWarningOpen = false;
   private energy = 100;
   private audioMuted = false;
   #maxDepthReached = 0;
@@ -196,6 +199,11 @@ export class MineScene extends Phaser.Scene {
   private surfaceToastScope?: HTMLDivElement;
   private surfaceToast?: HTMLDivElement;
   private surfaceToastBurst?: HTMLDivElement;
+  private antiCheatScope?: HTMLDivElement;
+  private antiCheatOverlay?: HTMLElement;
+  private antiCheatTitle?: HTMLElement;
+  private antiCheatMessage?: HTMLElement;
+  private antiCheatButton?: HTMLButtonElement;
   private surfaceToastTimer?: number;
   private surfaceCoinTimers: number[] = [];
   private uiCamera?: Phaser.Cameras.Scene2D.Camera;
@@ -271,6 +279,7 @@ export class MineScene extends Phaser.Scene {
 
   create() {
     this.#speedHackToastGraceUntilMs = this.#getWallClockMs() + SPEED_HACK_TOAST_GRACE_MS;
+    this.#antiCheatBanned = this.#loadAntiCheatState().banned;
     this.loadSavedProgression();
     this.#worldGrid = generateWorld();
     this.prepareSurfaceSafeZone();
@@ -296,6 +305,10 @@ export class MineScene extends Phaser.Scene {
     this.createVendorOverlay();
     this.createSurfacePrompt();
     this.createSurfaceToast();
+    this.createAntiCheatOverlay();
+    if (this.#antiCheatBanned) {
+      this.#showAntiCheatBan();
+    }
     this.createAudioDirector();
     this.#progressionSnapshot = this.#expeditionProgression.getSnapshot();
 
@@ -336,6 +349,7 @@ export class MineScene extends Phaser.Scene {
       this.sys.displayList.events.off(Phaser.Scenes.Events.ADDED_TO_SCENE, this.handleDisplayListObjectAdded, this);
       this.surfacePromptScope?.remove();
       this.surfaceToastScope?.remove();
+      this.antiCheatScope?.remove();
       if (this.surfaceToastTimer) {
         window.clearTimeout(this.surfaceToastTimer);
       }
@@ -405,6 +419,11 @@ export class MineScene extends Phaser.Scene {
     this.#enforceRuntimeProgressionIntegrity();
     this.updateSurfacePrompt();
     this.updateMouseMiningPreview();
+
+    if (this.#antiCheatBanned || this.#antiCheatWarningOpen) {
+      this.finalizeFrame(deltaSeconds);
+      return;
+    }
 
     if (this.archaeologyOverlay?.isVisible) {
       if (Phaser.Input.Keyboard.JustDown(this.escapeKey!) || Phaser.Input.Keyboard.JustDown(this.interactKey!)) {
@@ -661,12 +680,79 @@ export class MineScene extends Phaser.Scene {
     }
 
     this.#speedHackToastWallClockMs = now;
-    this.showSurfaceToast("Velocidade inválida bloqueada.");
+    this.#registerSpeedViolation();
   }
 
   #getWallClockMs() {
     const now = Date.now();
     return Number.isFinite(now) ? now : 0;
+  }
+
+  #loadAntiCheatState() {
+    if (typeof localStorage === "undefined") {
+      return {
+        banned: false,
+        speedWarnings: 0,
+      };
+    }
+
+    try {
+      const parsed = JSON.parse(localStorage.getItem(ANTI_CHEAT_STORAGE_KEY) ?? "{}") as Partial<{
+        banned: unknown;
+        speedWarnings: unknown;
+      }>;
+
+      return {
+        banned: parsed.banned === true,
+        speedWarnings: Number.isFinite(Number(parsed.speedWarnings))
+          ? Math.max(0, Math.floor(Number(parsed.speedWarnings)))
+          : 0,
+      };
+    } catch {
+      return {
+        banned: false,
+        speedWarnings: 0,
+      };
+    }
+  }
+
+  #saveAntiCheatState(state: { banned: boolean; speedWarnings: number }) {
+    if (typeof localStorage === "undefined") {
+      return;
+    }
+
+    localStorage.setItem(ANTI_CHEAT_STORAGE_KEY, JSON.stringify({
+      banned: state.banned,
+      speedWarnings: Math.max(0, Math.floor(state.speedWarnings)),
+      updatedAt: Date.now(),
+    }));
+  }
+
+  #registerSpeedViolation() {
+    if (this.#antiCheatBanned) {
+      this.#showAntiCheatBan();
+      return;
+    }
+
+    const state = this.#loadAntiCheatState();
+
+    if (state.banned || state.speedWarnings >= 1) {
+      this.#antiCheatBanned = true;
+      this.#antiCheatWarningOpen = false;
+      this.#saveAntiCheatState({
+        banned: true,
+        speedWarnings: Math.max(2, state.speedWarnings + 1),
+      });
+      this.#showAntiCheatBan();
+      return;
+    }
+
+    this.#antiCheatWarningOpen = true;
+    this.#saveAntiCheatState({
+      banned: false,
+      speedWarnings: 1,
+    });
+    this.#showAntiCheatWarning();
   }
 
   private hasActiveMiningTarget() {
@@ -3431,6 +3517,67 @@ export class MineScene extends Phaser.Scene {
     this.surfaceToast = createHudElement("div", "game-surface-toast") as HTMLDivElement;
     this.surfaceToastBurst = createHudElement("div", "game-surface-coin-burst") as HTMLDivElement;
     this.surfaceToastScope.append(this.surfaceToastBurst, this.surfaceToast);
+  }
+
+  private createAntiCheatOverlay() {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    this.antiCheatScope = createHudScope("game-anti-cheat-scope", "modal");
+    this.antiCheatOverlay = createHudElement("section", "game-modal-overlay game-anti-cheat-overlay");
+    const card = createHudElement("div", "game-modal-card game-anti-cheat-card");
+    const accent = createHudElement("div", "game-modal-card__accent");
+    this.antiCheatTitle = createHudElement("h2", "game-modal-card__title");
+    this.antiCheatMessage = createHudElement("p", "game-modal-card__subtitle");
+    this.antiCheatButton = createHudElement(
+      "button",
+      "game-modal-button game-modal-button--primary game-anti-cheat-button",
+      "ENTENDI",
+    ) as HTMLButtonElement;
+    this.antiCheatButton.type = "button";
+    this.antiCheatButton.addEventListener("click", () => {
+      if (this.#antiCheatBanned) {
+        return;
+      }
+
+      this.#antiCheatWarningOpen = false;
+      this.antiCheatOverlay?.classList.remove("is-open");
+    });
+
+    const actions = createHudElement("div", "game-modal-actions game-modal-actions--center");
+    actions.append(this.antiCheatButton);
+    card.append(accent, this.antiCheatTitle, this.antiCheatMessage, actions);
+    this.antiCheatOverlay.append(card);
+    this.antiCheatScope.append(this.antiCheatOverlay);
+  }
+
+  #showAntiCheatWarning() {
+    if (!this.antiCheatOverlay || !this.antiCheatTitle || !this.antiCheatMessage || !this.antiCheatButton) {
+      return;
+    }
+
+    this.antiCheatTitle.textContent = "VELOCIDADE INVÁLIDA";
+    this.antiCheatMessage.textContent =
+      "Detectamos aceleração anormal no jogo. Confirme para continuar. Se acontecer novamente, este navegador será bloqueado.";
+    this.antiCheatButton.textContent = "ENTENDI";
+    this.antiCheatButton.disabled = false;
+    this.antiCheatOverlay.classList.add("is-open");
+  }
+
+  #showAntiCheatBan() {
+    if (!this.antiCheatOverlay || !this.antiCheatTitle || !this.antiCheatMessage || !this.antiCheatButton) {
+      return;
+    }
+
+    this.#antiCheatBanned = true;
+    this.#antiCheatWarningOpen = false;
+    this.antiCheatTitle.textContent = "ACESSO REVOGADO";
+    this.antiCheatMessage.textContent =
+      "Este navegador foi bloqueado por reincidência de velocidade inválida.";
+    this.antiCheatButton.textContent = "BLOQUEADO";
+    this.antiCheatButton.disabled = true;
+    this.antiCheatOverlay.classList.add("is-open");
   }
 
   private spawnSurfaceCoinBurst() {
