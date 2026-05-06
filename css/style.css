@@ -121,11 +121,11 @@ body { image-rendering: auto; }
 }
 
 .game-hud-chip__value.is-compact {
-  font-size: 22px;
+  font-size: 20px;
 }
 
 .game-hud-chip__value.is-dense {
-  font-size: 20px;
+  font-size: 19px;
 }
 
 .game-hud-chip--small .game-hud-chip__label {

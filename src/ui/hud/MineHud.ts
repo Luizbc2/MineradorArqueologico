@@ -282,10 +282,6 @@ function formatHudNumber(value: number) {
     return `${formatCompactDecimal(rounded / 1_000_000)} mi`;
   }
 
-  if (rounded >= 100_000) {
-    return `${Math.floor(rounded / 1_000)} mil`;
-  }
-
   return rounded.toLocaleString("pt-BR");
 }
 
@@ -296,7 +292,7 @@ function formatCompactDecimal(value: number) {
 }
 
 function setCompactValueState(element: HTMLElement, value: number) {
-  element.classList.toggle("is-compact", value >= 100_000);
+  element.classList.toggle("is-compact", value >= 10_000);
   element.classList.toggle("is-dense", value >= 1_000_000);
 }
 
