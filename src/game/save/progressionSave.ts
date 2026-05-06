@@ -49,7 +49,7 @@ const LEGACY_SAVE_KEYS = [
 const SAVE_KEY = "minerador-arqueologico:progression:v7";
 const SAVE_VERSION = 7;
 const SAVE_CHECKSUM_SALT = "minerador-arqueologico-save-v7";
-const MAX_SAVED_COINS = 250_000;
+const MAX_SAVED_COINS = 100_000_000;
 const BASE_BACKPACK_CAPACITY = 24;
 const MAX_SAVED_DEPTH = WORLD_HEIGHT_TILES - SURFACE_ROW - 1;
 const MAX_SALE_MULTIPLIER_AUDIT = 4;
@@ -61,7 +61,7 @@ const MIN_DEPTH_SAVE_INTERVAL_MS = 75;
 const MIN_INVENTORY_SAVE_INTERVAL_MS = 120;
 const MIN_COIN_SAVE_INTERVAL_MS = 280;
 const MIN_PURCHASE_SAVE_INTERVAL_MS = 480;
-const MAX_ADMIN_GRANT_COINS = 250_000;
+const MAX_ADMIN_GRANT_COINS = 100_000_000;
 const RESOURCE_MIN_DEPTH: Partial<Record<keyof ResourceInventory, number>> = {
   fossil: 300,
   prismatic: 360,
