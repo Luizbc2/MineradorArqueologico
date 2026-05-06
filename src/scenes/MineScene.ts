@@ -138,6 +138,7 @@ const MAX_MINING_DELTA_SECONDS = 0.08;
 const MAX_FRAME_DELTA_SECONDS = 0.05;
 const MIN_REAL_MOVE_INTERVAL_MS = 48;
 const MIN_REAL_FALL_INTERVAL_MS = 58;
+const SPEED_HACK_TOAST_GRACE_MS = 2600;
 const BACKPACK_NEAR_FULL_THRESHOLD = 0.8;
 const ORE_MIN_DEPTH: Partial<Record<TileKind, number>> = {
   fossil: 300,
@@ -161,6 +162,7 @@ export class MineScene extends Phaser.Scene {
   #lastFallWallClockMs = 0;
   #lastMiningWallClockMs = 0;
   #speedHackToastWallClockMs = 0;
+  #speedHackToastGraceUntilMs = 0;
   private energy = 100;
   private audioMuted = false;
   #maxDepthReached = 0;
@@ -268,6 +270,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   create() {
+    this.#speedHackToastGraceUntilMs = this.#getWallClockMs() + SPEED_HACK_TOAST_GRACE_MS;
     this.loadSavedProgression();
     this.#worldGrid = generateWorld();
     this.prepareSurfaceSafeZone();
@@ -650,7 +653,10 @@ export class MineScene extends Phaser.Scene {
   }
 
   #showSpeedHackBlockedToast(now = this.#getWallClockMs()) {
-    if (now - this.#speedHackToastWallClockMs < 2200) {
+    if (
+      now < this.#speedHackToastGraceUntilMs ||
+      now - this.#speedHackToastWallClockMs < 2200
+    ) {
       return;
     }
 
