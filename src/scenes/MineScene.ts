@@ -341,11 +341,11 @@ export class MineScene extends Phaser.Scene {
     this.audioMuted = save.audioMuted;
   }
 
-  private saveProgression() {
-    saveProgression(this.getProgressionSaveData());
+  #saveProgression() {
+    saveProgression(this.#getProgressionSaveData());
   }
 
-  private getProgressionSaveData() {
+  #getProgressionSaveData() {
     return {
       coins: this.#coins,
       maxDepthReached: this.#maxDepthReached,
@@ -361,7 +361,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   #enforceRuntimeProgressionIntegrity() {
-    const sanitized = sanitizeProgressionSave(this.getProgressionSaveData());
+    const sanitized = sanitizeProgressionSave(this.#getProgressionSaveData());
 
     this.#coins = sanitized.coins;
     this.#maxDepthReached = sanitized.maxDepthReached;
@@ -2047,7 +2047,7 @@ export class MineScene extends Phaser.Scene {
     const rewardState = this.registerReward(resource);
     this.syncExpeditionProgress(this.#expeditionProgression.applyResource(resource, quantity));
     this.game.events.emit("inventory:changed", { ...this.#inventory });
-    this.saveProgression();
+    this.#saveProgression();
     this.updateHud();
     this.showBackpackLoadWarning(previousLoad, this.getInventoryLoad(), capacity);
     this.audioDirector?.playPickup(resource, rewardState.streak);
@@ -2129,7 +2129,7 @@ export class MineScene extends Phaser.Scene {
     this.syncExpeditionProgress(this.#expeditionProgression.applyCoinsSold(sale.totalCoins));
     this.game.events.emit("economy:changed", { coins: this.#coins });
     this.game.events.emit("inventory:changed", { ...this.#inventory });
-    this.saveProgression();
+    this.#saveProgression();
     this.updateHud();
 
     return sale;
@@ -2637,7 +2637,7 @@ export class MineScene extends Phaser.Scene {
     this.#maxDepthReached = Math.max(this.#maxDepthReached, currentDepth);
 
     if (this.#maxDepthReached !== previousMaxDepth) {
-      this.saveProgression();
+      this.#saveProgression();
     }
 
     const equippedPickaxe = getEquippedPickaxe(this.#pickaxeState);
@@ -2951,7 +2951,7 @@ export class MineScene extends Phaser.Scene {
   private openArchaeologyCard() {
     const cardBody = this.#archaeologyDeck.drawNextCard();
     this.syncExpeditionProgress(this.#expeditionProgression.applyCardFound());
-    this.saveProgression();
+    this.#saveProgression();
     this.archaeologyOverlay?.show({
       body: cardBody,
       collectedCount: this.#archaeologyDeck.collectedCount,
@@ -2993,7 +2993,7 @@ export class MineScene extends Phaser.Scene {
     this.audioDirector?.unlock();
     const muted = this.audioDirector?.toggleMuted() ?? false;
     this.audioMuted = muted;
-    this.saveProgression();
+    this.#saveProgression();
     this.pauseOverlay?.setAudioMuted(muted);
 
     if (!muted) {
@@ -3093,7 +3093,7 @@ export class MineScene extends Phaser.Scene {
     this.#pickaxeState = result.state;
     this.#coins = result.coins;
     this.syncExpeditionProgress(this.#expeditionProgression.applyPickaxeLevel(result.pickaxe.tier));
-    this.saveProgression();
+    this.#saveProgression();
     this.audioDirector?.playUpgrade();
     this.audioDirector?.playCoins();
     this.updateHud();
@@ -3106,7 +3106,7 @@ export class MineScene extends Phaser.Scene {
     this.#pickaxeState = equipPickaxe(this.#pickaxeState, id);
     const equippedPickaxe = getEquippedPickaxe(this.#pickaxeState);
     this.syncExpeditionProgress(this.#expeditionProgression.applyPickaxeLevel(equippedPickaxe.tier));
-    this.saveProgression();
+    this.#saveProgression();
     this.audioDirector?.playUpgrade();
     this.updateHud();
     this.showSurfaceToast(`${equippedPickaxe.name} equipada.`);
@@ -3126,7 +3126,7 @@ export class MineScene extends Phaser.Scene {
     this.#upgradeState = result.state;
     this.#coins = result.coins;
     this.syncExpeditionProgress(this.#expeditionProgression.applyUpgradeLevels(this.getTotalUpgradeLevels()));
-    this.saveProgression();
+    this.#saveProgression();
     this.audioDirector?.playUpgrade();
     this.audioDirector?.playCoins();
     this.updateHud();

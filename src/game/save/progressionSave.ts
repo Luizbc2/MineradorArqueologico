@@ -44,10 +44,11 @@ const LEGACY_SAVE_KEYS = [
   "minerador-arqueologico:progression:v3",
   "minerador-arqueologico:progression:v4",
   "minerador-arqueologico:progression:v5",
+  "minerador-arqueologico:progression:v6",
 ] as const;
-const SAVE_KEY = "minerador-arqueologico:progression:v6";
-const SAVE_VERSION = 6;
-const SAVE_CHECKSUM_SALT = "minerador-arqueologico-save-v6";
+const SAVE_KEY = "minerador-arqueologico:progression:v7";
+const SAVE_VERSION = 7;
+const SAVE_CHECKSUM_SALT = "minerador-arqueologico-save-v7";
 const MAX_SAVED_COINS = 250_000;
 const BASE_BACKPACK_CAPACITY = 24;
 const MAX_SAVED_DEPTH = WORLD_HEIGHT_TILES - SURFACE_ROW - 1;
@@ -56,10 +57,22 @@ const MAX_CHEST_MULTIPLIER_AUDIT = 2.8;
 const MAX_CARDS_FROM_CHESTS_RATIO = 1;
 const CHEST_AUDIT_BASE = 12;
 const CHEST_AUDIT_PER_DEPTH = 0.22;
+const MIN_DEPTH_SAVE_INTERVAL_MS = 75;
+const MIN_INVENTORY_SAVE_INTERVAL_MS = 120;
+const MIN_COIN_SAVE_INTERVAL_MS = 280;
+const MIN_PURCHASE_SAVE_INTERVAL_MS = 480;
 const RESOURCE_MIN_DEPTH: Partial<Record<keyof ResourceInventory, number>> = {
   fossil: 300,
   prismatic: 360,
   galactic: 520,
+};
+
+let sessionSaveState: ProgressionSaveData | null = null;
+const sessionTransitionClock = {
+  depth: 0,
+  inventory: 0,
+  coins: 0,
+  purchase: 0,
 };
 const RESOURCE_AUDIT_CAPS: Record<keyof ResourceInventory, { base: number; perDepth: number }> = {
   coal: { base: 28, perDepth: 0.8 },
@@ -116,14 +129,20 @@ export function createDefaultProgressionSave(): ProgressionSaveData {
 
 export function loadProgressionSave(): ProgressionSaveData {
   if (typeof localStorage === "undefined") {
-    return createDefaultProgressionSave();
+    const fallback = createDefaultProgressionSave();
+    sessionSaveState = fallback;
+    resetSessionTransitionClock();
+    return fallback;
   }
 
   clearLegacyProgressionSaves();
   const raw = localStorage.getItem(SAVE_KEY);
 
   if (!raw) {
-    return createDefaultProgressionSave();
+    const fallback = createDefaultProgressionSave();
+    sessionSaveState = fallback;
+    resetSessionTransitionClock();
+    return fallback;
   }
 
   try {
@@ -131,12 +150,21 @@ export function loadProgressionSave(): ProgressionSaveData {
     const payload = unwrapSavePayload(parsed);
 
     if (!payload) {
-      return createDefaultProgressionSave();
+      const fallback = createDefaultProgressionSave();
+      sessionSaveState = fallback;
+      resetSessionTransitionClock();
+      return fallback;
     }
 
-    return normalizeProgressionSave(payload);
+    const normalized = normalizeProgressionSave(payload);
+    sessionSaveState = normalized;
+    resetSessionTransitionClock();
+    return normalized;
   } catch {
-    return createDefaultProgressionSave();
+    const fallback = createDefaultProgressionSave();
+    sessionSaveState = fallback;
+    resetSessionTransitionClock();
+    return fallback;
   }
 }
 
@@ -151,8 +179,12 @@ export function saveProgression(data: ProgressionSaveData) {
     return;
   }
 
-  const previous = readStoredProgressionSave() ?? createDefaultProgressionSave();
-  const normalized = enforceTrustedSaveTransition(previous, sanitizeProgressionSave(data));
+  const previous = sessionSaveState ?? readStoredProgressionSave() ?? createDefaultProgressionSave();
+  const normalized = enforceSessionTransitionRate(
+    previous,
+    enforceTrustedSaveTransition(previous, sanitizeProgressionSave(data)),
+  );
+  sessionSaveState = normalized;
   localStorage.setItem(SAVE_KEY, JSON.stringify(wrapSavePayload(normalized)));
 }
 
@@ -288,6 +320,117 @@ function enforceTrustedSaveTransition(
     pickaxes: pickaxeResult.pickaxes,
     upgrades: upgradeResult.upgrades,
   });
+}
+
+function enforceSessionTransitionRate(
+  previous: ProgressionSaveData,
+  next: ProgressionSaveData,
+) {
+  const now = getMonotonicTime();
+  let guarded = next;
+
+  if (
+    next.maxDepthReached > previous.maxDepthReached &&
+    !consumeSessionTransition("depth", now, MIN_DEPTH_SAVE_INTERVAL_MS)
+  ) {
+    guarded = sanitizeProgressionSave({
+      ...guarded,
+      maxDepthReached: previous.maxDepthReached,
+      expedition: {
+        ...guarded.expedition,
+        deepestDepth: Math.min(guarded.expedition.deepestDepth, previous.maxDepthReached),
+        maxReturnDepth: Math.min(guarded.expedition.maxReturnDepth, previous.maxDepthReached),
+      },
+    });
+  }
+
+  if (
+    getInventoryLoad(guarded.inventory) > getInventoryLoad(previous.inventory) &&
+    !consumeSessionTransition("inventory", now, MIN_INVENTORY_SAVE_INTERVAL_MS)
+  ) {
+    guarded = sanitizeProgressionSave({
+      ...guarded,
+      inventory: previous.inventory,
+      expedition: {
+        ...guarded.expedition,
+        resources: previous.expedition.resources,
+      },
+    });
+  }
+
+  if (
+    hasPurchaseProgressionIncrease(previous, guarded) &&
+    !consumeSessionTransition("purchase", now, MIN_PURCHASE_SAVE_INTERVAL_MS)
+  ) {
+    guarded = sanitizeProgressionSave({
+      ...guarded,
+      coins: previous.coins,
+      pickaxes: previous.pickaxes,
+      upgrades: previous.upgrades,
+      expedition: {
+        ...guarded.expedition,
+        pickaxeLevel: previous.expedition.pickaxeLevel,
+        upgradeLevels: previous.expedition.upgradeLevels,
+      },
+    });
+  }
+
+  if (
+    guarded.coins > previous.coins &&
+    !consumeSessionTransition("coins", now, MIN_COIN_SAVE_INTERVAL_MS)
+  ) {
+    guarded = sanitizeProgressionSave({
+      ...guarded,
+      coins: previous.coins,
+      expedition: {
+        ...guarded.expedition,
+        chestsOpened: previous.expedition.chestsOpened,
+        coinsSold: previous.expedition.coinsSold,
+      },
+    });
+  }
+
+  return guarded;
+}
+
+function hasPurchaseProgressionIncrease(
+  previous: ProgressionSaveData,
+  next: ProgressionSaveData,
+) {
+  const gainedPickaxe = getPickaxeList().some((pickaxe) => (
+    !previous.pickaxes.owned[pickaxe.id] && next.pickaxes.owned[pickaxe.id]
+  ));
+  const gainedUpgrade = getUpgradeList().some((upgrade) => (
+    getUpgradeLevel(next.upgrades, upgrade.id) > getUpgradeLevel(previous.upgrades, upgrade.id)
+  ));
+
+  return gainedPickaxe || gainedUpgrade;
+}
+
+function consumeSessionTransition(
+  kind: keyof typeof sessionTransitionClock,
+  now: number,
+  minIntervalMs: number,
+) {
+  const previous = sessionTransitionClock[kind];
+
+  if (previous !== 0 && now - previous < minIntervalMs) {
+    return false;
+  }
+
+  sessionTransitionClock[kind] = now;
+  return true;
+}
+
+function resetSessionTransitionClock() {
+  sessionTransitionClock.depth = 0;
+  sessionTransitionClock.inventory = 0;
+  sessionTransitionClock.coins = 0;
+  sessionTransitionClock.purchase = 0;
+}
+
+function getMonotonicTime() {
+  return typeof performance === "undefined" ? Date.now() : performance.now();
 }
 
 function enforceInventoryTransition(
