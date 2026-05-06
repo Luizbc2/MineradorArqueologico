@@ -279,7 +279,11 @@ function formatHudNumber(value: number) {
   const rounded = Math.max(0, Math.floor(value));
 
   if (rounded >= 1_000_000) {
-    return `${formatCompactDecimal(rounded / 1_000_000)} mi`;
+    return `${formatCompactDecimal(rounded / 1_000_000)}m`;
+  }
+
+  if (rounded >= 10_000) {
+    return `${formatCompactDecimal(rounded / 1_000)}k`;
   }
 
   return rounded.toLocaleString("pt-BR");
@@ -293,7 +297,7 @@ function formatCompactDecimal(value: number) {
 
 function setCompactValueState(element: HTMLElement, value: number) {
   element.classList.toggle("is-compact", value >= 10_000);
-  element.classList.toggle("is-dense", value >= 1_000_000);
+  element.classList.toggle("is-dense", value >= 100_000_000);
 }
 
 function createHudButton(label: string, icon: "missions" | "backpack", tone: "accent" | "cool") {
