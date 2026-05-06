@@ -560,17 +560,25 @@ export class MineScene extends Phaser.Scene {
   }
 
   private hasActiveMiningTarget() {
-    if (!this.#player || !this.input.activePointer?.leftButtonDown()) {
+    if (!this.#player) {
       return false;
     }
 
-    const target = this.smartMiningEnabled
-      ? this.getSmartMiningTarget()
-      : this.getMouseMiningTile();
+    const downPressed = this.cursors?.down.isDown || this.digKeys?.down.isDown;
+    const target = downPressed
+      ? {
+          x: this.#player.position.x,
+          y: this.#player.position.y + 1,
+        }
+      : this.input.activePointer?.leftButtonDown()
+        ? this.smartMiningEnabled
+          ? this.getSmartMiningTarget()
+          : this.getMouseMiningTile()
+        : null;
 
     if (
       !target ||
-      (!this.smartMiningEnabled && !this.isMiningTargetInReach(target.x, target.y))
+      (!downPressed && !this.smartMiningEnabled && !this.isMiningTargetInReach(target.x, target.y))
     ) {
       return false;
     }
