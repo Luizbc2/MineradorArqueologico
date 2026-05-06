@@ -9,6 +9,8 @@ export const upgradeIds = [
   "stepSpeed",
 ] as const;
 
+Object.freeze(upgradeIds);
+
 export type UpgradeId = (typeof upgradeIds)[number];
 
 export type UpgradeEffectKind =
@@ -114,6 +116,12 @@ export const upgradeCatalog: Record<UpgradeId, UpgradeDefinition> = {
     maxLevel: 10,
   },
 };
+
+for (const upgrade of Object.values(upgradeCatalog)) {
+  Object.freeze(upgrade);
+}
+
+Object.freeze(upgradeCatalog);
 
 export function getUpgradeDefinition(id: UpgradeId) {
   return upgradeCatalog[id];

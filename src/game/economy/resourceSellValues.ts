@@ -32,6 +32,8 @@ export const resourceSellValues: Record<ResourceKind, number> = {
   galactic: 280,
 };
 
+Object.freeze(resourceSellValues);
+
 export function getResourceSellValue(resource: ResourceKind) {
   return resourceSellValues[resource];
 }

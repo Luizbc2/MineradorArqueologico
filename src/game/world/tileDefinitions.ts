@@ -22,3 +22,9 @@ export const tileDefinitions: Record<TileKind, TileDefinition> = {
   chest: { breakable: false, hardness: 0 },
   bedrock: { breakable: false, hardness: 999 },
 };
+
+for (const definition of Object.values(tileDefinitions)) {
+  Object.freeze(definition);
+}
+
+Object.freeze(tileDefinitions);

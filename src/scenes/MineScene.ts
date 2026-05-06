@@ -37,6 +37,7 @@ import {
   hasSellableResources,
 } from "../game/economy/resourceSellValues";
 import {
+  canUseAdminCoinGrant,
   loadProgressionSave,
   sanitizeProgressionSave,
   saveProgressionAdminGrant,
@@ -131,6 +132,9 @@ const BASE_BACKPACK_CAPACITY = 24;
 const FULL_BACKPACK_SELL_THRESHOLD = 0.9;
 const FULL_BACKPACK_SELL_BONUS = 0.1;
 const MAX_COMBO_MINING_SPEED_BONUS = 0.25;
+const MAX_EFFECTIVE_MINING_POWER = 2_500;
+const MAX_EFFECTIVE_MINING_SPEED = 6;
+const MAX_MINING_DELTA_SECONDS = 0.08;
 const BACKPACK_NEAR_FULL_THRESHOLD = 0.8;
 const ORE_MIN_DEPTH: Partial<Record<TileKind, number>> = {
   fossil: 300,
@@ -148,6 +152,7 @@ export class MineScene extends Phaser.Scene {
   #upgradeState = createUpgradeLevelState();
   #coins = 0;
   #adminGrantCoins = 0;
+  #miningTarget?: MiningTarget;
   private energy = 100;
   private audioMuted = false;
   #maxDepthReached = 0;
@@ -200,7 +205,6 @@ export class MineScene extends Phaser.Scene {
   private sellKey?: Phaser.Input.Keyboard.Key;
   private smartMiningKey?: Phaser.Input.Keyboard.Key;
   #player?: PlayerMiner;
-  private miningTarget?: MiningTarget;
   private smartMiningEnabled = false;
   private rewardComboCount = 0;
   private rewardComboTimer = 0;
@@ -526,7 +530,7 @@ export class MineScene extends Phaser.Scene {
       return false;
     }
 
-    if (this.miningTarget) {
+    if (this.#miningTarget) {
       this.clearMiningTarget();
       this.#player.moveCooldown = 0;
     }
@@ -1656,10 +1660,20 @@ export class MineScene extends Phaser.Scene {
     const upgradeBonuses = getUpgradeBonusSummary(this.#upgradeState);
     const depthHardnessMultiplier = this.getDepthHardnessMultiplier(target.y);
     const comboMiningBonus = Math.min(MAX_COMBO_MINING_SPEED_BONUS, this.rewardComboCount * 0.01);
-    const speedMultiplier =
+    const rawSpeedMultiplier =
       equippedPickaxe.baseSpeed *
       (1 + this.#progressionSnapshot.perks.miningSpeedBonus + upgradeBonuses.speedMultiplier + comboMiningBonus);
-    const effectivePower = equippedPickaxe.power + upgradeBonuses.flatPower;
+    const speedMultiplier = Phaser.Math.Clamp(
+      Number.isFinite(rawSpeedMultiplier) ? rawSpeedMultiplier : equippedPickaxe.baseSpeed,
+      0.2,
+      MAX_EFFECTIVE_MINING_SPEED,
+    );
+    const rawEffectivePower = equippedPickaxe.power + upgradeBonuses.flatPower;
+    const effectivePower = Phaser.Math.Clamp(
+      Number.isFinite(rawEffectivePower) ? rawEffectivePower : equippedPickaxe.power,
+      1,
+      MAX_EFFECTIVE_MINING_POWER,
+    );
     const required = Math.max(
       0.08,
       (tileDefinitions[trustedKind].hardness * depthHardnessMultiplier * 6) /
@@ -1667,11 +1681,11 @@ export class MineScene extends Phaser.Scene {
     );
 
     if (
-      !this.miningTarget ||
-      this.miningTarget.x !== target.x ||
-      this.miningTarget.y !== target.y
+      !this.#miningTarget ||
+      this.#miningTarget.x !== target.x ||
+      this.#miningTarget.y !== target.y
     ) {
-      this.miningTarget = {
+      this.#miningTarget = {
         ...target,
         progress: 0,
         required,
@@ -1682,23 +1696,27 @@ export class MineScene extends Phaser.Scene {
     }
 
     this.#player.facing = target.x < this.#player.position.x ? -1 : target.x > this.#player.position.x ? 1 : this.#player.facing;
-    this.miningTarget.progress += deltaSeconds;
+    this.#miningTarget.required = required;
+    this.#miningTarget.progress = Number.isFinite(this.#miningTarget.progress)
+      ? Phaser.Math.Clamp(this.#miningTarget.progress, 0, required)
+      : 0;
+    this.#miningTarget.progress += Phaser.Math.Clamp(deltaSeconds, 0, MAX_MINING_DELTA_SECONDS);
     this.#player.moveCooldown = 0.05;
 
     const completion = Phaser.Math.Clamp(
-      this.miningTarget.progress / this.miningTarget.required,
+      this.#miningTarget.progress / this.#miningTarget.required,
       0,
       1,
     );
     const impactThreshold = Math.floor(completion * 4);
 
-    if (impactThreshold > this.miningTarget.impacts) {
-      this.miningTarget.impacts = impactThreshold;
+    if (impactThreshold > this.#miningTarget.impacts) {
+      this.#miningTarget.impacts = impactThreshold;
       this.spawnMiningImpact(target.x, target.y, trustedKind, false, completion);
       this.audioDirector?.playMiningTick(trustedKind, completion);
     }
 
-    if (this.miningTarget.progress >= this.miningTarget.required) {
+    if (this.#miningTarget.progress >= this.#miningTarget.required) {
       const brokenKind = this.#getTrustedTileKind(target.x, target.y);
       this.#setWorldTileKind(target.x, target.y, "empty");
       this.groundDirty = true;
@@ -1957,7 +1975,7 @@ export class MineScene extends Phaser.Scene {
 
     if (
       !this.#player ||
-      this.miningTarget ||
+      this.#miningTarget ||
       this.pauseOverlay?.isVisible ||
       this.archaeologyOverlay?.isVisible ||
       this.upgradeOverlay?.isVisible ||
@@ -2002,7 +2020,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   private drawMiningOverlay() {
-    if (!this.miningTarget) {
+    if (!this.#miningTarget) {
       return;
     }
 
@@ -2012,15 +2030,15 @@ export class MineScene extends Phaser.Scene {
 
     this.effectLayer.clear();
 
-    const tileX = this.miningTarget.x * TILE_SIZE;
-    const tileY = this.miningTarget.y * TILE_SIZE;
+    const tileX = this.#miningTarget.x * TILE_SIZE;
+    const tileY = this.#miningTarget.y * TILE_SIZE;
     const completion = Phaser.Math.Clamp(
-      this.miningTarget.progress / this.miningTarget.required,
+      this.#miningTarget.progress / this.#miningTarget.required,
       0,
       1,
     );
     const pulse = 0.52 + Math.sin(this.time.now / 60) * 0.16;
-    const material = tilePalette[this.#worldGrid[this.miningTarget.y]?.[this.miningTarget.x]?.kind ?? "stone"];
+    const material = tilePalette[this.#worldGrid[this.#miningTarget.y]?.[this.#miningTarget.x]?.kind ?? "stone"];
 
     this.effectLayer.lineStyle(2, material.detail, pulse + completion * 0.18);
     this.effectLayer.strokeRect(tileX + 2, tileY + 2, TILE_SIZE - 4, TILE_SIZE - 4);
@@ -2032,8 +2050,8 @@ export class MineScene extends Phaser.Scene {
 
     this.effectLayer.lineStyle(1, 0x06080f, 0.35 + completion * 0.45);
     for (let crack = 0; crack < crackCount; crack += 1) {
-      const startX = tileX + 8 + ((this.miningTarget.x * 7 + crack * 5) % 15);
-      const startY = tileY + 8 + ((this.miningTarget.y * 5 + crack * 6) % 14);
+      const startX = tileX + 8 + ((this.#miningTarget.x * 7 + crack * 5) % 15);
+      const startY = tileY + 8 + ((this.#miningTarget.y * 5 + crack * 6) % 14);
 
       this.effectLayer.lineBetween(startX, startY, startX + 5 + crack, startY + 2);
       this.effectLayer.lineBetween(startX + 3, startY + 1, startX + 1, startY + 7);
@@ -2046,7 +2064,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   private clearMiningTarget() {
-    this.miningTarget = undefined;
+    this.#miningTarget = undefined;
     this.effectLayer?.clear();
   }
 
@@ -3009,6 +3027,13 @@ export class MineScene extends Phaser.Scene {
   }
 
   private handleAdminCodeSubmit(code: string) {
+    if (!canUseAdminCoinGrant()) {
+      return {
+        ok: false,
+        message: "Código admin só funciona no ambiente local.",
+      };
+    }
+
     const normalizedCode = code.trim().toLowerCase();
     const coinGrant =
       normalizedCode === ADMIN_COIN_CODE

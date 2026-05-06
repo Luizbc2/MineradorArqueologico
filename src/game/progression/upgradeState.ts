@@ -4,6 +4,7 @@ import {
 } from "./upgradeCatalog";
 import type {
   UpgradeDefinition,
+  UpgradeEffectKind,
   UpgradeId,
 } from "./upgradeCatalog";
 
@@ -79,7 +80,7 @@ export function getUpgradeEffectValue(
 export function getUpgradeBonusSummary(
   state: UpgradeLevelState,
 ): UpgradeBonusSummary {
-  return upgradeIds.reduce<UpgradeBonusSummary>(
+  const summary = upgradeIds.reduce<UpgradeBonusSummary>(
     (summary, id) => {
       const upgrade = getUpgradeDefinition(id);
       const value = getUpgradeEffectValue(state, id);
@@ -115,6 +116,8 @@ export function getUpgradeBonusSummary(
       moveTempoBonus: 0,
     },
   );
+
+  return clampUpgradeBonusSummary(summary);
 }
 
 export function canBuyUpgrade(
@@ -183,4 +186,31 @@ export function normalizeUpgradeLevelState(
 
 function clampLevel(level: number, maxLevel: number) {
   return Math.min(maxLevel, Math.max(0, level));
+}
+
+function clampFinite(value: number, min: number, max: number) {
+  return Number.isFinite(value) ? Math.min(max, Math.max(min, value)) : min;
+}
+
+function clampUpgradeBonusSummary(summary: UpgradeBonusSummary): UpgradeBonusSummary {
+  return {
+    flatPower: clampFinite(summary.flatPower, 0, getMaximumUpgradeEffect("flatPower")),
+    speedMultiplier: clampFinite(summary.speedMultiplier, 0, getMaximumUpgradeEffect("speedMultiplier")),
+    backpackCapacity: clampFinite(summary.backpackCapacity, 0, getMaximumUpgradeEffect("backpackCapacity")),
+    saleMultiplier: clampFinite(summary.saleMultiplier, 0, getMaximumUpgradeEffect("saleMultiplier")),
+    chestCoinMultiplier: clampFinite(summary.chestCoinMultiplier, 0, getMaximumUpgradeEffect("chestCoinMultiplier")),
+    extraDropChance: clampFinite(summary.extraDropChance, 0, getMaximumUpgradeEffect("extraDropChance")),
+    comboWindowBonus: clampFinite(summary.comboWindowBonus, 0, getMaximumUpgradeEffect("comboWindowBonus")),
+    moveTempoBonus: clampFinite(summary.moveTempoBonus, 0, getMaximumUpgradeEffect("moveTempoBonus")),
+  };
+}
+
+function getMaximumUpgradeEffect(effectKind: UpgradeEffectKind) {
+  return upgradeIds.reduce((total, id) => {
+    const upgrade = getUpgradeDefinition(id);
+
+    return upgrade.effectKind === effectKind
+      ? total + upgrade.effectPerLevel * upgrade.maxLevel
+      : total;
+  }, 0);
 }

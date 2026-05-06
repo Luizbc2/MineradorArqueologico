@@ -12,6 +12,8 @@ export const pickaxeIds = [
   "galactic",
 ] as const;
 
+Object.freeze(pickaxeIds);
+
 export type PickaxeId = (typeof pickaxeIds)[number];
 
 export type PickaxeDefinition = {
@@ -125,6 +127,12 @@ export const pickaxeCatalog: Record<PickaxeId, PickaxeDefinition> = {
     unlockDepth: 560,
   },
 };
+
+for (const pickaxe of Object.values(pickaxeCatalog)) {
+  Object.freeze(pickaxe);
+}
+
+Object.freeze(pickaxeCatalog);
 
 export function getPickaxeDefinition(id: PickaxeId) {
   return pickaxeCatalog[id];

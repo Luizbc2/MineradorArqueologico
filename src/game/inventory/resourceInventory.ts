@@ -12,6 +12,8 @@ export const resourceKinds = [
   "galactic",
 ] as const;
 
+Object.freeze(resourceKinds);
+
 export type ResourceKind = (typeof resourceKinds)[number];
 export type ResourceInventory = Record<ResourceKind, number>;
 export type ResourceTier = "common" | "uncommon" | "rare" | "legendary" | "mythic";
@@ -91,6 +93,14 @@ const resourceMetaMap: Record<ResourceKind, ResourceMeta> = {
     accent: "#f5d4ff",
   },
 };
+
+Object.freeze(tileToResourceMap);
+
+for (const meta of Object.values(resourceMetaMap)) {
+  Object.freeze(meta);
+}
+
+Object.freeze(resourceMetaMap);
 
 export function createResourceInventory(): ResourceInventory {
   return {

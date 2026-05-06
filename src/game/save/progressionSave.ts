@@ -46,10 +46,11 @@ const LEGACY_SAVE_KEYS = [
   "minerador-arqueologico:progression:v5",
   "minerador-arqueologico:progression:v6",
   "minerador-arqueologico:progression:v7",
+  "minerador-arqueologico:progression:v8",
 ] as const;
-const SAVE_KEY = "minerador-arqueologico:progression:v8";
-const SAVE_VERSION = 8;
-const SAVE_CHECKSUM_SALT = "minerador-arqueologico-save-v8";
+const SAVE_KEY = "minerador-arqueologico:progression:v9";
+const SAVE_VERSION = 9;
+const SAVE_CHECKSUM_SALT = "minerador-arqueologico-save-v9";
 const MAX_SAVED_COINS = 100_000_000;
 const BASE_BACKPACK_CAPACITY = 24;
 const MAX_SAVED_DEPTH = WORLD_HEIGHT_TILES - SURFACE_ROW - 1;
@@ -208,6 +209,19 @@ export function sanitizeProgressionSave(data: ProgressionSaveData): ProgressionS
   return normalizeProgressionSave(data as ProgressionSavePayload);
 }
 
+export function canUseAdminCoinGrant() {
+  if (typeof location === "undefined") {
+    return false;
+  }
+
+  return (
+    location.hostname === "localhost" ||
+    location.hostname === "127.0.0.1" ||
+    location.hostname === "0.0.0.0" ||
+    location.hostname.endsWith(".local")
+  );
+}
+
 function unwrapSavePayload(
   parsed: ProgressionSavePayload | ProgressionSaveEnvelope,
 ): ProgressionSavePayload | null {
@@ -267,7 +281,9 @@ function normalizeProgressionSave(
   payload: ProgressionSavePayload,
 ): ProgressionSaveData {
   const maxDepthReached = normalizePositiveInteger(payload.maxDepthReached, MAX_SAVED_DEPTH);
-  const adminGrantCoins = normalizePositiveInteger(payload.adminGrantCoins, MAX_ADMIN_GRANT_COINS);
+  const adminGrantCoins = canUseAdminCoinGrant()
+    ? normalizePositiveInteger(payload.adminGrantCoins, MAX_ADMIN_GRANT_COINS)
+    : 0;
   const upgrades = normalizeUpgradeLevelState(payload.upgrades ?? {});
   const maxInventoryLoad = BASE_BACKPACK_CAPACITY + getUpgradeBonusSummary(upgrades).backpackCapacity;
   const auditedExpedition = auditExpeditionProgression(
