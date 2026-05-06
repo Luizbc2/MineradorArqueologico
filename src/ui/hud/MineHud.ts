@@ -197,9 +197,11 @@ export class MineHud {
 
       this.depthValue.textContent = `${snapshot.depth}m`;
       this.coinsValue.textContent = formatHudNumber(snapshot.coins);
+      setCompactValueState(this.coinsValue, snapshot.coins);
       this.pickaxeValue.textContent = `LV ${snapshot.pickaxeLevel}`;
       this.codexValue.textContent = `${snapshot.cardsFound}/${snapshot.cardsTotal}`;
       this.backpackValue.textContent = `${formatHudNumber(sale.totalCoins)} moedas`;
+      setCompactValueState(this.backpackValue, sale.totalCoins);
       const backpackFull = snapshot.backpackLoad >= snapshot.backpackCapacity;
       const backpackNearFull = !backpackFull && snapshot.backpackLoad / snapshot.backpackCapacity >= 0.8;
       this.backpackHint.textContent =
@@ -251,6 +253,7 @@ export class MineHud {
     const line = sale.lines.find((item) => item.resource === resource);
     this.resourceValues[resource].textContent = `x${quantity}`;
     this.resourceTotals[resource].textContent = `${formatHudNumber(line?.totalPrice ?? 0)} moedas`;
+    setCompactValueState(this.resourceTotals[resource], line?.totalPrice ?? 0);
   }
 }
 
@@ -273,7 +276,28 @@ function createHudStatChip(label: string, value: string, icon?: "pickaxe" | "cod
 }
 
 function formatHudNumber(value: number) {
-  return value.toLocaleString("pt-BR");
+  const rounded = Math.max(0, Math.floor(value));
+
+  if (rounded >= 1_000_000) {
+    return `${formatCompactDecimal(rounded / 1_000_000)} mi`;
+  }
+
+  if (rounded >= 100_000) {
+    return `${Math.floor(rounded / 1_000)} mil`;
+  }
+
+  return rounded.toLocaleString("pt-BR");
+}
+
+function formatCompactDecimal(value: number) {
+  return value.toLocaleString("pt-BR", {
+    maximumFractionDigits: value >= 10 ? 0 : 1,
+  });
+}
+
+function setCompactValueState(element: HTMLElement, value: number) {
+  element.classList.toggle("is-compact", value >= 100_000);
+  element.classList.toggle("is-dense", value >= 1_000_000);
 }
 
 function createHudButton(label: string, icon: "missions" | "backpack", tone: "accent" | "cool") {

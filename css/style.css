@@ -110,10 +110,22 @@ body { image-rendering: auto; }
 }
 
 .game-hud-chip__value {
+  max-width: 100%;
   font-size: 25px;
   line-height: 1;
   font-weight: 800;
   color: #fffaf0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+.game-hud-chip__value.is-compact {
+  font-size: 22px;
+}
+
+.game-hud-chip__value.is-dense {
+  font-size: 20px;
 }
 
 .game-hud-chip--small .game-hud-chip__label {
@@ -1189,6 +1201,15 @@ body { image-rendering: auto; }
   font-weight: 800;
   color: #fffaf0;
   text-align: right;
+  white-space: nowrap;
+}
+
+.game-hud-backpack-summary__value.is-compact {
+  font-size: 20px;
+}
+
+.game-hud-backpack-summary__value.is-dense {
+  font-size: 18px;
 }
 
 .game-hud-backpack-hint {
@@ -1294,6 +1315,15 @@ body { image-rendering: auto; }
   line-height: 1;
   font-weight: 800;
   color: #9edfe2;
+  white-space: nowrap;
+}
+
+.game-hud-resource__total.is-compact {
+  font-size: 9px;
+}
+
+.game-hud-resource__total.is-dense {
+  font-size: 8px;
 }
 
 .resource-coal .game-hud-resource__icon { color: #99a5b3; }
