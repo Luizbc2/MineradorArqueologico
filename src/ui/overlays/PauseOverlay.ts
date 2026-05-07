@@ -3,10 +3,6 @@ import { createHudElement, createHudScope } from "../hud/domHud";
 
 type PauseOverlaySnapshot = {
   audioMuted: boolean;
-  onAdminCodeSubmit: (code: string) => {
-    ok: boolean;
-    message: string;
-  };
   onAudioToggle: () => void;
   onResume: () => void;
 };
@@ -17,9 +13,6 @@ export class PauseOverlay {
   private readonly overlay: HTMLElement;
   private readonly resumeButton: HTMLButtonElement;
   private readonly audioButton: HTMLButtonElement;
-  private readonly adminCodeInput: HTMLInputElement;
-  private readonly adminCodeButton: HTMLButtonElement;
-  private readonly adminCodeStatus: HTMLDivElement;
 
   constructor(scene: Phaser.Scene) {
     this.container = scene.add.container(0, 0);
@@ -49,18 +42,6 @@ export class PauseOverlay {
     );
     controls.append(controlsList);
 
-    const adminSection = createHudElement("section", "game-modal-section game-modal-section--admin");
-    adminSection.append(createHudElement("div", "game-modal-section__title", "CONFIGURAÇÃO"));
-    const adminCodeRow = createHudElement("div", "game-modal-admin-code");
-    this.adminCodeInput = createHudElement("input", "game-modal-admin-code__input") as HTMLInputElement;
-    this.adminCodeInput.type = "password";
-    this.adminCodeInput.placeholder = "Código secreto";
-    this.adminCodeInput.autocomplete = "off";
-    this.adminCodeButton = createPauseButton("APLICAR", "secondary");
-    this.adminCodeStatus = createHudElement("div", "game-modal-admin-code__status") as HTMLDivElement;
-    adminCodeRow.append(this.adminCodeInput, this.adminCodeButton);
-    adminSection.append(adminCodeRow, this.adminCodeStatus);
-
     const roadmap = createHudElement(
       "div",
       "game-modal-note",
@@ -78,7 +59,7 @@ export class PauseOverlay {
       "Pressione ESC para voltar para a expedição",
     );
 
-    card.append(accent, title, subtitle, controls, adminSection, roadmap, actions, hint);
+    card.append(accent, title, subtitle, controls, roadmap, actions, hint);
     this.overlay.append(card);
     this.scope.append(this.overlay);
   }
@@ -91,37 +72,12 @@ export class PauseOverlay {
     this.setAudioMuted(snapshot.audioMuted);
     this.resumeButton.onclick = snapshot.onResume;
     this.audioButton.onclick = snapshot.onAudioToggle;
-    this.adminCodeButton.onclick = () => {
-      const result = snapshot.onAdminCodeSubmit(this.adminCodeInput.value);
-
-      this.adminCodeStatus.textContent = result.message;
-      this.adminCodeStatus.classList.toggle("is-ok", result.ok);
-      this.adminCodeStatus.classList.toggle("is-error", !result.ok);
-
-      if (result.ok) {
-        this.adminCodeInput.value = "";
-      }
-    };
-    this.adminCodeInput.onkeydown = (event) => {
-      event.stopPropagation();
-
-      if (event.key === "Enter") {
-        this.adminCodeButton.click();
-      }
-    };
-    this.adminCodeStatus.textContent = "";
-    this.adminCodeStatus.classList.remove("is-ok", "is-error");
     this.overlay.classList.add("is-open");
   }
 
   hide() {
     this.resumeButton.onclick = null;
     this.audioButton.onclick = null;
-    this.adminCodeButton.onclick = null;
-    this.adminCodeInput.onkeydown = null;
-    this.adminCodeInput.value = "";
-    this.adminCodeStatus.textContent = "";
-    this.adminCodeStatus.classList.remove("is-ok", "is-error");
     this.overlay.classList.remove("is-open");
   }
 

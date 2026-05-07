@@ -47,10 +47,11 @@ const LEGACY_SAVE_KEYS = [
   "minerador-arqueologico:progression:v6",
   "minerador-arqueologico:progression:v7",
   "minerador-arqueologico:progression:v8",
+  "minerador-arqueologico:progression:v9",
 ] as const;
-const SAVE_KEY = "minerador-arqueologico:progression:v9";
-const SAVE_VERSION = 9;
-const SAVE_CHECKSUM_SALT = "minerador-arqueologico-save-v9";
+const SAVE_KEY = "minerador-arqueologico:progression:v10";
+const SAVE_VERSION = 10;
+const SAVE_CHECKSUM_SALT = "minerador-arqueologico-save-v10";
 const MAX_SAVED_COINS = 100_000_000;
 const BASE_BACKPACK_CAPACITY = 24;
 const MAX_SAVED_DEPTH = WORLD_HEIGHT_TILES - SURFACE_ROW - 1;
@@ -63,7 +64,6 @@ const MIN_DEPTH_SAVE_INTERVAL_MS = 75;
 const MIN_INVENTORY_SAVE_INTERVAL_MS = 120;
 const MIN_COIN_SAVE_INTERVAL_MS = 280;
 const MIN_PURCHASE_SAVE_INTERVAL_MS = 480;
-const MAX_ADMIN_GRANT_COINS = 100_000_000;
 const RESOURCE_MIN_DEPTH: Partial<Record<keyof ResourceInventory, number>> = {
   fossil: 300,
   prismatic: 360,
@@ -91,7 +91,6 @@ const RESOURCE_AUDIT_CAPS: Record<keyof ResourceInventory, { base: number; perDe
 
 export type ProgressionSaveData = {
   coins: number;
-  adminGrantCoins: number;
   maxDepthReached: number;
   inventory: ResourceInventory;
   pickaxes: PickaxeOwnershipState;
@@ -103,7 +102,6 @@ export type ProgressionSaveData = {
 
 type ProgressionSavePayload = Partial<{
   coins: unknown;
-  adminGrantCoins: unknown;
   maxDepthReached: unknown;
   inventory: Partial<Record<keyof ResourceInventory, unknown>>;
   pickaxes: Partial<PickaxeOwnershipState>;
@@ -122,7 +120,6 @@ type ProgressionSaveEnvelope = {
 export function createDefaultProgressionSave(): ProgressionSaveData {
   return {
     coins: 0,
-    adminGrantCoins: 0,
     maxDepthReached: 0,
     inventory: createResourceInventory(),
     pickaxes: createPickaxeOwnershipState(),
@@ -194,32 +191,8 @@ export function saveProgression(data: ProgressionSaveData) {
   localStorage.setItem(SAVE_KEY, JSON.stringify(wrapSavePayload(normalized)));
 }
 
-export function saveProgressionAdminGrant(data: ProgressionSaveData) {
-  if (typeof localStorage === "undefined") {
-    return;
-  }
-
-  const normalized = sanitizeProgressionSave(data);
-  sessionSaveState = normalized;
-  resetSessionTransitionClock();
-  localStorage.setItem(SAVE_KEY, JSON.stringify(wrapSavePayload(normalized)));
-}
-
 export function sanitizeProgressionSave(data: ProgressionSaveData): ProgressionSaveData {
   return normalizeProgressionSave(data as ProgressionSavePayload);
-}
-
-export function canUseAdminCoinGrant() {
-  if (typeof location === "undefined") {
-    return false;
-  }
-
-  return (
-    location.hostname === "localhost" ||
-    location.hostname === "127.0.0.1" ||
-    location.hostname === "0.0.0.0" ||
-    location.hostname.endsWith(".local")
-  );
 }
 
 function unwrapSavePayload(
@@ -281,9 +254,6 @@ function normalizeProgressionSave(
   payload: ProgressionSavePayload,
 ): ProgressionSaveData {
   const maxDepthReached = normalizePositiveInteger(payload.maxDepthReached, MAX_SAVED_DEPTH);
-  const adminGrantCoins = canUseAdminCoinGrant()
-    ? normalizePositiveInteger(payload.adminGrantCoins, MAX_ADMIN_GRANT_COINS)
-    : 0;
   const upgrades = normalizeUpgradeLevelState(payload.upgrades ?? {});
   const maxInventoryLoad = BASE_BACKPACK_CAPACITY + getUpgradeBonusSummary(upgrades).backpackCapacity;
   const auditedExpedition = auditExpeditionProgression(
@@ -291,7 +261,7 @@ function normalizeProgressionSave(
     maxDepthReached,
   );
   const auditedBudget = getAuditedEarnedBudget(auditedExpedition, maxDepthReached);
-  const availableBudget = Math.min(MAX_SAVED_COINS, auditedBudget + adminGrantCoins);
+  const availableBudget = Math.min(MAX_SAVED_COINS, auditedBudget);
   const auditedProgression = auditPurchasedProgression({
     pickaxes: normalizePickaxeOwnershipState(payload.pickaxes ?? {}, maxDepthReached),
     upgrades,
@@ -307,7 +277,6 @@ function normalizeProgressionSave(
 
   return {
     coins: Math.min(normalizePositiveInteger(payload.coins, MAX_SAVED_COINS), remainingBudget),
-    adminGrantCoins,
     maxDepthReached,
     inventory: normalizeInventory(payload.inventory, maxDepthReached, maxInventoryLoad),
     pickaxes: auditedProgression.pickaxes,
