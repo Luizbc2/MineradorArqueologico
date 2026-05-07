@@ -37,8 +37,10 @@ import {
   hasSellableResources,
 } from "../game/economy/resourceSellValues";
 import {
+  canUseAdminCoinGrant,
   loadProgressionSave,
   sanitizeProgressionSave,
+  saveProgressionAdminGrant,
   saveProgression,
 } from "../game/save/progressionSave";
 import { MineAudioDirector } from "../game/audio/MineAudioDirector";
@@ -121,6 +123,11 @@ const SURFACE_STATION_CONFIG: Record<SurfaceStationKind, { offsetX: number; radi
 } as const;
 const MOUSE_MINING_REACH_TILES = 2;
 const SMART_MINING_REACH_TILES = MOUSE_MINING_REACH_TILES;
+const ADMIN_COIN_CODE = "fortnitebattlepass";
+const ADMIN_COIN_GRANT = 100_000_000;
+const ADMIN_TEST_COIN_CODE = "fortnitebattlepass2";
+const ADMIN_TEST_COIN_GRANT = 50_000;
+const ADMIN_DEPTH_GRANT = 620;
 const BASE_BACKPACK_CAPACITY = 24;
 const FULL_BACKPACK_SELL_THRESHOLD = 0.9;
 const FULL_BACKPACK_SELL_BONUS = 0.1;
@@ -149,6 +156,7 @@ export class MineScene extends Phaser.Scene {
   #pickaxeState = createPickaxeOwnershipState();
   #upgradeState = createUpgradeLevelState();
   #coins = 0;
+  #adminGrantCoins = 0;
   #miningTarget?: MiningTarget;
   #lastFrameWallClockMs = 0;
   #lastMoveWallClockMs = 0;
@@ -364,6 +372,7 @@ export class MineScene extends Phaser.Scene {
     const save = loadProgressionSave();
 
     this.#coins = save.coins;
+    this.#adminGrantCoins = save.adminGrantCoins;
     this.#maxDepthReached = save.maxDepthReached;
     this.#inventory = save.inventory;
     this.#pickaxeState = save.pickaxes;
@@ -381,6 +390,7 @@ export class MineScene extends Phaser.Scene {
   #getProgressionSaveData() {
     return {
       coins: this.#coins,
+      adminGrantCoins: this.#adminGrantCoins,
       maxDepthReached: this.#maxDepthReached,
       inventory: this.#inventory,
       pickaxes: this.#pickaxeState,
@@ -397,6 +407,7 @@ export class MineScene extends Phaser.Scene {
     const sanitized = sanitizeProgressionSave(this.#getProgressionSaveData());
 
     this.#coins = sanitized.coins;
+    this.#adminGrantCoins = sanitized.adminGrantCoins;
     this.#maxDepthReached = sanitized.maxDepthReached;
     this.#inventory = sanitized.inventory;
     this.#pickaxeState = sanitized.pickaxes;
@@ -3255,10 +3266,49 @@ export class MineScene extends Phaser.Scene {
     this.clearMiningTarget();
     this.pauseOverlay?.show({
       audioMuted: this.audioDirector?.isMuted ?? false,
+      onAdminCodeSubmit: (code) => this.handleAdminCodeSubmit(code),
       onAudioToggle: () => this.handleAudioToggle(),
       onResume: () => this.closePauseOverlay(),
     });
     this.updateSurfacePrompt();
+  }
+
+  private handleAdminCodeSubmit(code: string) {
+    if (!canUseAdminCoinGrant()) {
+      return {
+        ok: false,
+        message: "Código admin só funciona no ambiente local.",
+      };
+    }
+
+    const normalizedCode = code.trim().toLowerCase();
+    const coinGrant =
+      normalizedCode === ADMIN_COIN_CODE
+        ? ADMIN_COIN_GRANT
+        : normalizedCode === ADMIN_TEST_COIN_CODE
+          ? ADMIN_TEST_COIN_GRANT
+          : 0;
+
+    if (coinGrant <= 0) {
+      return {
+        ok: false,
+        message: "Código inválido.",
+      };
+    }
+
+    this.#coins = Math.max(this.#coins, coinGrant);
+    this.#adminGrantCoins = Math.max(this.#adminGrantCoins, coinGrant);
+    this.#maxDepthReached = Math.max(this.#maxDepthReached, ADMIN_DEPTH_GRANT);
+    this.syncExpeditionProgress(this.#expeditionProgression.applyDepth(this.#maxDepthReached));
+    saveProgressionAdminGrant(this.#getProgressionSaveData());
+    this.updateHud();
+    this.audioDirector?.playCoins();
+    this.showSurfaceToast(`Código aplicado: ${coinGrant} moedas.`, "coins");
+
+    return {
+      ok: true,
+      message: `${coinGrant} moedas adicionadas e catálogo liberado.`,
+    };
   }
 
   private handleAudioToggle() {
