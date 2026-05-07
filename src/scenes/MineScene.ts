@@ -164,6 +164,9 @@ export class MineScene extends Phaser.Scene {
   #lastMiningWallClockMs = 0;
   #speedHackToastWallClockMs = 0;
   #speedHackToastGraceUntilMs = 0;
+  #antiCheatClockWorker?: Worker;
+  #antiCheatWorkerClockMs = 0;
+  #antiCheatWorkerStartedAtMs = 0;
   #antiCheatBanned = false;
   #antiCheatWarningOpen = false;
   private energy = 100;
@@ -278,6 +281,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   create() {
+    this.#startAntiCheatClockWorker();
     this.#speedHackToastGraceUntilMs = this.#getWallClockMs() + SPEED_HACK_TOAST_GRACE_MS;
     this.#antiCheatBanned = this.#loadAntiCheatState().banned;
     this.loadSavedProgression();
@@ -350,6 +354,7 @@ export class MineScene extends Phaser.Scene {
       this.surfacePromptScope?.remove();
       this.surfaceToastScope?.remove();
       this.antiCheatScope?.remove();
+      this.#stopAntiCheatClockWorker();
       if (this.surfaceToastTimer) {
         window.clearTimeout(this.surfaceToastTimer);
       }
@@ -670,6 +675,46 @@ export class MineScene extends Phaser.Scene {
     this.#lastMiningWallClockMs = 0;
   }
 
+  #startAntiCheatClockWorker() {
+    if (typeof Worker === "undefined" || typeof Blob === "undefined" || typeof URL === "undefined") {
+      return;
+    }
+
+    try {
+      const source = `
+        let elapsed = 0;
+        setInterval(() => {
+          elapsed += 25;
+          postMessage(elapsed);
+        }, 25);
+      `;
+      const url = URL.createObjectURL(new Blob([source], { type: "text/javascript" }));
+      const worker = new Worker(url);
+      URL.revokeObjectURL(url);
+      this.#antiCheatWorkerStartedAtMs = Date.now();
+      worker.onmessage = (event: MessageEvent<number>) => {
+        const elapsed = Number(event.data);
+
+        if (Number.isFinite(elapsed) && elapsed > this.#antiCheatWorkerClockMs) {
+          this.#antiCheatWorkerClockMs = elapsed;
+        }
+      };
+      worker.onerror = () => {
+        this.#stopAntiCheatClockWorker();
+      };
+      this.#antiCheatClockWorker = worker;
+    } catch {
+      this.#antiCheatClockWorker = undefined;
+      this.#antiCheatWorkerClockMs = 0;
+    }
+  }
+
+  #stopAntiCheatClockWorker() {
+    this.#antiCheatClockWorker?.terminate();
+    this.#antiCheatClockWorker = undefined;
+    this.#antiCheatWorkerClockMs = 0;
+  }
+
   #showSpeedHackBlockedToast(now = this.#getWallClockMs()) {
     if (
       now < this.#speedHackToastGraceUntilMs ||
@@ -683,7 +728,11 @@ export class MineScene extends Phaser.Scene {
   }
 
   #getWallClockMs() {
-    const now = Date.now();
+    if (this.#antiCheatWorkerClockMs > 0) {
+      return this.#antiCheatWorkerClockMs;
+    }
+
+    const now = Date.now() - this.#antiCheatWorkerStartedAtMs;
     return Number.isFinite(now) ? now : 0;
   }
 
