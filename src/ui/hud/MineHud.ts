@@ -269,6 +269,9 @@ export class MineHud {
     sale: ReturnType<typeof getInventorySaleSummary>,
   ) {
     const line = sale.lines.find((item) => item.resource === resource);
+    const slot = this.resourceValues[resource].closest(".game-hud-resource");
+
+    slot?.classList.toggle("has-value", quantity > 0);
     this.resourceValues[resource].textContent = `x${quantity}`;
     this.resourceTotals[resource].textContent = `${formatHudNumber(line?.totalPrice ?? 0)} moedas`;
     setCompactValueState(this.resourceTotals[resource], line?.totalPrice ?? 0);
