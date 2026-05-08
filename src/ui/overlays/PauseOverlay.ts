@@ -45,6 +45,8 @@ export class PauseOverlay {
       createPauseShortcut("ESC", "Pausa ou retoma a expedição"),
       createPauseShortcut("E", "Interage com baú ou registro"),
       createPauseShortcut("U", "Abre a forja na superfície"),
+      createPauseShortcut("B", "Abre ou fecha a mochila"),
+      createPauseShortcut("V", "Vende a mochila perto do vendedor"),
       createPauseShortcut("R", "Retorna para a base segura"),
     );
     controls.append(controlsList);
