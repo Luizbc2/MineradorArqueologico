@@ -38,7 +38,7 @@ export const upgradeCatalog: Record<UpgradeId, UpgradeDefinition> = {
   power: {
     id: "power",
     name: "Mais Força",
-    description: "Aumenta a força da picareta para quebrar blocos mais duros.",
+    description: "Ajuda a quebrar blocos mais duros nas camadas profundas.",
     baseCost: 120,
     growth: 1.45,
     effectKind: "flatPower",
@@ -48,7 +48,7 @@ export const upgradeCatalog: Record<UpgradeId, UpgradeDefinition> = {
   speed: {
     id: "speed",
     name: "Mais Velocidade",
-    description: "Aumenta a velocidade de mineração da picareta.",
+    description: "Reduz o tempo para terminar cada bloco.",
     baseCost: 160,
     growth: 1.5,
     effectKind: "speedMultiplier",
@@ -58,7 +58,7 @@ export const upgradeCatalog: Record<UpgradeId, UpgradeDefinition> = {
   backpack: {
     id: "backpack",
     name: "Mochila Maior",
-    description: "Aumenta a quantidade de minérios que você pode carregar.",
+    description: "Aumenta o espaço para carregar minérios.",
     baseCost: 90,
     growth: 1.32,
     effectKind: "backpackCapacity",
@@ -68,7 +68,7 @@ export const upgradeCatalog: Record<UpgradeId, UpgradeDefinition> = {
   saleValue: {
     id: "saleValue",
     name: "Venda Melhor",
-    description: "Aumenta o valor recebido ao vender minérios.",
+    description: "Faz cada venda render mais moedas.",
     baseCost: 180,
     growth: 1.48,
     effectKind: "saleMultiplier",
@@ -78,7 +78,7 @@ export const upgradeCatalog: Record<UpgradeId, UpgradeDefinition> = {
   chestValue: {
     id: "chestValue",
     name: "Baús Melhores",
-    description: "Aumenta as moedas encontradas em baús arqueológicos.",
+    description: "Aumenta as moedas encontradas nos baús.",
     baseCost: 220,
     growth: 1.5,
     effectKind: "chestCoinMultiplier",
@@ -88,7 +88,7 @@ export const upgradeCatalog: Record<UpgradeId, UpgradeDefinition> = {
   yieldChance: {
     id: "yieldChance",
     name: "Mais Rendimento",
-    description: "Dá chance de receber um minério extra ao minerar.",
+    description: "Dá chance de ganhar um minério extra.",
     baseCost: 260,
     growth: 1.52,
     effectKind: "extraDropChance",
@@ -98,7 +98,7 @@ export const upgradeCatalog: Record<UpgradeId, UpgradeDefinition> = {
   comboFocus: {
     id: "comboFocus",
     name: "Combo Maior",
-    description: "Aumenta o tempo para manter o combo ativo.",
+    description: "Mantém o combo ativo por mais tempo.",
     baseCost: 210,
     growth: 1.46,
     effectKind: "comboWindowBonus",
@@ -108,7 +108,7 @@ export const upgradeCatalog: Record<UpgradeId, UpgradeDefinition> = {
   stepSpeed: {
     id: "stepSpeed",
     name: "Velocidade de Passo",
-    description: "Aumenta a velocidade para andar pela mina.",
+    description: "Deixa o movimento pela mina mais rápido.",
     baseCost: 240,
     growth: 1.5,
     effectKind: "moveTempoBonus",
