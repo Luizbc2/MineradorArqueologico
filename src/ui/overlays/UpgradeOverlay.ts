@@ -59,6 +59,7 @@ export class UpgradeOverlay {
   private readonly upgradesPanel: HTMLDivElement;
   private readonly upgradesBody: HTMLDivElement;
   private readonly closeButton: HTMLButtonElement;
+  private readonly handleKeyDown: (event: KeyboardEvent) => void;
   private activeTab: WorkshopTab = "pickaxes";
   private pageIndex = 0;
   private snapshot?: OverlaySnapshot;
@@ -133,6 +134,22 @@ export class UpgradeOverlay {
     this.upgradesTab.onclick = () => this.setActiveTab("upgrades");
     this.previousButton.onclick = () => this.changePage(-1);
     this.nextButton.onclick = () => this.changePage(1);
+    this.handleKeyDown = (event) => {
+      if (!this.isVisible) {
+        return;
+      }
+
+      if (event.key === "ArrowLeft" && this.activeTab === "pickaxes") {
+        event.preventDefault();
+        this.changePage(-1);
+      } else if (event.key === "ArrowRight" && this.activeTab === "pickaxes") {
+        event.preventDefault();
+        this.changePage(1);
+      } else if (event.key === "Tab") {
+        event.preventDefault();
+        this.setActiveTab(this.activeTab === "pickaxes" ? "upgrades" : "pickaxes");
+      }
+    };
     this.renderTabs();
   }
 
@@ -145,11 +162,13 @@ export class UpgradeOverlay {
     this.pageIndex = Phaser.Math.Clamp(this.pageIndex, 0, this.getLastPage(snapshot));
     this.renderSnapshot(snapshot);
     this.closeButton.onclick = snapshot.onClose;
+    window.addEventListener("keydown", this.handleKeyDown);
     this.overlay.classList.add("is-open");
   }
 
   hide() {
     this.closeButton.onclick = null;
+    window.removeEventListener("keydown", this.handleKeyDown);
     this.overlay.classList.remove("is-open");
   }
 
