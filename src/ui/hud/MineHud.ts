@@ -56,6 +56,7 @@ export class MineHud {
   private readonly backpackFill: HTMLDivElement;
   private readonly resourceValues: Record<ResourceKind, HTMLDivElement>;
   private readonly resourceTotals: Record<ResourceKind, HTMLDivElement>;
+  private readonly handleKeyDown: (event: KeyboardEvent) => void;
 
   private isBackpackOpen = false;
   private lastInfoKey = "";
@@ -112,6 +113,22 @@ export class MineHud {
       event.stopPropagation();
       this.setBackpackOpen(!this.isBackpackOpen);
     });
+    this.handleKeyDown = (event) => {
+      const target = event.target;
+
+      if (
+        event.key.toLowerCase() !== "b" ||
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      this.setBackpackOpen(!this.isBackpackOpen);
+    };
+    window.addEventListener("keydown", this.handleKeyDown);
 
     this.backpackPanel = createHudPanel("MOCHILA", "up", "cool");
     this.backpackPanel.classList.add("game-hud-panel--backpack");
@@ -235,6 +252,7 @@ export class MineHud {
   }
 
   destroy() {
+    window.removeEventListener("keydown", this.handleKeyDown);
     this.scope.remove();
     this.container.destroy();
   }
