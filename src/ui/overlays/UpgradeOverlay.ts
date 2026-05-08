@@ -412,7 +412,7 @@ function getActionLabel(line: PickaxeShopLine, coins: number) {
   }
 
   if (line.locked) {
-    return `LIBERA ${line.pickaxe.unlockDepth}m`;
+    return `FALTAM ${formatNumber(line.pickaxe.unlockDepth - snapshot.maxDepthReached)}m`;
   }
 
   return line.canBuy ? "COMPRAR" : `FALTAM ${formatNumber(line.pickaxe.cost - coins)} MOEDAS`;
