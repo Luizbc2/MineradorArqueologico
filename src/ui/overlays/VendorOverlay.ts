@@ -24,6 +24,7 @@ export class VendorOverlay {
   private readonly totalValue: HTMLDivElement;
   private readonly sellButton: HTMLButtonElement;
   private readonly closeButton: HTMLButtonElement;
+  private readonly handleKeyDown: (event: KeyboardEvent) => void;
 
   constructor(scene: Phaser.Scene) {
     this.container = scene.add.container(0, 0);
@@ -81,6 +82,15 @@ export class VendorOverlay {
     card.append(accent, title, subtitle, wallet, inventorySection, totalSection, note, actions, hint);
     this.overlay.append(card);
     this.scope.append(this.overlay);
+
+    this.handleKeyDown = (event) => {
+      if (!this.isVisible || event.key !== "Enter" || this.sellButton.disabled) {
+        return;
+      }
+
+      event.preventDefault();
+      this.sellButton.click();
+    };
   }
 
   getRoot() {
@@ -91,12 +101,14 @@ export class VendorOverlay {
     this.renderSnapshot(snapshot);
     this.sellButton.onclick = snapshot.onSellAll;
     this.closeButton.onclick = snapshot.onClose;
+    window.addEventListener("keydown", this.handleKeyDown);
     this.overlay.classList.add("is-open");
   }
 
   hide() {
     this.sellButton.onclick = null;
     this.closeButton.onclick = null;
+    window.removeEventListener("keydown", this.handleKeyDown);
     this.overlay.classList.remove("is-open");
   }
 
