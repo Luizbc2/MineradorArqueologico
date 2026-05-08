@@ -452,7 +452,17 @@ function getPickaxeImageClass(id: PickaxeId) {
 }
 
 function formatNumber(value: number) {
-  return value.toLocaleString("pt-BR");
+  const rounded = Math.max(0, Math.floor(value));
+
+  if (rounded >= 1_000_000) {
+    return `${formatCompactDecimal(rounded / 1_000_000)}m`;
+  }
+
+  if (rounded >= 10_000) {
+    return `${formatCompactDecimal(rounded / 1_000)}k`;
+  }
+
+  return rounded.toLocaleString("pt-BR");
 }
 
 function formatSpeedMultiplier(value: number) {
@@ -461,4 +471,10 @@ function formatSpeedMultiplier(value: number) {
 
 function formatCompactCardNumber(value: number) {
   return value.toLocaleString("pt-BR", { useGrouping: false });
+}
+
+function formatCompactDecimal(value: number) {
+  return value.toLocaleString("pt-BR", {
+    maximumFractionDigits: value >= 10 ? 0 : 1,
+  });
 }
