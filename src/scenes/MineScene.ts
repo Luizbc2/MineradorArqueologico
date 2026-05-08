@@ -3685,7 +3685,7 @@ export class MineScene extends Phaser.Scene {
       const sale = this.getInventorySaleSummary();
       this.surfacePromptLabel.textContent =
         sale.totalCoins > 0
-          ? `E ABRIR • V VENDER • ${sale.totalCoins} MOEDAS`
+          ? `E ABRIR • V VENDER • ${this.formatPromptNumber(sale.totalCoins)} MOEDAS`
           : "ABRIR VENDA";
       this.surfacePrompt.dataset.station = "vendor";
     } else {
@@ -3694,6 +3694,10 @@ export class MineScene extends Phaser.Scene {
     }
 
     this.surfacePrompt.classList.add("is-visible");
+  }
+
+  private formatPromptNumber(value: number) {
+    return Math.max(0, Math.floor(value)).toLocaleString("pt-BR");
   }
 
   private getNearbySurfaceStation(): SurfaceStationKind | null {
