@@ -298,6 +298,9 @@ function createArrowButton(label: string) {
   const button = createHudElement("button", "game-modal-workshop-arrow") as HTMLButtonElement;
   button.type = "button";
   button.textContent = label;
+  const actionLabel = label === "<" ? "Página anterior" : "Próxima página";
+  button.title = actionLabel;
+  button.setAttribute("aria-label", actionLabel);
   return button;
 }
 
@@ -305,6 +308,7 @@ function createWorkshopTabButton(label: string) {
   const button = createHudElement("button", "game-modal-workshop-tab") as HTMLButtonElement;
   button.type = "button";
   button.textContent = label;
+  button.setAttribute("aria-label", `Abrir aba ${label.toLowerCase()}`);
   return button;
 }
 
@@ -315,6 +319,7 @@ function createWorkshopButton(label: string, tone: "primary" | "secondary") {
   ) as HTMLButtonElement;
   button.type = "button";
   button.textContent = label;
+  button.title = label;
   return button;
 }
 
