@@ -130,6 +130,10 @@ export class VendorOverlay {
         ? `${formatCoins(itemCount)} ${itemCount === 1 ? "item" : "itens"} no lote · média ${formatCoins(averageValue)}${bonusLabel}`
         : "0 itens no lote";
     this.sellButton.disabled = snapshot.sale.totalCoins <= 0;
+    this.sellButton.textContent = snapshot.sale.totalCoins > 0 ? "VENDER TUDO" : "MOCHILA VAZIA";
+    this.sellButton.title = snapshot.sale.totalCoins > 0
+      ? "Vender todos os minérios da mochila"
+      : "A mochila não tem minérios para vender";
     this.inventoryBody.replaceChildren();
 
     if (snapshot.sale.lines.length === 0) {
