@@ -3703,7 +3703,23 @@ export class MineScene extends Phaser.Scene {
   }
 
   private formatPromptNumber(value: number) {
-    return Math.max(0, Math.floor(value)).toLocaleString("pt-BR");
+    const rounded = Math.max(0, Math.floor(value));
+
+    if (rounded >= 1_000_000) {
+      return `${this.formatPromptCompactDecimal(rounded / 1_000_000)}m`;
+    }
+
+    if (rounded >= 10_000) {
+      return `${this.formatPromptCompactDecimal(rounded / 1_000)}k`;
+    }
+
+    return rounded.toLocaleString("pt-BR");
+  }
+
+  private formatPromptCompactDecimal(value: number) {
+    return value.toLocaleString("pt-BR", {
+      maximumFractionDigits: value >= 10 ? 0 : 1,
+    });
   }
 
   private getNearbySurfaceStation(): SurfaceStationKind | null {
