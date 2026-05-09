@@ -2285,7 +2285,8 @@ export class MineScene extends Phaser.Scene {
       1,
     );
     const pulse = 0.52 + Math.sin(this.time.now / 60) * 0.16;
-    const material = tilePalette[this.#worldGrid[this.#miningTarget.y]?.[this.#miningTarget.x]?.kind ?? "stone"];
+    const trustedKind = this.#getTrustedTileKind(this.#miningTarget.x, this.#miningTarget.y);
+    const material = tilePalette[trustedKind];
 
     this.effectLayer.lineStyle(2, material.detail, pulse + completion * 0.18);
     this.effectLayer.strokeRect(tileX + 2, tileY + 2, TILE_SIZE - 4, TILE_SIZE - 4);
