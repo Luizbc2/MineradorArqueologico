@@ -107,6 +107,8 @@ export class MineHud {
     rail.append(codexChip.root, comboChip.root);
 
     this.backpackButton = createHudButton("MOCHILA", "backpack", "cool");
+    this.backpackButton.title = "Abrir mochila (B)";
+    this.backpackButton.setAttribute("aria-label", "Abrir mochila");
     setHudRect(this.backpackButton, layout.backpackButton);
     this.backpackButton.addEventListener("click", (event) => {
       event.preventDefault();
@@ -135,6 +137,8 @@ export class MineHud {
     setHudRect(this.backpackPanel, layout.backpackPanel);
 
     const backpackClose = createHudIconButton("close");
+    backpackClose.title = "Fechar mochila";
+    backpackClose.setAttribute("aria-label", "Fechar mochila");
     backpackClose.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
