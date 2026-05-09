@@ -274,11 +274,14 @@ export class MineHud {
   ) {
     const line = sale.lines.find((item) => item.resource === resource);
     const slot = this.resourceValues[resource].closest(".game-hud-resource");
+    const label = getResourceLabel(resource);
+    const totalPrice = line?.totalPrice ?? 0;
 
     slot?.classList.toggle("has-value", quantity > 0);
+    slot?.setAttribute("title", `${label}: ${quantity} · ${formatHudNumber(totalPrice)} moedas`);
     this.resourceValues[resource].textContent = `x${quantity}`;
-    this.resourceTotals[resource].textContent = `${formatHudNumber(line?.totalPrice ?? 0)} moedas`;
-    setCompactValueState(this.resourceTotals[resource], line?.totalPrice ?? 0);
+    this.resourceTotals[resource].textContent = `${formatHudNumber(totalPrice)} moedas`;
+    setCompactValueState(this.resourceTotals[resource], totalPrice);
   }
 }
 
@@ -360,6 +363,7 @@ function createHudResourceSlot(label: string, toneClass: string) {
 
   meta.append(labelEl, valueEl, totalEl);
   root.append(icon, meta);
+  root.setAttribute("title", `${label}: 0 · 0 moedas`);
 
   return { root, value: valueEl, total: totalEl };
 }
