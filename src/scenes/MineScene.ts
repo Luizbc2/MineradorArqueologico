@@ -2155,12 +2155,17 @@ export class MineScene extends Phaser.Scene {
       }
 
       const tile = this.#worldGrid[y]?.[x];
+      const trustedKind = this.#getTrustedTileKind(x, y);
 
-      if (!tile || this.isPassable(tile.kind)) {
+      if (!tile || this.isPassable(trustedKind)) {
         continue;
       }
 
-      return this.isMineable(tile.kind) ? { x, y } : null;
+      if (tile.kind !== trustedKind) {
+        this.#setWorldTileKind(x, y, trustedKind);
+      }
+
+      return this.isMineable(trustedKind) ? { x, y } : null;
     }
 
     return null;
