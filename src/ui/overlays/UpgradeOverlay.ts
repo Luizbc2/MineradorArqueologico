@@ -145,6 +145,14 @@ export class UpgradeOverlay {
       } else if (event.key === "ArrowRight" && this.activeTab === "pickaxes") {
         event.preventDefault();
         this.changePage(1);
+      } else if (event.key === "Home" && this.activeTab === "pickaxes") {
+        event.preventDefault();
+        this.goToPage(0);
+      } else if (event.key === "End" && this.activeTab === "pickaxes") {
+        event.preventDefault();
+        if (this.snapshot) {
+          this.goToPage(this.getLastPage(this.snapshot));
+        }
       } else if (event.key === "Tab") {
         event.preventDefault();
         this.setActiveTab(this.activeTab === "pickaxes" ? "upgrades" : "pickaxes");
@@ -181,11 +189,15 @@ export class UpgradeOverlay {
       return;
     }
 
-    this.pageIndex = Phaser.Math.Clamp(
-      this.pageIndex + direction,
-      0,
-      this.getLastPage(this.snapshot),
-    );
+    this.goToPage(this.pageIndex + direction);
+  }
+
+  private goToPage(pageIndex: number) {
+    if (!this.snapshot) {
+      return;
+    }
+
+    this.pageIndex = Phaser.Math.Clamp(pageIndex, 0, this.getLastPage(this.snapshot));
     this.renderSnapshot(this.snapshot);
   }
 
