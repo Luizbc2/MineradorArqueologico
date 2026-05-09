@@ -52,11 +52,12 @@ export class PauseOverlay {
     controls.append(controlsList);
 
     const adminSection = createHudElement("section", "game-modal-section game-modal-section--admin");
-    adminSection.append(createHudElement("div", "game-modal-section__title", "CONFIGURAÇÃO"));
+    adminSection.append(createHudElement("div", "game-modal-section__title", "TESTE LOCAL"));
     const adminCodeRow = createHudElement("div", "game-modal-admin-code");
     this.adminCodeInput = createHudElement("input", "game-modal-admin-code__input") as HTMLInputElement;
     this.adminCodeInput.type = "password";
-    this.adminCodeInput.placeholder = "Código secreto";
+    this.adminCodeInput.placeholder = "Código local";
+    this.adminCodeInput.setAttribute("aria-label", "Código local de teste");
     this.adminCodeInput.autocomplete = "off";
     this.adminCodeButton = createPauseButton("APLICAR", "secondary");
     this.adminCodeStatus = createHudElement("div", "game-modal-admin-code__status") as HTMLDivElement;
