@@ -3309,11 +3309,11 @@ export class MineScene extends Phaser.Scene {
     saveProgressionAdminGrant(this.#getProgressionSaveData());
     this.updateHud();
     this.audioDirector?.playCoins();
-    this.showSurfaceToast(`Código aplicado: ${coinGrant} moedas.`, "coins");
+    this.showSurfaceToast(`Código aplicado: ${this.formatPromptNumber(coinGrant)} moedas.`, "coins");
 
     return {
       ok: true,
-      message: `${coinGrant} moedas adicionadas e catálogo liberado.`,
+      message: `${this.formatPromptNumber(coinGrant)} moedas adicionadas e catálogo liberado.`,
     };
   }
 
