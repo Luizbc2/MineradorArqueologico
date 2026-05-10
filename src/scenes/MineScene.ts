@@ -3694,9 +3694,13 @@ export class MineScene extends Phaser.Scene {
           ? `E ABRIR • V VENDER • ${this.formatPromptNumber(sale.totalCoins)} MOEDAS`
           : "ABRIR VENDA";
       this.surfacePrompt.dataset.station = "vendor";
+      this.surfacePrompt.title = sale.totalCoins > 0
+        ? "E abre o posto de venda. V vende a mochila direto."
+        : "E abre o posto de venda.";
     } else {
       this.surfacePromptLabel.textContent = "ABRIR OFICINA";
       this.surfacePrompt.dataset.station = "workshop";
+      this.surfacePrompt.title = "E abre a oficina de picaretas e upgrades.";
     }
 
     this.surfacePrompt.classList.add("is-visible");
