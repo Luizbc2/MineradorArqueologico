@@ -152,5 +152,7 @@ function createPauseButton(label: string, tone: "primary" | "secondary") {
   ) as HTMLButtonElement;
   button.type = "button";
   button.textContent = label;
+  button.title = label;
+  button.setAttribute("aria-label", label);
   return button;
 }
