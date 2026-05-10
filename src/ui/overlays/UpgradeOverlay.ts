@@ -271,7 +271,7 @@ function createPickaxeCard(line: PickaxeShopLine, snapshot: OverlaySnapshot) {
   const artWrap = createHudElement("div", "game-modal-pickaxe-card__art");
   const image = createHudElement("img", `game-modal-pickaxe-card__image ${getPickaxeImageClass(line.pickaxe.id)}`) as HTMLImageElement;
   image.src = getPickaxeImageUrl(line.pickaxe.id);
-  image.alt = "";
+  image.alt = line.pickaxe.name;
   image.draggable = false;
   artWrap.append(image);
 
