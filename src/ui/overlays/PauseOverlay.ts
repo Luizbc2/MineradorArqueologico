@@ -61,6 +61,8 @@ export class PauseOverlay {
     this.adminCodeInput.autocomplete = "off";
     this.adminCodeButton = createPauseButton("APLICAR", "secondary");
     this.adminCodeStatus = createHudElement("div", "game-modal-admin-code__status") as HTMLDivElement;
+    this.adminCodeStatus.setAttribute("role", "status");
+    this.adminCodeStatus.setAttribute("aria-live", "polite");
     adminCodeRow.append(this.adminCodeInput, this.adminCodeButton);
     adminSection.append(adminCodeRow, this.adminCodeStatus);
 
