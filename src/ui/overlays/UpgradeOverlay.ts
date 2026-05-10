@@ -284,6 +284,14 @@ function createPickaxeCard(line: PickaxeShopLine, snapshot: OverlaySnapshot) {
 
   const action = createWorkshopButton(getActionLabel(line, snapshot), line.canBuy || line.owned ? "primary" : "secondary");
   action.disabled = line.locked || line.equipped || (!line.owned && !line.canBuy);
+  action.setAttribute(
+    "aria-label",
+    line.equipped
+      ? `${line.pickaxe.name} equipada`
+      : line.owned
+        ? `Equipar ${line.pickaxe.name}`
+        : `Comprar ${line.pickaxe.name}`,
+  );
   action.onclick = () => {
     if (line.owned) {
       snapshot.onEquip(line.pickaxe.id);
