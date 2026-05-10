@@ -19,6 +19,17 @@ Jogo web 2D de mineração incremental com exploração em blocos, progressão d
 - Desça mais fundo para liberar minérios, baús e metas melhores.
 - Complete metas de expedição para ganhar bônus permanentes.
 
+## Atalhos
+
+- `A` / `D`: mover o minerador
+- `S`: minerar para baixo
+- Mouse: mirar e minerar blocos próximos
+- `Ctrl`: alternar mira inteligente
+- `B`: abrir ou fechar a mochila
+- `V`: vender a mochila direto perto do vendedor
+- `E`: interagir com oficinas, vendedor e baús
+- `R`: voltar para a superfície
+
 ## Estrutura
 
 ```bash
