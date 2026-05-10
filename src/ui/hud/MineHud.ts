@@ -234,7 +234,10 @@ export class MineHud {
       this.backpackHint.classList.toggle("has-value", sale.totalCoins > 0);
       this.backpackHint.classList.toggle("is-warning", backpackNearFull);
       this.backpackHint.classList.toggle("is-full", backpackFull);
-      this.backpackFill.style.width = `${Math.round((snapshot.backpackLoad / snapshot.backpackCapacity) * 100)}%`;
+      const backpackRatio = snapshot.backpackCapacity > 0
+        ? Math.min(1, snapshot.backpackLoad / snapshot.backpackCapacity)
+        : 0;
+      this.backpackFill.style.width = `${Math.round(backpackRatio * 100)}%`;
       this.backpackFill.classList.toggle("is-warning", backpackNearFull);
       this.backpackFill.classList.toggle("is-full", backpackFull);
       for (const resource of resourceKinds) {
