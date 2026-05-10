@@ -157,6 +157,10 @@ export class VendorOverlay {
       const meta = getResourceMeta(line.resource);
       row.classList.toggle("is-best", line.resource === bestResource);
       row.style.setProperty("--resource-accent", meta.accent);
+      row.setAttribute(
+        "title",
+        `${line.label}: ${formatCoins(line.quantity)} itens, ${formatCoins(line.totalPrice)} moedas`,
+      );
       const marker = createHudElement("div", "game-modal-vendor-row__marker");
       const label = createHudElement("div", "game-modal-vendor-row__label");
       label.append(
