@@ -246,6 +246,8 @@ export class UpgradeOverlay {
   private renderTabs() {
     this.pickaxesTab.classList.toggle("is-active", this.activeTab === "pickaxes");
     this.upgradesTab.classList.toggle("is-active", this.activeTab === "upgrades");
+    this.pickaxesTab.setAttribute("aria-selected", String(this.activeTab === "pickaxes"));
+    this.upgradesTab.setAttribute("aria-selected", String(this.activeTab === "upgrades"));
     this.pickaxesPanel.hidden = this.activeTab !== "pickaxes";
     this.upgradesPanel.hidden = this.activeTab !== "upgrades";
   }
