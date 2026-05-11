@@ -76,7 +76,7 @@ export class VendorOverlay {
     const hint = createHudElement(
       "div",
       "game-modal-hint",
-      "Pressione ESC para fechar o posto de venda",
+      "Pressione ENTER para vender ou ESC para fechar o posto",
     );
 
     card.append(accent, title, subtitle, wallet, inventorySection, totalSection, note, actions, hint);
