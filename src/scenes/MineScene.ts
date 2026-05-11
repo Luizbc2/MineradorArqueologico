@@ -3183,7 +3183,7 @@ export class MineScene extends Phaser.Scene {
     }
 
     this.lastDepthMilestone = milestone;
-    this.showSurfaceToast(`Nova marca: ${milestone}m.`);
+    this.showSurfaceToast(`Nova marca: ${this.formatPromptNumber(milestone)}m.`);
     this.pulseScreenFlash(gameTheme.colors.accentCool, 0.055, 160);
   }
 
