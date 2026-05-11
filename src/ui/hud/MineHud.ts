@@ -267,6 +267,7 @@ export class MineHud {
   private setBackpackOpen(value: boolean) {
     this.isBackpackOpen = value;
     this.backpackButton.classList.toggle("is-open", value);
+    this.backpackButton.setAttribute("aria-expanded", String(value));
     this.backpackPanel.classList.toggle("is-open", value);
   }
 
