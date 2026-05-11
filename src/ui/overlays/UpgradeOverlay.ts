@@ -110,6 +110,8 @@ export class UpgradeOverlay {
     carousel.append(this.previousButton, this.carouselBody, this.nextButton);
 
     this.pageText = createHudElement("div", "game-modal-workshop-page", "1/1");
+    this.pageText.setAttribute("role", "status");
+    this.pageText.setAttribute("aria-live", "polite");
     this.pickaxesPanel.append(carousel, this.pageText);
 
     this.upgradesPanel = createHudElement("div", "game-modal-workshop-panel") as HTMLDivElement;
