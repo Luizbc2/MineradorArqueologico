@@ -122,6 +122,8 @@ export class VendorOverlay {
 
     this.walletValue.textContent = `${formatCoins(snapshot.coins)} moedas`;
     this.totalValue.textContent = `${formatCoins(snapshot.sale.totalCoins)} moedas`;
+    this.walletValue.title = `${formatCoins(snapshot.coins)} moedas na carteira`;
+    this.totalValue.title = `${formatCoins(snapshot.sale.totalCoins)} moedas nesta venda`;
     const bonusLabel = snapshot.saleBonusPercent > 0
       ? ` · bônus +${formatCoins(snapshot.saleBonusPercent)}%`
       : "";
