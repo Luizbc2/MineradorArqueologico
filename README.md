@@ -52,6 +52,7 @@ src/
 - Baús arqueológicos com cards colecionáveis e moedas
 - Mira inteligente para facilitar a mineração
 - Save local usando `localStorage`
+- Validação local de progresso para reduzir alterações acidentais no save
 - HUD e menus em HTML/CSS integrados ao Phaser
 
 ## Como rodar localmente
