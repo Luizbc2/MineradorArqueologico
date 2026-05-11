@@ -148,6 +148,7 @@ export class ExpeditionGoalsPanel {
   private setOpen(value: boolean) {
     this.isOpen = value;
     this.toggleButton.classList.toggle("is-open", value);
+    this.toggleButton.setAttribute("aria-expanded", String(value));
     this.panel.classList.toggle("is-open", value);
   }
 }
