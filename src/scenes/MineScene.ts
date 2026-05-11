@@ -3594,6 +3594,8 @@ export class MineScene extends Phaser.Scene {
       "ENTENDI",
     ) as HTMLButtonElement;
     this.antiCheatButton.type = "button";
+    this.antiCheatButton.title = "Confirmar aviso";
+    this.antiCheatButton.setAttribute("aria-label", "Confirmar aviso de velocidade");
     this.antiCheatButton.addEventListener("click", () => {
       if (this.#antiCheatBanned) {
         return;
