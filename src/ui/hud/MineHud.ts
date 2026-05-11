@@ -221,8 +221,11 @@ export class MineHud {
 
       this.depthValue.textContent = `${snapshot.depth}m`;
       this.coinsValue.textContent = formatHudNumber(snapshot.coins);
+      this.depthValue.closest(".game-hud-chip")?.setAttribute("title", `Profundidade atual: ${snapshot.depth}m`);
+      this.coinsValue.closest(".game-hud-chip")?.setAttribute("title", `Moedas disponíveis: ${formatHudNumber(snapshot.coins)}`);
       setCompactValueState(this.coinsValue, snapshot.coins);
       this.pickaxeValue.textContent = `LV ${snapshot.pickaxeLevel}`;
+      this.pickaxeValue.closest(".game-hud-chip")?.setAttribute("title", `Picareta equipada: nível ${snapshot.pickaxeLevel}`);
       this.codexValue.textContent = `${snapshot.cardsFound}/${snapshot.cardsTotal}`;
       this.backpackValue.textContent = `${formatHudNumber(sale.totalCoins)} moedas`;
       setCompactValueState(this.backpackValue, sale.totalCoins);
