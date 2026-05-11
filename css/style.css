@@ -805,6 +805,15 @@ body { image-rendering: auto; }
   filter: brightness(1.05);
 }
 
+.game-modal-button:focus-visible,
+.game-modal-workshop-tab:focus-visible,
+.game-modal-workshop-arrow:focus-visible,
+.game-hud-button:focus-visible,
+.game-hud-icon-button:focus-visible {
+  outline: 2px solid #8ecece;
+  outline-offset: 3px;
+}
+
 .game-modal-button--primary {
   border-color: rgba(231, 189, 99, 0.95);
   background: rgba(232, 203, 121, 0.98);
