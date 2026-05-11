@@ -58,6 +58,7 @@ export class PauseOverlay {
     this.adminCodeInput.type = "password";
     this.adminCodeInput.placeholder = "Código local";
     this.adminCodeInput.setAttribute("aria-label", "Código local de teste");
+    this.adminCodeInput.maxLength = 40;
     this.adminCodeInput.autocomplete = "off";
     this.adminCodeButton = createPauseButton("APLICAR", "secondary");
     this.adminCodeStatus = createHudElement("div", "game-modal-admin-code__status") as HTMLDivElement;
