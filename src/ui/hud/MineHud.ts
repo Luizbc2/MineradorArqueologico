@@ -74,15 +74,18 @@ export class MineHud {
 
     const depthChip = createHudStatChip("PROF.", "0m");
     depthChip.root.classList.add("game-hud-chip--priority");
+    depthChip.root.title = "Profundidade atual";
     setHudRect(depthChip.root, layout.statusDepth);
     this.depthValue = depthChip.value;
 
     const pickaxeChip = createHudStatChip("PICARETA", "LV 1", "pickaxe");
+    pickaxeChip.root.title = "Picareta equipada";
     setHudRect(pickaxeChip.root, layout.statusPickaxe);
     this.pickaxeValue = pickaxeChip.value;
 
     const coinsChip = createHudStatChip("MOEDAS", "0", "coins");
     coinsChip.root.classList.add("game-hud-chip--coins");
+    coinsChip.root.title = "Moedas disponíveis";
     setHudRect(coinsChip.root, layout.statusCoins);
     this.coinsValue = coinsChip.value;
 
