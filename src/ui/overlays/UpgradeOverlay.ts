@@ -362,6 +362,12 @@ function createUpgradeRow(line: UpgradeShopLine, snapshot: OverlaySnapshot) {
 
   const action = createWorkshopButton(getUpgradeActionLabel(line, snapshot.coins), line.canBuy ? "primary" : "secondary");
   action.disabled = !line.canBuy;
+  action.setAttribute(
+    "aria-label",
+    line.cost === null
+      ? `${line.upgrade.name} completo`
+      : `Comprar upgrade ${line.upgrade.name}`,
+  );
   action.onclick = () => snapshot.onUpgradeBuy(line.upgrade.id);
 
   row.append(copy, meta, action);
