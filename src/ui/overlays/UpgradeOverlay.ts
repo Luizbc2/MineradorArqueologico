@@ -226,6 +226,7 @@ export class UpgradeOverlay {
 
     const totalPages = this.getLastPage(snapshot) + 1;
     this.pageText.textContent = `${this.pageIndex + 1}/${totalPages}`;
+    this.pageText.title = `Página ${this.pageIndex + 1} de ${totalPages}`;
     this.previousButton.disabled = this.pageIndex <= 0;
     this.nextButton.disabled = this.pageIndex >= totalPages - 1;
   }
