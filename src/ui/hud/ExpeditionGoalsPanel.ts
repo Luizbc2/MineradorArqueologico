@@ -50,6 +50,8 @@ export class ExpeditionGoalsPanel {
     this.scope = createHudScope("game-hud-scope--missions");
 
     this.toggleButton = createHudButton("MISSÕES", "missions", "accent");
+    this.toggleButton.title = "Abrir missões";
+    this.toggleButton.setAttribute("aria-label", "Abrir missões");
     setHudRect(this.toggleButton, layout.missionButton);
     this.toggleButton.addEventListener("click", (event) => {
       event.preventDefault();
@@ -61,6 +63,8 @@ export class ExpeditionGoalsPanel {
     setHudRect(this.panel, layout.missionPanel);
 
     const closeButton = createHudIconButton("close");
+    closeButton.title = "Fechar missões";
+    closeButton.setAttribute("aria-label", "Fechar missões");
     closeButton.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
