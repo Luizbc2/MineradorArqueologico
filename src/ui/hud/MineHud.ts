@@ -278,6 +278,8 @@ export class MineHud {
     this.isBackpackOpen = value;
     this.backpackButton.classList.toggle("is-open", value);
     this.backpackButton.setAttribute("aria-expanded", String(value));
+    this.backpackButton.title = value ? "Fechar mochila (B)" : "Abrir mochila (B)";
+    this.backpackButton.setAttribute("aria-label", value ? "Fechar mochila" : "Abrir mochila");
     this.backpackPanel.classList.toggle("is-open", value);
   }
 
