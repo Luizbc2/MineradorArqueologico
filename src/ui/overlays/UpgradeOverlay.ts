@@ -123,7 +123,7 @@ export class UpgradeOverlay {
     const hint = createHudElement(
       "div",
       "game-modal-hint game-modal-hint--center",
-      "Use E ou ESC para sair da oficina",
+      "Use setas para trocar página, TAB para trocar aba e E ou ESC para sair",
     );
 
     card.append(accent, title, meta, tabs, this.pickaxesPanel, this.upgradesPanel, actions, hint);
