@@ -3217,7 +3217,7 @@ export class MineScene extends Phaser.Scene {
       this.syncExpeditionProgress(this.#expeditionProgression.applyChestOpened());
       this.audioDirector?.playChestOpen();
       this.audioDirector?.playCoins();
-      this.showSurfaceToast(`Baú aberto: +${coinReward} moedas.`, "coins");
+      this.showSurfaceToast(`Baú aberto: +${this.formatPromptNumber(coinReward)} moedas.`, "coins");
       this.openArchaeologyCard();
       return true;
     }
