@@ -3690,6 +3690,7 @@ export class MineScene extends Phaser.Scene {
 
     if (!station || blocked) {
       this.surfacePrompt.classList.remove("is-visible");
+      this.surfacePrompt.removeAttribute("title");
       return;
     }
 
