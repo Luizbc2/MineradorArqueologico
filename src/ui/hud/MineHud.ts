@@ -227,6 +227,7 @@ export class MineHud {
       this.pickaxeValue.textContent = `LV ${snapshot.pickaxeLevel}`;
       this.pickaxeValue.closest(".game-hud-chip")?.setAttribute("title", `Picareta equipada: nível ${snapshot.pickaxeLevel}`);
       this.codexValue.textContent = `${snapshot.cardsFound}/${snapshot.cardsTotal}`;
+      this.codexChip.title = `Coleção arqueológica: ${snapshot.cardsFound}/${snapshot.cardsTotal}`;
       this.backpackValue.textContent = `${formatHudNumber(sale.totalCoins)} moedas`;
       setCompactValueState(this.backpackValue, sale.totalCoins);
       const backpackFull = snapshot.backpackLoad >= snapshot.backpackCapacity;
