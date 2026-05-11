@@ -3553,6 +3553,8 @@ export class MineScene extends Phaser.Scene {
 
     this.surfacePromptScope = createHudScope("game-surface-prompt-scope");
     this.surfacePrompt = createHudElement("div", "game-surface-prompt") as HTMLDivElement;
+    this.surfacePrompt.setAttribute("role", "status");
+    this.surfacePrompt.setAttribute("aria-live", "polite");
 
     const keycap = createHudElement("span", "game-surface-prompt__key", "E");
     this.surfacePromptLabel = createHudElement("span", "game-surface-prompt__label", "") as HTMLSpanElement;
@@ -3569,6 +3571,8 @@ export class MineScene extends Phaser.Scene {
 
     this.surfaceToastScope = createHudScope("game-surface-toast-scope", "modal");
     this.surfaceToast = createHudElement("div", "game-surface-toast") as HTMLDivElement;
+    this.surfaceToast.setAttribute("role", "status");
+    this.surfaceToast.setAttribute("aria-live", "polite");
     this.surfaceToastBurst = createHudElement("div", "game-surface-coin-burst") as HTMLDivElement;
     this.surfaceToastScope.append(this.surfaceToastBurst, this.surfaceToast);
   }
