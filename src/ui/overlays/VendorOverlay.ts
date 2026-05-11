@@ -131,6 +131,9 @@ export class VendorOverlay {
       itemCount > 0
         ? `${formatCoins(itemCount)} ${itemCount === 1 ? "item" : "itens"} no lote · média ${formatCoins(averageValue)}${bonusLabel}`
         : "0 itens no lote";
+    this.totalMeta.title = itemCount > 0
+      ? `${itemCount.toLocaleString("pt-BR")} itens no lote, média de ${formatCoins(averageValue)} moedas`
+      : "Nenhum item no lote";
     this.sellButton.disabled = snapshot.sale.totalCoins <= 0;
     this.sellButton.textContent = snapshot.sale.totalCoins > 0 ? "VENDER TUDO" : "MOCHILA VAZIA";
     this.sellButton.title = snapshot.sale.totalCoins > 0
