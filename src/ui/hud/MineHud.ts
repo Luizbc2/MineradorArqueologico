@@ -231,7 +231,10 @@ export class MineHud {
       this.backpackValue.textContent = `${formatHudNumber(sale.totalCoins)} moedas`;
       setCompactValueState(this.backpackValue, sale.totalCoins);
       const backpackFull = snapshot.backpackLoad >= snapshot.backpackCapacity;
-      const backpackNearFull = !backpackFull && snapshot.backpackLoad / snapshot.backpackCapacity >= 0.8;
+      const backpackRatio = snapshot.backpackCapacity > 0
+        ? Math.min(1, snapshot.backpackLoad / snapshot.backpackCapacity)
+        : 0;
+      const backpackNearFull = !backpackFull && backpackRatio >= 0.8;
       this.backpackHint.textContent =
         backpackFull
           ? `MOCHILA CHEIA ${snapshot.backpackLoad}/${snapshot.backpackCapacity}`
@@ -241,9 +244,6 @@ export class MineHud {
       this.backpackHint.classList.toggle("has-value", sale.totalCoins > 0);
       this.backpackHint.classList.toggle("is-warning", backpackNearFull);
       this.backpackHint.classList.toggle("is-full", backpackFull);
-      const backpackRatio = snapshot.backpackCapacity > 0
-        ? Math.min(1, snapshot.backpackLoad / snapshot.backpackCapacity)
-        : 0;
       this.backpackFill.style.width = `${Math.round(backpackRatio * 100)}%`;
       this.backpackFill.classList.toggle("is-warning", backpackNearFull);
       this.backpackFill.classList.toggle("is-full", backpackFull);
