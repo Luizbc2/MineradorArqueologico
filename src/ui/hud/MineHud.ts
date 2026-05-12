@@ -229,6 +229,7 @@ export class MineHud {
       this.codexValue.textContent = `${snapshot.cardsFound}/${snapshot.cardsTotal}`;
       this.codexChip.title = `Coleção arqueológica: ${snapshot.cardsFound}/${snapshot.cardsTotal}`;
       this.backpackValue.textContent = `${formatHudNumber(sale.totalCoins)} moedas`;
+      this.backpackValue.title = `Valor estimado da mochila: ${formatHudNumber(sale.totalCoins)} moedas`;
       setCompactValueState(this.backpackValue, sale.totalCoins);
       const backpackFull = snapshot.backpackLoad >= snapshot.backpackCapacity;
       const backpackRatio = snapshot.backpackCapacity > 0
