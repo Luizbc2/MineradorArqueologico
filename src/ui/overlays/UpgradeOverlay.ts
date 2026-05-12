@@ -104,6 +104,7 @@ export class UpgradeOverlay {
     tabs.append(this.pickaxesTab, this.upgradesTab);
 
     this.pickaxesPanel = createHudElement("div", "game-modal-workshop-panel") as HTMLDivElement;
+    this.pickaxesPanel.setAttribute("role", "tabpanel");
     const carousel = createHudElement("div", "game-modal-workshop-carousel");
     this.previousButton = createArrowButton("<");
     this.carouselBody = createHudElement("div", "game-modal-workshop-carousel__body") as HTMLDivElement;
@@ -116,6 +117,7 @@ export class UpgradeOverlay {
     this.pickaxesPanel.append(carousel, this.pageText);
 
     this.upgradesPanel = createHudElement("div", "game-modal-workshop-panel") as HTMLDivElement;
+    this.upgradesPanel.setAttribute("role", "tabpanel");
     this.upgradesBody = createHudElement("div", "game-modal-upgrade-list") as HTMLDivElement;
     this.upgradesPanel.append(this.upgradesBody);
 
