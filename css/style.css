@@ -797,6 +797,7 @@ body { image-rendering: auto; }
   line-height: 1;
   font-weight: 800;
   cursor: pointer;
+  user-select: none;
   transition: transform 120ms ease, filter 120ms ease, background 120ms ease;
 }
 
