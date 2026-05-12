@@ -334,6 +334,7 @@ function createArrowButton(label: string) {
 function createWorkshopTabButton(label: string) {
   const button = createHudElement("button", "game-modal-workshop-tab") as HTMLButtonElement;
   button.type = "button";
+  button.setAttribute("role", "tab");
   button.textContent = label;
   button.setAttribute("aria-label", `Abrir aba ${label.toLowerCase()}`);
   return button;
