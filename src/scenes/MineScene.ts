@@ -3516,8 +3516,8 @@ export class MineScene extends Phaser.Scene {
       this.audioDirector?.playCoins();
       this.showSurfaceToast(
         bonusActive
-          ? `Venda cheia: +${sale.totalCoins} moedas.`
-          : `Venda concluída: +${sale.totalCoins} moedas.`,
+          ? `Venda cheia: +${this.formatPromptNumber(sale.totalCoins)} moedas.`
+          : `Venda concluída: +${this.formatPromptNumber(sale.totalCoins)} moedas.`,
         "coins",
       );
     }
