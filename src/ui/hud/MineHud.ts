@@ -241,6 +241,7 @@ export class MineHud {
           : backpackNearFull
             ? `QUASE CHEIA ${snapshot.backpackLoad}/${snapshot.backpackCapacity}`
             : `${snapshot.backpackLoad}/${snapshot.backpackCapacity} ESPAÇOS`;
+      this.backpackHint.title = `Mochila: ${snapshot.backpackLoad}/${snapshot.backpackCapacity} espaços`;
       this.backpackHint.classList.toggle("has-value", sale.totalCoins > 0);
       this.backpackHint.classList.toggle("is-warning", backpackNearFull);
       this.backpackHint.classList.toggle("is-full", backpackFull);
