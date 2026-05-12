@@ -28,6 +28,7 @@ Jogo web 2D de mineração incremental com exploração em blocos, progressão d
 - `B`: abrir ou fechar a mochila
 - `V`: vender a mochila direto perto do vendedor
 - `E`: interagir com oficinas, vendedor e baús
+- `Enter`: vender tudo quando o posto de venda estiver aberto
 - `U`: abrir a oficina quando estiver na superfície
 - `R`: voltar para a superfície
 
