@@ -98,7 +98,7 @@ export class PauseOverlay {
     this.resumeButton.onclick = snapshot.onResume;
     this.audioButton.onclick = snapshot.onAudioToggle;
     this.adminCodeButton.onclick = () => {
-      const result = snapshot.onAdminCodeSubmit(this.adminCodeInput.value);
+      const result = snapshot.onAdminCodeSubmit(this.adminCodeInput.value.trim());
 
       this.adminCodeStatus.textContent = result.message;
       this.adminCodeStatus.classList.toggle("is-ok", result.ok);
