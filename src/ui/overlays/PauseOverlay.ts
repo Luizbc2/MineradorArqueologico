@@ -137,6 +137,8 @@ export class PauseOverlay {
 
   setAudioMuted(muted: boolean) {
     this.audioButton.textContent = muted ? "SOM DESLIGADO" : "SOM LIGADO";
+    this.audioButton.title = muted ? "Ativar som" : "Desativar som";
+    this.audioButton.setAttribute("aria-label", muted ? "Ativar som" : "Desativar som");
   }
 }
 
