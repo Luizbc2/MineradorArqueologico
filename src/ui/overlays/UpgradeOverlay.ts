@@ -98,6 +98,7 @@ export class UpgradeOverlay {
     meta.append(coins, collection, investment, depth);
 
     const tabs = createHudElement("div", "game-modal-workshop-tabs");
+    tabs.setAttribute("role", "tablist");
     this.pickaxesTab = createWorkshopTabButton("PICARETAS");
     this.upgradesTab = createWorkshopTabButton("UPGRADES");
     tabs.append(this.pickaxesTab, this.upgradesTab);
