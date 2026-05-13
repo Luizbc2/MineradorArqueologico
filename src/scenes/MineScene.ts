@@ -199,6 +199,7 @@ export class MineScene extends Phaser.Scene {
   private vendorOverlay?: VendorOverlay;
   private surfacePromptScope?: HTMLDivElement;
   private surfacePrompt?: HTMLDivElement;
+  private surfacePromptKey?: HTMLSpanElement;
   private surfacePromptLabel?: HTMLSpanElement;
   private surfaceToastScope?: HTMLDivElement;
   private surfaceToast?: HTMLDivElement;
@@ -3570,7 +3571,8 @@ export class MineScene extends Phaser.Scene {
     this.surfacePrompt.setAttribute("role", "status");
     this.surfacePrompt.setAttribute("aria-live", "polite");
 
-    const keycap = createHudElement("span", "game-surface-prompt__key", "E");
+    const keycap = createHudElement("span", "game-surface-prompt__key", "E") as HTMLSpanElement;
+    this.surfacePromptKey = keycap;
     this.surfacePromptLabel = createHudElement("span", "game-surface-prompt__label", "") as HTMLSpanElement;
 
     this.surfacePrompt.append(keycap, this.surfacePromptLabel);
@@ -3690,7 +3692,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   private updateSurfacePrompt() {
-    if (!this.surfacePrompt || !this.surfacePromptLabel) {
+    if (!this.surfacePrompt || !this.surfacePromptKey || !this.surfacePromptLabel) {
       return;
     }
 
@@ -3711,6 +3713,7 @@ export class MineScene extends Phaser.Scene {
 
     if (station === "vendor") {
       const sale = this.getInventorySaleSummary();
+      this.surfacePromptKey.textContent = sale.totalCoins > 0 ? "E/V" : "E";
       this.surfacePromptLabel.textContent =
         sale.totalCoins > 0
           ? `E ABRIR • V VENDER • ${this.formatPromptNumber(sale.totalCoins)} MOEDAS`
@@ -3720,6 +3723,7 @@ export class MineScene extends Phaser.Scene {
         ? "E abre o posto de venda. V vende a mochila direto."
         : "E abre o posto de venda.";
     } else {
+      this.surfacePromptKey.textContent = "E";
       this.surfacePromptLabel.textContent = "ABRIR OFICINA";
       this.surfacePrompt.dataset.station = "workshop";
       this.surfacePrompt.title = "E abre a oficina de picaretas e upgrades.";

@@ -315,7 +315,7 @@ body { image-rendering: auto; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 28px;
+  min-width: 32px;
   height: 28px;
   padding: 0 8px;
   border: 2px solid rgba(139, 115, 79, 0.95);
