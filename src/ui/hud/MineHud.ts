@@ -52,6 +52,7 @@ export class MineHud {
   private readonly comboValue: HTMLDivElement;
   private readonly backpackButton: HTMLButtonElement;
   private readonly backpackPanel: HTMLElement;
+  private readonly backpackSummary: HTMLDivElement;
   private readonly backpackSummaryLabel: HTMLDivElement;
   private readonly backpackValue: HTMLDivElement;
   private readonly backpackHint: HTMLDivElement;
@@ -151,7 +152,8 @@ export class MineHud {
     });
 
     const backpackBody = createHudElement("div", "game-hud-panel__body");
-    const backpackSummary = createHudElement("div", "game-hud-backpack-summary");
+    const backpackSummary = createHudElement("div", "game-hud-backpack-summary") as HTMLDivElement;
+    this.backpackSummary = backpackSummary;
     this.backpackSummaryLabel = createHudElement("div", "game-hud-backpack-summary__label", "VALOR ESTIMADO") as HTMLDivElement;
     backpackSummary.append(
       this.backpackSummaryLabel,
@@ -235,6 +237,7 @@ export class MineHud {
       this.backpackSummaryLabel.textContent = snapshot.saleBonusPercent > 0
         ? `VALOR +${snapshot.saleBonusPercent}%`
         : "VALOR ESTIMADO";
+      this.backpackSummary.classList.toggle("has-bonus", snapshot.saleBonusPercent > 0);
       this.backpackValue.textContent = `${formatHudNumber(sale.totalCoins)} moedas`;
       this.backpackValue.title = `Valor estimado da mochila: ${formatHudNumber(sale.totalCoins)} moedas`;
       setCompactValueState(this.backpackValue, sale.totalCoins);

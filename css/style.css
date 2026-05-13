@@ -1216,6 +1216,11 @@ body { image-rendering: auto; }
   background: rgba(13, 27, 30, 0.78);
 }
 
+.game-hud-backpack-summary.has-bonus {
+  border-color: rgba(231, 189, 99, 0.76);
+  background: rgba(47, 36, 18, 0.84);
+}
+
 .game-hud-backpack-summary__label {
   font-size: 12px;
   line-height: 1;
