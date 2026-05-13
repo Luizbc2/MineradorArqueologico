@@ -2461,6 +2461,10 @@ export class MineScene extends Phaser.Scene {
     this.rewardColor = meta.accent;
     this.rewardLabel = `${getResourceTierLabel(meta.tier).toUpperCase()} ${meta.label.toUpperCase()}`;
 
+    if (this.rewardComboCount === 10 || this.rewardComboCount === 25 || this.rewardComboCount === 50) {
+      this.showSurfaceToast(`Combo x${this.rewardComboCount}: mineração acelerada.`);
+    }
+
     return {
       streak: this.rewardComboCount,
       tierLabel: getResourceTierLabel(meta.tier).toUpperCase(),
