@@ -59,6 +59,7 @@ export class MineHud {
   private readonly backpackFill: HTMLDivElement;
   private readonly resourceValues: Record<ResourceKind, HTMLDivElement>;
   private readonly resourceTotals: Record<ResourceKind, HTMLDivElement>;
+  private readonly resourceRoots: Record<ResourceKind, HTMLDivElement>;
   private readonly handleKeyDown: (event: KeyboardEvent) => void;
 
   private isBackpackOpen = false;
@@ -188,6 +189,13 @@ export class MineHud {
       }),
       {} as Record<ResourceKind, HTMLDivElement>,
     );
+    this.resourceRoots = resourceSlots.reduce(
+      (values, { resource, slot }) => ({
+        ...values,
+        [resource]: slot.root,
+      }),
+      {} as Record<ResourceKind, HTMLDivElement>,
+    );
 
     resourceGrid.append(...resourceSlots.map(({ slot }) => slot.root));
     backpackBody.append(backpackSummary, this.backpackHint, backpackMeter, resourceGrid);
@@ -259,8 +267,9 @@ export class MineHud {
       this.backpackFill.style.width = `${Math.round(backpackRatio * 100)}%`;
       this.backpackFill.classList.toggle("is-warning", backpackNearFull);
       this.backpackFill.classList.toggle("is-full", backpackFull);
+      const bestResource = sale.lines[0]?.resource;
       for (const resource of resourceKinds) {
-        this.updateResourceSlot(resource, snapshot.inventory[resource], sale);
+        this.updateResourceSlot(resource, snapshot.inventory[resource], sale, resource === bestResource);
       }
       this.codexChip.hidden = snapshot.cardsFound <= 0;
     }
@@ -299,14 +308,16 @@ export class MineHud {
     resource: ResourceKind,
     quantity: number,
     sale: ReturnType<typeof getInventorySaleSummary>,
+    bestResource: boolean,
   ) {
     const line = sale.lines.find((item) => item.resource === resource);
-    const slot = this.resourceValues[resource].closest(".game-hud-resource");
+    const slot = this.resourceRoots[resource];
     const label = getResourceLabel(resource);
     const totalPrice = line?.totalPrice ?? 0;
 
-    slot?.classList.toggle("has-value", quantity > 0);
-    slot?.setAttribute("title", `${label}: ${quantity} · ${formatHudNumber(totalPrice)} moedas`);
+    slot.classList.toggle("has-value", quantity > 0);
+    slot.classList.toggle("is-best", bestResource);
+    slot.setAttribute("title", `${label}: ${quantity} · ${formatHudNumber(totalPrice)} moedas`);
     this.resourceValues[resource].textContent = `x${quantity}`;
     this.resourceTotals[resource].textContent = `${formatHudNumber(totalPrice)} moedas`;
     setCompactValueState(this.resourceTotals[resource], totalPrice);
@@ -382,7 +393,7 @@ function createHudPanel(title: string, direction: "down" | "up", tone: "accent" 
 }
 
 function createHudResourceSlot(label: string, toneClass: string) {
-  const root = createHudElement("div", `game-hud-resource ${toneClass}`);
+  const root = createHudElement("div", `game-hud-resource ${toneClass}`) as HTMLDivElement;
   const icon = createHudElement("div", "game-hud-resource__icon");
   const meta = createHudElement("div", "game-hud-resource__meta");
   const labelEl = createHudElement("div", "game-hud-resource__label", label);
