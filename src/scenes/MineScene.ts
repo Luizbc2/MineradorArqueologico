@@ -141,6 +141,7 @@ const MIN_REAL_FALL_INTERVAL_MS = 58;
 const SPEED_HACK_TOAST_GRACE_MS = 2600;
 const ANTI_CHEAT_STORAGE_KEY = "minerador-arqueologico:anti-cheat:v2";
 const BACKPACK_NEAR_FULL_THRESHOLD = 0.8;
+const BACKPACK_FULL_TOAST_COOLDOWN_MS = 1400;
 const ORE_MIN_DEPTH: Partial<Record<TileKind, number>> = {
   fossil: 300,
   prismatic: 360,
@@ -234,6 +235,7 @@ export class MineScene extends Phaser.Scene {
   private rewardColor: string = gameTheme.colors.textSoft;
   private wasFallingLastFrame = false;
   private lastDepthMilestone = 0;
+  private lastBackpackFullToastAt = 0;
   private manualZoomOffset = 0;
   private readonly zoomStep = 0.15;
   private readonly minCameraZoom = 0.8;
@@ -1892,7 +1894,10 @@ export class MineScene extends Phaser.Scene {
 
     if (getResourceFromTile(trustedKind) && this.getInventoryLoad() >= this.getBackpackCapacity()) {
       this.clearMiningTarget();
-      this.showSurfaceToast("Mochila cheia. Volte para vender.");
+      if (this.time.now - this.lastBackpackFullToastAt >= BACKPACK_FULL_TOAST_COOLDOWN_MS) {
+        this.lastBackpackFullToastAt = this.time.now;
+        this.showSurfaceToast("Mochila cheia. Volte para vender.");
+      }
       return false;
     }
 
@@ -2344,6 +2349,7 @@ export class MineScene extends Phaser.Scene {
 
   private showBackpackLoadWarning(previousLoad: number, nextLoad: number, capacity: number) {
     if (nextLoad >= capacity && previousLoad < capacity) {
+      this.lastBackpackFullToastAt = this.time.now;
       this.showSurfaceToast("Mochila cheia. Volte para vender.");
       return;
     }
