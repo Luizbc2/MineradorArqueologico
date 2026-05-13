@@ -67,6 +67,8 @@ body { image-rendering: auto; }
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
 }
 
 .game-hud-chip--priority {
