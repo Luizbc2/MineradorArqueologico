@@ -286,6 +286,9 @@ export class MineHud {
         : "Combo inativo";
       this.comboChip.style.borderColor = comboVisible ? snapshot.comboColor : "rgba(139, 115, 79, 0.95)";
       this.comboChip.style.color = comboVisible ? snapshot.comboColor : "#f5efdf";
+      this.comboChip.style.backgroundImage = comboVisible
+        ? `linear-gradient(90deg, ${snapshot.comboColor}33 ${Math.round(snapshot.comboWindowRatio * 100)}%, transparent 0)`
+        : "";
     }
   }
 
