@@ -2335,6 +2335,9 @@ export class MineScene extends Phaser.Scene {
     this.#saveProgression();
     this.updateHud();
     this.showBackpackLoadWarning(previousLoad, this.getInventoryLoad(), capacity);
+    if (quantity > 1) {
+      this.showSurfaceToast(`Rendimento extra: +${quantity} ${getResourceMeta(resource).label}.`);
+    }
     this.audioDirector?.playPickup(resource, rewardState.streak);
     this.spawnPickupFeedback(tileX, tileY, this.#inventory[resource], rewardState, quantity);
   }
