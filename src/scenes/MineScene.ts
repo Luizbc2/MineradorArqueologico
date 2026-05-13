@@ -2948,6 +2948,7 @@ export class MineScene extends Phaser.Scene {
       backpackLoad: this.getInventoryLoad(),
       backpackCapacity: this.getBackpackCapacity(),
       saleValueMultiplier: this.getEffectiveSaleValueMultiplier(),
+      saleBonusPercent: this.getSaleBonusPercent(),
       atSurface: this.isAtSurface(),
       surfaceReturnLocked: this.surfaceReturnLocked,
     });

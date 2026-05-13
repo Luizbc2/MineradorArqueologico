@@ -30,6 +30,7 @@ type HudSnapshot = {
   backpackLoad: number;
   backpackCapacity: number;
   saleValueMultiplier: number;
+  saleBonusPercent: number;
   atSurface: boolean;
   surfaceReturnLocked: boolean;
 };
@@ -51,6 +52,7 @@ export class MineHud {
   private readonly comboValue: HTMLDivElement;
   private readonly backpackButton: HTMLButtonElement;
   private readonly backpackPanel: HTMLElement;
+  private readonly backpackSummaryLabel: HTMLDivElement;
   private readonly backpackValue: HTMLDivElement;
   private readonly backpackHint: HTMLDivElement;
   private readonly backpackFill: HTMLDivElement;
@@ -150,8 +152,9 @@ export class MineHud {
 
     const backpackBody = createHudElement("div", "game-hud-panel__body");
     const backpackSummary = createHudElement("div", "game-hud-backpack-summary");
+    this.backpackSummaryLabel = createHudElement("div", "game-hud-backpack-summary__label", "VALOR ESTIMADO") as HTMLDivElement;
     backpackSummary.append(
-      createHudElement("div", "game-hud-backpack-summary__label", "VALOR ESTIMADO"),
+      this.backpackSummaryLabel,
       this.backpackValue = createHudElement("div", "game-hud-backpack-summary__value", "0 moedas"),
     );
     this.backpackHint = createHudElement(
@@ -212,6 +215,7 @@ export class MineHud {
       snapshot.backpackLoad,
       snapshot.backpackCapacity,
       snapshot.saleValueMultiplier.toFixed(3),
+      snapshot.saleBonusPercent,
       ...resourceKinds.map((resource) => snapshot.inventory[resource]),
     ].join("|");
 
@@ -228,6 +232,9 @@ export class MineHud {
       this.pickaxeValue.closest(".game-hud-chip")?.setAttribute("title", `Picareta equipada: nível ${snapshot.pickaxeLevel}`);
       this.codexValue.textContent = `${snapshot.cardsFound}/${snapshot.cardsTotal}`;
       this.codexChip.title = `Coleção arqueológica: ${snapshot.cardsFound}/${snapshot.cardsTotal}`;
+      this.backpackSummaryLabel.textContent = snapshot.saleBonusPercent > 0
+        ? `VALOR +${snapshot.saleBonusPercent}%`
+        : "VALOR ESTIMADO";
       this.backpackValue.textContent = `${formatHudNumber(sale.totalCoins)} moedas`;
       this.backpackValue.title = `Valor estimado da mochila: ${formatHudNumber(sale.totalCoins)} moedas`;
       setCompactValueState(this.backpackValue, sale.totalCoins);
