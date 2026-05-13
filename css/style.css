@@ -1319,6 +1319,11 @@ body { image-rendering: auto; }
   background: rgba(38, 29, 18, 0.88);
 }
 
+.game-hud-resource.is-best {
+  border-color: rgba(142, 206, 208, 0.86);
+  background: rgba(15, 41, 42, 0.82);
+}
+
 .game-hud-resource__icon {
   width: 24px;
   height: 24px;
