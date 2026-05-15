@@ -253,6 +253,7 @@ export class MineHud {
       const backpackRatio = snapshot.backpackCapacity > 0
         ? Math.min(1, snapshot.backpackLoad / snapshot.backpackCapacity)
         : 0;
+      const backpackPercent = Math.round(backpackRatio * 100);
       const backpackNearFull = !backpackFull && backpackRatio >= 0.8;
       this.backpackHint.textContent =
         backpackFull
@@ -264,7 +265,8 @@ export class MineHud {
       this.backpackHint.classList.toggle("has-value", sale.totalCoins > 0);
       this.backpackHint.classList.toggle("is-warning", backpackNearFull);
       this.backpackHint.classList.toggle("is-full", backpackFull);
-      this.backpackFill.style.width = `${Math.round(backpackRatio * 100)}%`;
+      this.backpackFill.style.width = `${backpackPercent}%`;
+      this.backpackFill.title = `${backpackPercent}% da mochila ocupada`;
       this.backpackFill.classList.toggle("is-warning", backpackNearFull);
       this.backpackFill.classList.toggle("is-full", backpackFull);
       const bestResource = sale.lines[0]?.resource;
