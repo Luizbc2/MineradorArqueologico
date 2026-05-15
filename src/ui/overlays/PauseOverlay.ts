@@ -64,6 +64,7 @@ export class PauseOverlay {
     this.adminCodeInput.maxLength = 40;
     this.adminCodeInput.autocomplete = "off";
     this.adminCodeButton = createPauseButton("APLICAR", "secondary");
+    this.adminCodeButton.disabled = true;
     this.adminCodeStatus = createHudElement("div", "game-modal-admin-code__status") as HTMLDivElement;
     this.adminCodeStatus.setAttribute("role", "status");
     this.adminCodeStatus.setAttribute("aria-live", "polite");
@@ -121,6 +122,7 @@ export class PauseOverlay {
     this.adminCodeInput.oninput = () => {
       this.adminCodeStatus.textContent = "";
       this.adminCodeStatus.classList.remove("is-ok", "is-error");
+      this.adminCodeButton.disabled = this.adminCodeInput.value.trim().length === 0;
     };
     this.adminCodeStatus.textContent = "";
     this.adminCodeStatus.classList.remove("is-ok", "is-error");
@@ -135,6 +137,7 @@ export class PauseOverlay {
     this.adminCodeInput.onkeydown = null;
     this.adminCodeInput.oninput = null;
     this.adminCodeInput.value = "";
+    this.adminCodeButton.disabled = true;
     this.adminCodeStatus.textContent = "";
     this.adminCodeStatus.classList.remove("is-ok", "is-error");
     this.overlay.classList.remove("is-open");
