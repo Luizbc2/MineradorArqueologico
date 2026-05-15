@@ -104,10 +104,14 @@ export class UpgradeOverlay {
     tabs.setAttribute("role", "tablist");
     this.pickaxesTab = createWorkshopTabButton("PICARETAS");
     this.upgradesTab = createWorkshopTabButton("UPGRADES");
+    this.pickaxesTab.id = "workshop-tab-pickaxes";
+    this.upgradesTab.id = "workshop-tab-upgrades";
     tabs.append(this.pickaxesTab, this.upgradesTab);
 
     this.pickaxesPanel = createHudElement("div", "game-modal-workshop-panel") as HTMLDivElement;
+    this.pickaxesPanel.id = "workshop-panel-pickaxes";
     this.pickaxesPanel.setAttribute("role", "tabpanel");
+    this.pickaxesPanel.setAttribute("aria-labelledby", this.pickaxesTab.id);
     const carousel = createHudElement("div", "game-modal-workshop-carousel");
     this.previousButton = createArrowButton("<");
     this.carouselBody = createHudElement("div", "game-modal-workshop-carousel__body") as HTMLDivElement;
@@ -120,7 +124,9 @@ export class UpgradeOverlay {
     this.pickaxesPanel.append(carousel, this.pageText);
 
     this.upgradesPanel = createHudElement("div", "game-modal-workshop-panel") as HTMLDivElement;
+    this.upgradesPanel.id = "workshop-panel-upgrades";
     this.upgradesPanel.setAttribute("role", "tabpanel");
+    this.upgradesPanel.setAttribute("aria-labelledby", this.upgradesTab.id);
     this.upgradesBody = createHudElement("div", "game-modal-upgrade-list") as HTMLDivElement;
     this.upgradesPanel.append(this.upgradesBody);
 
