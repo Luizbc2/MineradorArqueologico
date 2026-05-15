@@ -207,12 +207,15 @@ export class ArchaeologyCardOverlay {
   }
 
   show(snapshot: OverlaySnapshot) {
+    const collectionRatio = Phaser.Math.Clamp(snapshot.collectedCount / snapshot.totalCount, 0, 1);
+    const collectionPercent = Math.round(collectionRatio * 100);
+
     this.bodyText.setText(snapshot.body);
-    this.progressText.setText(`Cards encontrados: ${snapshot.collectedCount}/${snapshot.totalCount}`);
+    this.progressText.setText(`Cards encontrados: ${snapshot.collectedCount}/${snapshot.totalCount} · ${collectionPercent}%`);
     this.chapterText.setText(`${snapshot.collectedCount}`);
     this.progressFill.width = Math.max(
       20,
-      248 * Phaser.Math.Clamp(snapshot.collectedCount / snapshot.totalCount, 0, 1),
+      248 * collectionRatio,
     );
     this.container.setVisible(true);
     this.container.setAlpha(0);
