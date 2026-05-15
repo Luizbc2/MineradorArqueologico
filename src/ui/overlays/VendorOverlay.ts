@@ -155,13 +155,13 @@ export class VendorOverlay {
     this.inventoryBody.replaceChildren();
 
     if (snapshot.sale.lines.length === 0) {
-      this.inventoryBody.append(
-        createHudElement(
-          "div",
-          "game-modal-vendor-empty",
-          "Nenhum minério na mochila ainda. Desça, minere e volte para vender.",
-        ),
+      const emptyState = createHudElement(
+        "div",
+        "game-modal-vendor-empty",
+        "Nenhum minério na mochila ainda. Desça, minere e volte para vender.",
       );
+      emptyState.setAttribute("role", "status");
+      this.inventoryBody.append(emptyState);
       return;
     }
 
