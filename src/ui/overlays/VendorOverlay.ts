@@ -33,6 +33,9 @@ export class VendorOverlay {
 
     this.scope = createHudScope("game-modal-scope--vendor", "modal");
     this.overlay = createHudElement("section", "game-modal-overlay");
+    this.overlay.setAttribute("role", "dialog");
+    this.overlay.setAttribute("aria-modal", "true");
+    this.overlay.setAttribute("aria-label", "Posto de venda");
 
     const card = createHudElement("div", "game-modal-card game-modal-card--vendor");
     const accent = createHudElement("div", "game-modal-card__accent");
