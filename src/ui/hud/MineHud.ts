@@ -171,6 +171,8 @@ export class MineHud {
       "game-hud-backpack-hint",
       "MOCHILA VAZIA",
     ) as HTMLDivElement;
+    this.backpackHint.setAttribute("role", "status");
+    this.backpackHint.setAttribute("aria-live", "polite");
     const backpackMeter = createHudElement("div", "game-hud-backpack-meter");
     this.backpackFill = createHudElement("div", "game-hud-backpack-meter__fill") as HTMLDivElement;
     backpackMeter.append(this.backpackFill);
