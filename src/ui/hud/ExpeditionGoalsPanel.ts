@@ -137,7 +137,11 @@ export class ExpeditionGoalsPanel {
       : "Depois: Nenhuma meta pendente";
 
     const ratio = activeGoal ? Phaser.Math.Clamp(activeGoal.current / activeGoal.target, 0, 1) : 1;
-    this.progressFill.style.width = `${Math.round(ratio * 100)}%`;
+    const progressPercent = Math.round(ratio * 100);
+    this.progressFill.style.width = `${progressPercent}%`;
+    this.progressFill.title = activeGoal
+      ? `${progressPercent}% da meta atual`
+      : "Ciclo de metas completo";
   }
 
   destroy() {
