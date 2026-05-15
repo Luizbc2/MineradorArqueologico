@@ -231,7 +231,14 @@ export class ArchaeologyCardOverlay {
   }
 
   hide() {
-    this.container.setVisible(false);
+    this.scene.tweens.killTweensOf(this.container);
+    this.scene.tweens.add({
+      targets: this.container,
+      alpha: 0,
+      duration: 120,
+      ease: "quad.out",
+      onComplete: () => this.container.setVisible(false),
+    });
   }
 
   get isVisible() {
