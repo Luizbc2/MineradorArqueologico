@@ -106,6 +106,8 @@ export class UpgradeOverlay {
     this.upgradesTab = createWorkshopTabButton("UPGRADES");
     this.pickaxesTab.id = "workshop-tab-pickaxes";
     this.upgradesTab.id = "workshop-tab-upgrades";
+    this.pickaxesTab.setAttribute("aria-controls", "workshop-panel-pickaxes");
+    this.upgradesTab.setAttribute("aria-controls", "workshop-panel-upgrades");
     tabs.append(this.pickaxesTab, this.upgradesTab);
 
     this.pickaxesPanel = createHudElement("div", "game-modal-workshop-panel") as HTMLDivElement;
