@@ -126,6 +126,7 @@ export class ExpeditionGoalsPanel {
     const nextGoal = snapshot.nextGoal;
 
     this.overviewText.textContent = snapshot.progressLabel;
+    this.overviewText.title = `Progresso da expedição: ${snapshot.progressLabel}`;
     this.activeTitle.textContent = activeGoal?.title ?? "Ciclo concluído";
     this.activeDescription.textContent = activeGoal?.description
       ?? "Você concluiu as metas atuais. Explore mais fundo para o próximo ciclo.";
