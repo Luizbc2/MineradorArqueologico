@@ -130,6 +130,9 @@ export class ExpeditionGoalsPanel {
     this.activeDescription.textContent = activeGoal?.description
       ?? "Você concluiu as metas atuais. Explore mais fundo para o próximo ciclo.";
     this.progressValue.textContent = activeGoal ? `${activeGoal.current}/${activeGoal.target}` : "MAX";
+    this.progressValue.title = activeGoal
+      ? `${activeGoal.current} de ${activeGoal.target} concluído`
+      : "Todas as metas atuais foram concluídas";
     this.rewardText.textContent = activeGoal?.rewardLabel ?? "Ciclo completo";
     this.perkText.textContent = `Bônus atual: ${snapshot.perkSummary}`;
     this.nextGoalText.textContent = nextGoal
