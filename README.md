@@ -18,6 +18,8 @@ Jogo web 2D de mineração incremental com exploração em blocos, progressão d
 - Use as moedas para comprar picaretas e upgrades.
 - Desça mais fundo para liberar minérios, baús e metas melhores.
 - Complete metas de expedição para ganhar bônus permanentes.
+- Venda com a mochila quase cheia para ativar bônus de valor.
+- Mantenha sequências de mineração para acelerar o combo.
 
 ## Atalhos
 
