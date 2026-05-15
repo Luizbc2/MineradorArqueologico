@@ -141,8 +141,9 @@ export class VendorOverlay {
     this.sellButton.disabled = snapshot.sale.totalCoins <= 0;
     this.sellButton.textContent = snapshot.sale.totalCoins > 0 ? "VENDER TUDO" : "MOCHILA VAZIA";
     this.sellButton.title = snapshot.sale.totalCoins > 0
-      ? "Vender todos os minérios da mochila"
+      ? `Vender todos os minérios por ${formatCoins(snapshot.sale.totalCoins)} moedas`
       : "A mochila não tem minérios para vender";
+    this.sellButton.setAttribute("aria-label", this.sellButton.title);
     this.inventoryBody.replaceChildren();
 
     if (snapshot.sale.lines.length === 0) {
