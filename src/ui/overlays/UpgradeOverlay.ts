@@ -354,6 +354,7 @@ function getPickaxeCardTitle(line: PickaxeShopLine, snapshot: OverlaySnapshot) {
 
 function createStat(label: string, value: string) {
   const stat = createHudElement("div", "game-modal-pickaxe-card__stat");
+  stat.title = `${label}: ${value}`;
   stat.append(
     createHudElement("span", "", label),
     createHudElement("strong", "", value),
