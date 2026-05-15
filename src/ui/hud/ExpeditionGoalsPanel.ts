@@ -164,6 +164,8 @@ export class ExpeditionGoalsPanel {
     this.isOpen = value;
     this.toggleButton.classList.toggle("is-open", value);
     this.toggleButton.setAttribute("aria-expanded", String(value));
+    this.toggleButton.title = value ? "Fechar missões" : "Abrir missões";
+    this.toggleButton.setAttribute("aria-label", value ? "Fechar missões" : "Abrir missões");
     this.panel.classList.toggle("is-open", value);
   }
 }
