@@ -282,7 +282,7 @@ export class MineHud {
       this.comboChip.hidden = !comboVisible;
       this.comboValue.textContent = `x${snapshot.comboCount}`;
       this.comboChip.title = comboVisible
-        ? `Combo atual: x${snapshot.comboCount}`
+        ? `Combo atual: x${snapshot.comboCount} · ${Math.ceil(snapshot.comboWindowRatio * 100)}% restante`
         : "Combo inativo";
       this.comboChip.style.borderColor = comboVisible ? snapshot.comboColor : "rgba(139, 115, 79, 0.95)";
       this.comboChip.style.color = comboVisible ? snapshot.comboColor : "#f5efdf";
