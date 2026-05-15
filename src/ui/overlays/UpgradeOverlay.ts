@@ -147,9 +147,12 @@ export class UpgradeOverlay {
       if (event.key === "ArrowLeft" && this.activeTab === "pickaxes") {
         event.preventDefault();
         this.changePage(-1);
-      } else if (event.key === "ArrowRight" && this.activeTab === "pickaxes") {
+      } else if ((event.key === "ArrowRight" || event.key === "PageDown") && this.activeTab === "pickaxes") {
         event.preventDefault();
         this.changePage(1);
+      } else if (event.key === "PageUp" && this.activeTab === "pickaxes") {
+        event.preventDefault();
+        this.changePage(-1);
       } else if (event.key === "Home" && this.activeTab === "pickaxes") {
         event.preventDefault();
         this.goToPage(0);
