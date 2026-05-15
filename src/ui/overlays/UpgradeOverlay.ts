@@ -287,6 +287,8 @@ function createPickaxeCard(line: PickaxeShopLine, snapshot: OverlaySnapshot) {
   card.classList.toggle("is-equipped", line.equipped);
   card.classList.toggle("is-locked", line.locked);
   card.title = getPickaxeCardTitle(line, snapshot);
+  card.setAttribute("role", "group");
+  card.setAttribute("aria-label", card.title);
 
   const title = createHudElement("h3", "game-modal-pickaxe-card__title", line.pickaxe.name);
   const tier = createHudElement("div", "game-modal-pickaxe-card__tier", `TIER ${line.pickaxe.tier}`);
