@@ -54,6 +54,7 @@ export class VendorOverlay {
     const inventorySection = createHudElement("section", "game-modal-section");
     inventorySection.append(createHudElement("div", "game-modal-section__title", "LOTE ATUAL"));
     this.inventoryBody = createHudElement("div", "game-modal-vendor-list") as HTMLDivElement;
+    this.inventoryBody.setAttribute("role", "list");
     inventorySection.append(this.inventoryBody);
 
     const totalSection = createHudElement("div", "game-modal-vendor-total");
@@ -171,6 +172,7 @@ export class VendorOverlay {
 
     for (const line of snapshot.sale.lines) {
       const row = createHudElement("div", "game-modal-vendor-row");
+      row.setAttribute("role", "listitem");
       const meta = getResourceMeta(line.resource);
       row.classList.toggle("is-best", line.resource === bestResource);
       row.style.setProperty("--resource-accent", meta.accent);
