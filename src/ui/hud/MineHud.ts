@@ -119,6 +119,7 @@ export class MineHud {
     this.backpackButton = createHudButton("MOCHILA", "backpack", "cool");
     this.backpackButton.title = "Abrir mochila (B)";
     this.backpackButton.setAttribute("aria-label", "Abrir mochila");
+    this.backpackButton.setAttribute("aria-controls", "mine-backpack-panel");
     setHudRect(this.backpackButton, layout.backpackButton);
     this.backpackButton.addEventListener("click", (event) => {
       event.preventDefault();
@@ -149,6 +150,7 @@ export class MineHud {
     window.addEventListener("keydown", this.handleKeyDown);
 
     this.backpackPanel = createHudPanel("MOCHILA", "up", "cool");
+    this.backpackPanel.id = "mine-backpack-panel";
     this.backpackPanel.classList.add("game-hud-panel--backpack");
     this.backpackPanel.setAttribute("role", "region");
     this.backpackPanel.setAttribute("aria-label", "Mochila");
