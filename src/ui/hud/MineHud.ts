@@ -109,6 +109,8 @@ export class MineHud {
     const comboChip = createHudStatChip("COMBO", "x0", "combo");
     comboChip.root.classList.add("game-hud-chip--small");
     comboChip.root.hidden = true;
+    comboChip.root.setAttribute("role", "status");
+    comboChip.root.setAttribute("aria-live", "polite");
     this.comboChip = comboChip.root;
     this.comboValue = comboChip.value;
 
