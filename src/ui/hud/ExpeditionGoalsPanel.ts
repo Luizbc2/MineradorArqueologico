@@ -134,6 +134,9 @@ export class ExpeditionGoalsPanel {
       ? `${activeGoal.current} de ${activeGoal.target} concluído`
       : "Todas as metas atuais foram concluídas";
     this.rewardText.textContent = activeGoal?.rewardLabel ?? "Ciclo completo";
+    this.rewardText.title = activeGoal
+      ? `Recompensa da meta: ${activeGoal.rewardLabel}`
+      : "Ciclo de recompensas completo";
     this.perkText.textContent = `Bônus atual: ${snapshot.perkSummary}`;
     this.nextGoalText.textContent = nextGoal
       ? `Depois: ${nextGoal.title}`
