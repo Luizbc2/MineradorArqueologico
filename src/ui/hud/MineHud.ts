@@ -56,6 +56,7 @@ export class MineHud {
   private readonly backpackSummaryLabel: HTMLDivElement;
   private readonly backpackValue: HTMLDivElement;
   private readonly backpackHint: HTMLDivElement;
+  private readonly backpackMeter: HTMLDivElement;
   private readonly backpackFill: HTMLDivElement;
   private readonly resourceValues: Record<ResourceKind, HTMLDivElement>;
   private readonly resourceTotals: Record<ResourceKind, HTMLDivElement>;
@@ -173,7 +174,10 @@ export class MineHud {
     ) as HTMLDivElement;
     this.backpackHint.setAttribute("role", "status");
     this.backpackHint.setAttribute("aria-live", "polite");
-    const backpackMeter = createHudElement("div", "game-hud-backpack-meter");
+    const backpackMeter = createHudElement("div", "game-hud-backpack-meter") as HTMLDivElement;
+    this.backpackMeter = backpackMeter;
+    this.backpackMeter.setAttribute("role", "progressbar");
+    this.backpackMeter.setAttribute("aria-valuemin", "0");
     this.backpackFill = createHudElement("div", "game-hud-backpack-meter__fill") as HTMLDivElement;
     backpackMeter.append(this.backpackFill);
     const resourceGrid = createHudElement("div", "game-hud-resource-grid");
@@ -273,6 +277,9 @@ export class MineHud {
       this.backpackHint.classList.toggle("has-value", sale.totalCoins > 0);
       this.backpackHint.classList.toggle("is-warning", backpackNearFull);
       this.backpackHint.classList.toggle("is-full", backpackFull);
+      this.backpackMeter.setAttribute("aria-valuemax", String(snapshot.backpackCapacity));
+      this.backpackMeter.setAttribute("aria-valuenow", String(snapshot.backpackLoad));
+      this.backpackMeter.setAttribute("aria-valuetext", `${snapshot.backpackLoad}/${snapshot.backpackCapacity} espaços ocupados`);
       this.backpackFill.style.width = `${backpackPercent}%`;
       this.backpackFill.title = `${backpackPercent}% da mochila ocupada`;
       this.backpackFill.classList.toggle("is-warning", backpackNearFull);
