@@ -125,6 +125,12 @@ export class MineHud {
     this.handleKeyDown = (event) => {
       const target = event.target;
 
+      if (event.key === "Escape" && this.isBackpackOpen) {
+        event.preventDefault();
+        this.setBackpackOpen(false);
+        return;
+      }
+
       if (
         event.key.toLowerCase() !== "b" ||
         target instanceof HTMLInputElement ||
