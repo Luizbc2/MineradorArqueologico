@@ -3028,6 +3028,7 @@ export class MineScene extends Phaser.Scene {
     this.rewardComboWindow = 2.6;
     this.rewardLabel = "Retorno seguro";
     this.rewardColor = "#d2fff7";
+    this.updateHud();
 
     const camera = this.cameras.main;
 
