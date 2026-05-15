@@ -22,6 +22,7 @@ export class VendorOverlay {
   private readonly inventoryBody: HTMLDivElement;
   private readonly totalMeta: HTMLDivElement;
   private readonly totalValue: HTMLDivElement;
+  private readonly note: HTMLDivElement;
   private readonly sellButton: HTMLButtonElement;
   private readonly closeButton: HTMLButtonElement;
   private readonly handleKeyDown: (event: KeyboardEvent) => void;
@@ -62,11 +63,11 @@ export class VendorOverlay {
     this.totalValue = createHudElement("div", "game-modal-vendor-total__value", "0 moedas");
     totalSection.append(totalCopy, this.totalValue);
 
-    const note = createHudElement(
+    this.note = createHudElement(
       "div",
       "game-modal-note",
       "O vendedor compra o carregamento inteiro de uma vez. Melhor voltar sempre com a mochila cheia.",
-    );
+    ) as HTMLDivElement;
 
     const actions = createHudElement("div", "game-modal-actions");
     this.sellButton = createVendorButton("VENDER TUDO", "primary");
@@ -79,7 +80,7 @@ export class VendorOverlay {
       "Pressione ENTER para vender ou ESC para fechar o posto",
     );
 
-    card.append(accent, title, subtitle, wallet, inventorySection, totalSection, note, actions, hint);
+    card.append(accent, title, subtitle, wallet, inventorySection, totalSection, this.note, actions, hint);
     this.overlay.append(card);
     this.scope.append(this.overlay);
 
@@ -127,6 +128,9 @@ export class VendorOverlay {
     const bonusLabel = snapshot.saleBonusPercent > 0
       ? ` · bônus +${formatCoins(snapshot.saleBonusPercent)}%`
       : "";
+    this.note.textContent = snapshot.saleBonusPercent > 0
+      ? `Bônus ativo: esta venda está rendendo +${formatCoins(snapshot.saleBonusPercent)}%.`
+      : "O vendedor compra o carregamento inteiro de uma vez. Melhor voltar sempre com a mochila cheia.";
     this.totalMeta.textContent =
       itemCount > 0
         ? `${formatCoins(itemCount)} ${itemCount === 1 ? "item" : "itens"} no lote · média ${formatCoins(averageValue)}${bonusLabel}`
