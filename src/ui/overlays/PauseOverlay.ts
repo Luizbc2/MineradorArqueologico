@@ -121,6 +121,7 @@ export class PauseOverlay {
     this.adminCodeStatus.textContent = "";
     this.adminCodeStatus.classList.remove("is-ok", "is-error");
     this.overlay.classList.add("is-open");
+    window.requestAnimationFrame(() => this.resumeButton.focus({ preventScroll: true }));
   }
 
   hide() {
