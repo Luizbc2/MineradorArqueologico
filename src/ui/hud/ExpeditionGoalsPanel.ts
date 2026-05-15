@@ -52,6 +52,7 @@ export class ExpeditionGoalsPanel {
     this.toggleButton = createHudButton("MISSÕES", "missions", "accent");
     this.toggleButton.title = "Abrir missões";
     this.toggleButton.setAttribute("aria-label", "Abrir missões");
+    this.toggleButton.setAttribute("aria-controls", "mine-missions-panel");
     setHudRect(this.toggleButton, layout.missionButton);
     this.toggleButton.addEventListener("click", (event) => {
       event.preventDefault();
@@ -60,6 +61,9 @@ export class ExpeditionGoalsPanel {
     });
 
     this.panel = createHudPanel("MISSÕES", "down", "accent");
+    this.panel.id = "mine-missions-panel";
+    this.panel.setAttribute("role", "region");
+    this.panel.setAttribute("aria-label", "Missões");
     setHudRect(this.panel, layout.missionPanel);
 
     const closeButton = createHudIconButton("close");
