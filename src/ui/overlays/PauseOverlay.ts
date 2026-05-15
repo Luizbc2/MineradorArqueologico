@@ -110,6 +110,7 @@ export class PauseOverlay {
 
       if (result.ok) {
         this.adminCodeInput.value = "";
+        this.adminCodeButton.disabled = true;
       }
     };
     this.adminCodeInput.onkeydown = (event) => {
