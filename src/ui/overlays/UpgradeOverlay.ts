@@ -183,6 +183,9 @@ export class UpgradeOverlay {
     this.closeButton.onclick = snapshot.onClose;
     window.addEventListener("keydown", this.handleKeyDown);
     this.overlay.classList.add("is-open");
+    window.requestAnimationFrame(() => {
+      (this.activeTab === "pickaxes" ? this.pickaxesTab : this.upgradesTab).focus({ preventScroll: true });
+    });
   }
 
   hide() {
