@@ -270,6 +270,7 @@ function createPickaxeCard(line: PickaxeShopLine, snapshot: OverlaySnapshot) {
   const card = createHudElement("article", "game-modal-pickaxe-card");
   card.classList.toggle("is-equipped", line.equipped);
   card.classList.toggle("is-locked", line.locked);
+  card.title = getPickaxeCardTitle(line, snapshot);
 
   const title = createHudElement("h3", "game-modal-pickaxe-card__title", line.pickaxe.name);
   const tier = createHudElement("div", "game-modal-pickaxe-card__tier", `TIER ${line.pickaxe.tier}`);
@@ -315,6 +316,22 @@ function createPickaxeCard(line: PickaxeShopLine, snapshot: OverlaySnapshot) {
 
   card.append(title, tier, unlock, artWrap, stats, action);
   return card;
+}
+
+function getPickaxeCardTitle(line: PickaxeShopLine, snapshot: OverlaySnapshot) {
+  if (line.equipped) {
+    return `${line.pickaxe.name} equipada`;
+  }
+
+  if (line.owned) {
+    return `${line.pickaxe.name} comprada`;
+  }
+
+  if (line.locked) {
+    return `${line.pickaxe.name} libera em ${formatNumber(line.pickaxe.unlockDepth - snapshot.maxDepthReached)}m`;
+  }
+
+  return `${line.pickaxe.name} custa ${formatNumber(line.pickaxe.cost)} moedas`;
 }
 
 function createStat(label: string, value: string) {
