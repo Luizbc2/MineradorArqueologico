@@ -118,6 +118,10 @@ export class PauseOverlay {
         this.adminCodeButton.click();
       }
     };
+    this.adminCodeInput.oninput = () => {
+      this.adminCodeStatus.textContent = "";
+      this.adminCodeStatus.classList.remove("is-ok", "is-error");
+    };
     this.adminCodeStatus.textContent = "";
     this.adminCodeStatus.classList.remove("is-ok", "is-error");
     this.overlay.classList.add("is-open");
@@ -129,6 +133,7 @@ export class PauseOverlay {
     this.audioButton.onclick = null;
     this.adminCodeButton.onclick = null;
     this.adminCodeInput.onkeydown = null;
+    this.adminCodeInput.oninput = null;
     this.adminCodeInput.value = "";
     this.adminCodeStatus.textContent = "";
     this.adminCodeStatus.classList.remove("is-ok", "is-error");
