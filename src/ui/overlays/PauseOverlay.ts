@@ -27,6 +27,9 @@ export class PauseOverlay {
 
     this.scope = createHudScope("game-modal-scope--pause", "modal");
     this.overlay = createHudElement("section", "game-modal-overlay");
+    this.overlay.setAttribute("role", "dialog");
+    this.overlay.setAttribute("aria-modal", "true");
+    this.overlay.setAttribute("aria-label", "Pausa da expedição");
 
     const card = createHudElement("div", "game-modal-card game-modal-card--pause");
     const accent = createHudElement("div", "game-modal-card__accent");
