@@ -107,6 +107,10 @@ export class VendorOverlay {
     this.closeButton.onclick = snapshot.onClose;
     window.addEventListener("keydown", this.handleKeyDown);
     this.overlay.classList.add("is-open");
+
+    if (!this.sellButton.disabled) {
+      window.requestAnimationFrame(() => this.sellButton.focus({ preventScroll: true }));
+    }
   }
 
   hide() {
